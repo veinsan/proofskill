@@ -18,7 +18,11 @@ ZERO_ADDRESS = "0x" + "0" * 40
 
 
 class RegistryError(Exception):
-    """The registry reverted (the message is the contract's custom error name) or the RPC failed."""
+    """The registry reverted. The message is the contract's custom error name when known."""
+
+
+class RegistryUnavailable(RegistryError):
+    """The chain could not be reached; endpoints map this to 503 REGISTRY_UNAVAILABLE."""
 
 
 @cache
@@ -55,7 +59,7 @@ def _rpc(method: str, params: list[Any]) -> Any:
         )
         response.raise_for_status()
     except httpx.HTTPError as exc:
-        raise RegistryError(f"registry unreachable: {exc}") from exc
+        raise RegistryUnavailable(f"registry unreachable: {exc}") from exc
     body: dict[str, Any] = response.json()
     if "error" in body:
         error = body["error"]

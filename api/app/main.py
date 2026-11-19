@@ -2,6 +2,8 @@
 
 from fastapi import FastAPI
 
+from app import errors, ias
+
 API_PREFIX = "/api/v1"
 
 app = FastAPI(
@@ -10,3 +12,5 @@ app = FastAPI(
     openapi_url=f"{API_PREFIX}/openapi.json",
     docs_url=f"{API_PREFIX}/docs",
 )
+errors.install(app)
+app.include_router(ias.router, prefix=API_PREFIX)

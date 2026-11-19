@@ -27,7 +27,7 @@ def test_seed_loads_synthetic_rows_and_can_run_again(conn: db.psycopg.Connection
     assert all(a["password_hash"].startswith("scrypt$") for a in accounts)
 
 
-def test_database_issuers_match_registry_issuers(conn: db.psycopg.Connection[db.DictRow]) -> None:
+def test_database_issuers_match_registry_issuers(conn: db.psycopg.Connection[db.DictRow], chain: None) -> None:
     db.migrate(conn)
     seed.seed(conn)
     seed.register_issuers_on_chain(conn)
