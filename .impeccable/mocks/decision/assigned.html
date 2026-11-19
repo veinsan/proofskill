@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ProofSkill · Verification VER-0001 (Boarding Pass Gate)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Tokens mirror DESIGN.md (frontmatter is normative). */
+:root{--navy:#0F1B3D;--white:#FFFFFF;--pink:#FF3D8B;--ink-muted:#575F77;--rule:#D9DBE0;--edge:#878D9E;--tint:#F3F4F5}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1440px;height:900px;overflow:hidden}
+body{background:var(--white);color:var(--navy);font-family:Archivo,system-ui,sans-serif;font-size:15px;line-height:1.45}
+.mono{font-family:'Red Hat Mono',ui-monospace,monospace;font-size:13px}
+.lbl{font-stretch:72%;font-weight:600;font-size:11.5px;line-height:1.2;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-muted)}
+.top{height:64px;background:var(--navy);color:var(--white);display:flex;align-items:center;gap:24px;padding:0 40px}
+.brand{font-weight:800;font-stretch:115%;font-size:22px}
+.portal{font-stretch:72%;font-weight:600;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.8}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:16px;font-size:13px}
+.syn{font-family:'Red Hat Mono',monospace;font-size:11px;letter-spacing:.06em;border:1px solid rgba(255,255,255,.45);border-radius:9999px;padding:3px 10px}
+main{display:grid;grid-template-columns:1fr 500px;gap:32px;padding:24px 40px}
+.crumb{font-size:13px;color:var(--ink-muted);margin-bottom:12px}
+.crumb b{color:var(--navy);font-weight:600}
+.pass{display:grid;grid-template-columns:1fr 292px;border:1.5px solid var(--navy);border-radius:16px;overflow:hidden;height:676px}
+.pbody{padding:24px 12px}
+.route{display:grid;grid-template-columns:1fr 40px 1fr;align-items:end;padding:0 18px 18px;border-bottom:1px solid var(--rule)}
+.big{font-weight:800;font-stretch:120%;font-size:46px;line-height:1;letter-spacing:-.01em;margin-top:6px}
+.sub{font-size:13px;color:var(--ink-muted);margin-top:6px}
+.arrow{font-size:22px;text-align:center;padding-bottom:26px}
+.cells{display:grid;grid-template-columns:1fr 1fr}
+.cell{padding:14px 18px;border-bottom:1px solid var(--rule)}
+.cell:nth-child(odd):not(.full){border-right:1px solid var(--rule)}
+.cell.full{grid-column:1/-1}
+.val{font-size:16px;font-weight:500;line-height:1.4;margin-top:4px}
+.skills{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.skill{border:1px solid var(--navy);border-radius:4px;padding:4px 10px;font-size:15px}
+.skill .mono{font-size:11px;color:var(--ink-muted);margin-left:6px}
+.stub{background:var(--navy);color:var(--white);padding:24px;position:relative;border-left:2px dashed rgba(255,255,255,.55)}
+.stub:before,.stub:after{content:"";position:absolute;left:-13px;width:24px;height:24px;border-radius:50%;background:var(--white);border:1.5px solid var(--navy)}
+.stub:before{top:-13px}.stub:after{bottom:-13px}
+.stub .lbl{color:rgba(255,255,255,.75)}
+.verdict{font-weight:800;font-stretch:125%;font-size:64px;line-height:1;margin:10px 0 12px}
+.say{font-size:15px;line-height:1.45;margin-bottom:18px}
+.check{display:grid;grid-template-columns:18px 1fr auto;gap:10px;align-items:start;padding:12px 0;border-top:1px solid rgba(255,255,255,.25)}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--white);margin-top:4px}
+.check b{font-weight:600;font-size:15px;display:block}
+.check span{font-size:13px;opacity:.85}
+.check .st{font-family:'Red Hat Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.06em}
+.chain{margin-top:14px;opacity:.9}
+.tag{display:inline-block;font-family:'Red Hat Mono',monospace;font-size:11px;letter-spacing:.06em;border:1px solid var(--navy);border-radius:4px;padding:2px 8px;margin-bottom:8px}
+.stub .tag{border-color:var(--white)}
+.fit{border:1px solid var(--rule);border-radius:16px;padding:24px;height:708px}
+.fit h2{font-weight:700;font-stretch:108%;font-size:22px;line-height:1.3;margin:4px 0 14px}
+.field{margin-bottom:12px}
+.input{border:1px solid var(--edge);border-radius:8px;padding:9px 12px;font-size:15px;margin-top:5px}
+.btn{display:block;width:100%;background:var(--pink);color:var(--navy);font-weight:700;font-size:15px;text-align:center;border-radius:8px;padding:12px 20px;margin:4px 0 18px}
+.rek{display:flex;align-items:center;gap:10px;border-top:1px solid var(--rule);padding-top:14px;margin-bottom:8px}
+.rek .tag{margin:0}
+.rek small{font-size:13px;color:var(--ink-muted)}
+.m{display:grid;grid-template-columns:1fr 92px 40px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--tint);font-size:15px}
+.m i{font-style:normal;color:var(--ink-muted);display:block;font-size:13px}
+.bar{height:6px;background:var(--tint);border-radius:4px;overflow:hidden}.bar u{display:block;height:100%;background:var(--navy);border-radius:4px}
+.miss{margin-top:12px;border:1px dashed var(--navy);border-radius:8px;padding:10px 12px;font-size:15px}
+.foot{font-size:13px;color:var(--ink-muted);margin-top:12px}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">ProofSkill</div><div class="portal">Verifier portal</div>
+  <div class="right"><span class="syn">SYNTHETIC DATA</span><span>hr.recruiter@contoh.id</span></div>
+</header>
+<main>
+  <section>
+    <p class="crumb">Verifications / <b>VER-0001</b> · opened from share link <span class="mono">sk_3f9a…4d56</span></p>
+    <article class="pass">
+      <div class="pbody">
+        <div class="route">
+          <div><div class="lbl">Issuer</div><div class="big">ISS-001</div><div class="sub">Unit Pelatihan Contoh</div></div>
+          <div class="arrow">→</div>
+          <div><div class="lbl">Credential</div><div class="big">CRD-0001</div><div class="sub">Issued 21 Oct 2026, 09:15 UTC</div></div>
+        </div>
+        <div class="cells">
+          <div class="cell full"><div class="lbl">Program</div><div class="val">Pelatihan Keamanan Aplikasi Web Dasar</div></div>
+          <div class="cell"><div class="lbl">Completed</div><div class="val">20 Oct 2026</div></div>
+          <div class="cell"><div class="lbl">Link expires</div><div class="val">24 Oct 2026, 09:20 UTC</div></div>
+          <div class="cell full"><div class="lbl">Pass criteria</div><div class="val">Kehadiran minimal 80 persen dan lulus proyek akhir</div></div>
+          <div class="cell full"><div class="lbl">Skills, from the issuer's catalog</div>
+            <div class="skills"><span class="skill">OWASP Top 10<span class="mono">SK-014</span></span><span class="skill">Vulnerability Assessment<span class="mono">SK-021</span></span><span class="skill">Security Testing Basics<span class="mono">SK-033</span></span></div></div>
+          <div class="cell full"><div class="lbl">Shared by the holder</div><div class="val mono">program.title · completedAt · skills (name and other data not shared)</div></div>
+        </div>
+      </div>
+      <aside class="stub">
+        <span class="tag">BLOCKCHAIN REGISTRY</span>
+        <div class="lbl">Checked 22 Oct 2026, 03:41 UTC</div>
+        <div class="verdict">VALID</div>
+        <p class="say">Issued by an authorized issuer, unchanged since issuance, and still active. You can rely on it and check skill fit.</p>
+        <div class="check"><i class="dot"></i><div><b>Integrity</b><span>Recomputed hash matches the registry commitment</span></div><span class="st">PASS</span></div>
+        <div class="check"><i class="dot"></i><div><b>Issuer</b><span>ISS-001 is an authorized issuer on the registry</span></div><span class="st">PASS</span></div>
+        <div class="check"><i class="dot"></i><div><b>Status</b><span>Not revoked by its issuer</span></div><span class="st">ACTIVE</span></div>
+        <div class="chain mono">tx 0x0b9e242b…9ce3<br>VER-0001</div>
+      </aside>
+    </article>
+  </section>
+  <aside class="fit">
+    <span class="tag">AI · EMBEDDING MODEL</span>
+    <h2>Skill fit for a position</h2>
+    <div class="field"><div class="lbl">Position title</div><div class="input">Junior Security Analyst</div></div>
+    <div class="field"><div class="lbl">Position description</div><div class="input">Menganalisis kerentanan aplikasi web, memahami OWASP Top 10, melakukan pengujian keamanan dasar, dan memantau log dengan SIEM.</div></div>
+    <div class="btn">Check skill fit</div>
+    <div class="rek"><span class="tag">REKOMENDASI</span><small>A recommendation, not a decision. No total score.</small></div>
+    <div class="m"><div>OWASP Top 10<i>“memahami OWASP Top 10”</i></div><div class="bar"><u style="width:91%"></u></div><span class="mono">0.91</span></div>
+    <div class="m"><div>Vulnerability Assessment<i>“menganalisis kerentanan aplikasi web”</i></div><div class="bar"><u style="width:78%"></u></div><span class="mono">0.78</span></div>
+    <div class="m"><div>Security Testing Basics<i>“melakukan pengujian keamanan dasar”</i></div><div class="bar"><u style="width:74%"></u></div><span class="mono">0.74</span></div>
+    <div class="miss"><b>Not covered:</b> “memantau log dengan SIEM”. No related skill on this credential.</div>
+    <p class="foot">Text similarity is not proof of ability. Model embedding-multibahasa-v1. The hiring decision stays with you.</p>
+  </aside>
+</main>
+</body>
+</html>
