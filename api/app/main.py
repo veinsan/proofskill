@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 
-from app import errors, ias
+from app import errors, ias, scs
 
 API_PREFIX = "/api/v1"
 
@@ -14,3 +14,4 @@ app = FastAPI(
 )
 errors.install(app)
 app.include_router(ias.router, prefix=API_PREFIX)
+app.include_router(scs.router, prefix=API_PREFIX)
