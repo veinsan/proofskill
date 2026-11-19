@@ -10,6 +10,8 @@ web
 
 Locked by the team on 2026-11-19 (D2 report, Tabel 10.3): Next.js for the web app with three portals, FastAPI for the REST API under `/api/v1`, PostgreSQL for off-chain data, Hardhat with the Solidity contract `ProofSkillRegistry` as the local chain, and the multilingual sentence-embedding model `paraphrase-multilingual-MiniLM-L12-v2` running locally for skill matching.
 
+Re-planned on 2026-11-19 for a public deployment, with the same API contract: Next.js on Vercel, FastAPI on Render, Supabase for Postgres and Auth, the registry on the Base Sepolia testnet, and Gemini embeddings in place of the local model. OpenCV, YOLO, MediaPipe, RunPod, and LangChain are reserved for future features; none is used today.
+
 ## Users
 
 - **Issuer admin (admin penerbit).** Works at a nonformal training organizer such as a campus unit, student association, laboratory, career center, or community. After a participant passes, they issue a credential and revoke it if it is wrong. The organizer is the paying customer.
@@ -36,7 +38,7 @@ These are design targets until D3 measures them.
 
 ProofSkill has three differentiators (report Tabel 1.5):
 
-1. **A shared registry across many small issuers with no single operator.** It runs on a permissioned blockchain. Only the original issuer can change a credential's status, and status history is never overwritten.
+1. **A shared registry across many small issuers with no single operator.** The registry contract is permissioned: only registered issuers write, and only the original issuer can change a credential's status. Status history is never overwritten. When deployed, the contract lives on a public testnet, so anyone can check it on a block explorer.
 2. **A per-position skill-fit summary at verification time.** It is available only for credentials that just verified as VALID.
 3. **A segment the formal channels leave out.** PISN, LSP/BNSP, and SiKompeten do not cover campus and community training.
 
@@ -47,8 +49,8 @@ ProofSkill is not a talent-search tool and not just certificate storage. It comp
 - The core flow is issue, share, verify with a skill summary, then revoke if needed. It is modeled as BPMN To-Be activities T01–T28 across five subprocesses.
 - Verification is self-service, with no admin involvement. A failed verification is still returned with its reason. It must not read as an accusation against the holder.
 - Holders share links or QR codes through channels they choose, such as job applications or LinkedIn.
-- The prototype runs on a local Hardhat chain with at least two test issuers, ISS-001 and ISS-002. All data is synthetic (assumption A6). One person may play several roles through separate accounts.
-- The prototype is the Deliverable 3 output of course II3120. It is demonstrated in a 10–15 minute presentation.
+- The prototype runs on a local Hardhat chain with at least two test issuers, ISS-001 and ISS-002; the deployment runs on the Base Sepolia testnet. All data is synthetic (assumption A6). One person may play several roles through separate accounts.
+- It started as the Deliverable 3 output of course II3120, demonstrated in a 10–15 minute presentation, and is now headed for a public deployment that real organizers could try.
 
 ## Capabilities and Constraints
 

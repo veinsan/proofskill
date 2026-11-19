@@ -1,6 +1,6 @@
 # PRD: ProofSkill
 
-> **Status** Approved scope for the Deliverable 3 prototype (from the D1+D2 report, Bab X)
+> **Status** Approved scope for the Deliverable 3 prototype (from the D1+D2 report, Bab X), built and tested locally. Re-planned on 2026-11-19 as a deployed product; see [Deployment decisions](#deployment-decisions).
 > **Author** Kelompok 02, II3120 Layanan Sistem dan Teknologi Informasi
 > **Last updated** 2026-11-19
 > **Sources of truth** Report "Laporan_Kelompok 02_Deliverable 1 II3120" (Google Doc, D1+D2) and deck "PPT_Kelompok 02_Deliverable 2 II3120" (Google Slides). When the two disagree, this PRD follows the report and lists the difference under [Open Decisions](#open-decisions).
@@ -155,7 +155,7 @@ Report Tabel 4.12. The targets are acceptance criteria for the design, not measu
   - PDDikti or PISN integration.
   - ATS integration.
   - Payment.
-  - A public blockchain.
+  - A public blockchain mainnet. The deployment uses a public testnet (Base Sepolia); see [Deployment decisions](#deployment-decisions).
   - Storing original documents.
   - Production-scale identity management.
   - From the D1 MVP boundary: full profiles, a job marketplace, HRIS or government integration, and a national consortium network.
@@ -163,10 +163,31 @@ Report Tabel 4.12. The targets are acceptance criteria for the design, not measu
 - **Changes:**
   - D2 broke the candidate services from D1 Tabel 6.3 into eight SoaML services. It moved FR-05 into the prototype and limited FR-11 to a specification.
   - On 2026-11-19, the team locked the stack from Tabel 10.3, set the interface language to English, and adopted a new visual identity defined in DESIGN.md.
+  - Also on 2026-11-19, after the prototype passed TC-01 to TC-16 locally, the project was re-planned as a deployed product. See below.
+
+## Deployment decisions
+
+Decided 2026-11-19. They change the infrastructure only. Users, user stories, FR and NFR, endpoints, payloads, codes, enums, and the design rules of section 3 stay as they are.
+
+| Area | Prototype | Deployment | Why |
+| --- | --- | --- | --- |
+| Web | Next.js, local | Next.js on Vercel | Same app; free hosting for Next.js |
+| API | FastAPI, local | FastAPI on Render (free tier; it sleeps when idle and wakes in about 30 seconds) | Same app; no extra cost |
+| Database | PostgreSQL 17, local cluster | Supabase Postgres, with Row Level Security on and no policies so only the API's connection can read or write | Managed Postgres that the same SQL migrations apply to |
+| Authentication | API-signed JWT, seeded passwords | Supabase Auth. API-00 stays as a proxy so the contract and tests do not change | Managed accounts, password reset, and future self sign-up (OD-11) |
+| Blockchain | Hardhat local node | `ProofSkillRegistry` on the Base Sepolia public testnet. Issuer keys are kept as secrets on the API (OD-12). Hardhat stays for contract tests and local development | A registry anyone can check on a block explorer, at no cost. Only commitments, issuer, status, and time go on-chain, as before (NFR-02) |
+| AI | MiniLM through ONNX Runtime in its own process | Gemini embeddings (free tier) from the AMS module | No 470 MB model in the deployment, so free hosting is enough. Only skill and requirement text is sent to Gemini, never holder identity (design rule 3) |
+| Reserved stack | — | OpenCV, YOLO, or MediaPipe (computer vision), RunPod (training compute), LangChain (multi-agent) | Not used by any current feature. A future feature that needs them, such as importing scanned legacy certificates, enters this PRD first |
+
+Consequences:
+- On a public testnet the registry is no longer a permissioned network. It is a permissioned contract: only issuers the platform admin registered can write, and only the original issuer can revoke. Positioning text that says "permissioned blockchain" needs this nuance (report Tabel 1.5).
+- Demo data stays synthetic (assumption A6). Real participant data needs a privacy review under UU PDP before it is allowed.
+- Gemini's free tier may use submitted text to improve Google's products, which is acceptable only because the text carries no personal data.
+- The report sections these decisions affect are tracked as D-08 in TODO.md.
 
 ## Open Decisions
 
-These gaps or conflicts in the source documents need a team decision. Until each is decided, no document or code treats it as settled. OD-1 to OD-8 were decided on 2026-11-19. The report sections each decision changes are tracked as D-08 in TODO.md. OD-10 was decided the same day. OD-9 is still open.
+These gaps or conflicts in the source documents need a team decision. Until each is decided, no document or code treats it as settled. OD-1 to OD-8 were decided on 2026-11-19. The report sections each decision changes are tracked as D-08 in TODO.md. OD-10 was decided the same day. OD-9, OD-11, and OD-12 are still open.
 
 1. **Platform admin role and unnamed error codes.** API-01 requires a "platform admin", but the role enum in Tabel 9.16 lists only `issuer_admin`, `holder`, and `verifier`. Some error responses also have no code names: API-01 (403, 409), API-03 (403, 404), and API-05 (403, 404).
    - **Decided 2026-11-19:** add the role `platform_admin`, used only by API-01. API-01 403 is `FORBIDDEN_ROLE` and 409 is the one new code, `ISSUER_ALREADY_REGISTERED`. API-03 403 is `NOT_CREDENTIAL_OWNER` and 404 is `CREDENTIAL_NOT_FOUND`. API-05 403 is `NOT_CREDENTIAL_OWNER` and 404 is `SHARE_LINK_NOT_FOUND`.
@@ -191,3 +212,5 @@ These gaps or conflicts in the source documents need a team decision. Until each
     - Add two owner-scoped list endpoints: the holder's own credentials, and the credentials the caller's issuer issued. Neither can search across holders.
     - Add no endpoint. The holder opens a credential from the ID in the simulated email, and the issuer portal lists the IDs it can see in its own audit log (API-10).
     - **Decided 2026-11-19:** add the two owner-scoped endpoints. API-12 `GET /holders/me/credentials` lists the signed-in holder's credentials. API-13 `GET /issuers/me/credentials` lists the credentials the caller's issuer issued. Both take only `limit` and `offset`, with no query or filter, so neither can search across holders.
+11. **Self sign-up for holders and verifiers (from the deployment re-plan).** The prototype seeds every account. A deployed service needs verifiers to sign up for their free account, and holders to claim the `holderRef` an issuer used (OD-5) without anyone being able to claim someone else's. The options include an issuer-sent invitation link, or an email match recorded at issuance. Until decided, accounts are created by the seed and by Supabase's admin API.
+12. **Issuer key custody on the testnet (from the deployment re-plan).** The contract checks the sender's address, so each issuer needs its own key. The default for B-03 is custodial: the API holds one key per issuer as a Render secret and signs for it. The alternative is that issuers sign in their own wallet, which changes the issuance flow. Until decided, B-03 uses the custodial default.

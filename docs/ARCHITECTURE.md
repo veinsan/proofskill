@@ -1,20 +1,20 @@
-# ARCHITECTURE: ProofSkill Prototype
+# ARCHITECTURE: ProofSkill
 
-This plan turns [PRD.md](PRD.md) into implementation steps for Deliverable 3. Its content comes from the D1+D2 report: Bab VIII (SoaML), Bab IX (REST API), and Bab X (prototype plan). No code exists yet. Everything below is planned, and items still marked **Pending** need a team decision (see PRD [Open Decisions](PRD.md#open-decisions)).
+This plan turns [PRD.md](PRD.md) into implementation steps. Its content comes from the D1+D2 report: Bab VIII (SoaML), Bab IX (REST API), and Bab X (prototype plan). Steps A-01 to A-13 built and tested the prototype locally for Deliverable 3. On 2026-11-19 the project was re-planned as a deployed product (PRD [Deployment decisions](PRD.md#deployment-decisions)). Steps B-01 to B-07 move it there. The API contract, codes, and enums do not change; only the infrastructure behind them does. Items still marked **Pending** need a team decision (see PRD [Open Decisions](PRD.md#open-decisions)).
 
 ## Technical Stack
 
-The team locked the stack on 2026-11-19 (report Tabel 10.3). Library versions are pinned when each part is scaffolded (step A-01) and recorded in [CLAUDE.md](../CLAUDE.md).
+The team locked the prototype stack on 2026-11-19 (report Tabel 10.3) and re-planned the deployment stack the same day. Library versions are pinned when each part is built and recorded in [CLAUDE.md](../CLAUDE.md).
 
-| Area | Choice | Role |
-| --- | --- | --- |
-| Web interface | Next.js | One app with three portals (issuer admin, holder, verifier) that calls the REST API |
-| API services | FastAPI (Python) | REST API under `/api/v1`; it shares the Python ecosystem with the AI module and generates OpenAPI from the contract |
-| Off-chain database | PostgreSQL | Credential metadata, share links, skill catalog, verifications, matchings, and audit log |
-| Registry | Hardhat local network with the Solidity contract `ProofSkillRegistry` | Registers issuers, records commitments, changes status, and reads records |
-| AI | `paraphrase-multilingual-MiniLM-L12-v2` sentence embeddings, run locally | Semantic similarity between verified skills and position requirements in Indonesian and English, with no API cost |
-| Authentication | Bearer JWT from API-00 | Roles `issuer_admin`, `holder`, and `verifier`, plus `platform_admin` for API-01 only (OD-1) |
-| Hosting | Local machine for the demo | A public blockchain is out of scope. Whether the web app and API are also deployed is **Pending** |
+| Area | Local prototype (A-01 to A-13, built) | Deployment (B-01 to B-07, target) | Role |
+| --- | --- | --- | --- |
+| Web interface | Next.js | Next.js on Vercel | One app with three portals (issuer admin, holder, verifier). It proxies `/api/v1` to the API |
+| API services | FastAPI (Python) | FastAPI on Render | REST API under `/api/v1`, one module per SoaML service |
+| Off-chain database | PostgreSQL 17, project-local cluster | Supabase Postgres | Credential metadata, share links, skill catalog, verifications, matchings, audit log. Row Level Security is on, with no policies, so only the API's own connection reads or writes |
+| Authentication | Bearer JWT signed by the API (API-00) | Supabase Auth. API-00 stays as a proxy to Supabase's password sign-in, and the API verifies Supabase-issued JWTs | Roles `issuer_admin`, `holder`, and `verifier`, plus `platform_admin` for API-01 only (OD-1) |
+| Registry | Hardhat local node, unlocked test accounts | `ProofSkillRegistry` on the Base Sepolia public testnet (chainId 84532). The API signs transactions with each issuer's key, stored as a secret (OD-12). Hardhat stays for contract tests and local development | Registers issuers, records commitments, changes status, and reads records |
+| AI | `paraphrase-multilingual-MiniLM-L12-v2` through ONNX Runtime in a separate AMS process | Gemini embeddings (free tier) called by the AMS module | Semantic similarity between verified skills and position requirements in Indonesian and English. Only skill and requirement text is sent, never holder identity |
+| Reserved stack | — | OpenCV, YOLO, or MediaPipe for computer vision; RunPod compute for training; LangChain for multi-agent flows | Not used by any current feature. Available for future features, such as reading legacy certificate scans, once the PRD scopes one |
 
 ## System Structure
 
@@ -29,9 +29,9 @@ This matches report Gambar 10.1 (Arsitektur prototipe).
 
    It talks to the API over HTTPS/JSON with a Bearer token.
 2. **REST API (FastAPI, `/api/v1`).** One module per SoaML service: IAS, CIS, CSS, AAS, VRS, AMS, and SCS. RGS is the adapter to the blockchain. The API enforces token auth and RBAC (NFR-01), keeps a consistent JSON contract and HTTP codes (NFR-08), and computes the nonce-salted SHA-256 hash of the canonical payload. It orchestrates validation, hashing, the registry call, and the audit record.
-3. **Off-chain database (PostgreSQL).** Reached over SQL. It holds credential metadata, skills, share links, the audit log, and the skill catalog. All data is synthetic.
-4. **Local blockchain (Hardhat).** Reached through JSON-RPC. `ProofSkillRegistry` has the report's four functions, `registerIssuer`, `issueCredential`, `revokeCredential`, and `getRecord`, plus `deactivateIssuer` (OD-2) and a read-only `issuerAccountOf` getter that the seed uses to check registrations. It stores only the hash commitment, issuer, issuer activity, status, and time.
-5. **AI module.** AMS runs as its own process on port 8001, and the API calls it over HTTP (OD-8). The process runs the official ONNX export of the model with ONNX Runtime and applies the model's mean pooling. sentence-transformers cannot load on the team's machines because Application Control blocks the `regex` DLL that `transformers` needs. It computes semantic similarity between skills and position requirements, groups requirements into matched and uncovered, and writes short reasons. Stopping that process is how TC-10 switches the AI off while verification keeps running (NFR-06).
+3. **Off-chain database (PostgreSQL; Supabase Postgres when deployed).** Reached over SQL. It holds credential metadata, skills, share links, the audit log, and the skill catalog. The same plain-SQL migrations apply to both. Demo data stays synthetic (A6).
+4. **Blockchain registry (Hardhat locally; Base Sepolia testnet when deployed).** Reached through JSON-RPC. On the testnet, the API signs each transaction with the acting issuer's own key, so the contract's original-issuer rule (TC-14) still holds. `ProofSkillRegistry` has the report's four functions, `registerIssuer`, `issueCredential`, `revokeCredential`, and `getRecord`, plus `deactivateIssuer` (OD-2) and a read-only `issuerAccountOf` getter that the seed uses to check registrations. It stores only the hash commitment, issuer, issuer activity, status, and time.
+5. **AI module.** AMS runs as its own process on port 8001, and the API calls it over HTTP (OD-8). The process runs the official ONNX export of the model with ONNX Runtime and applies the model's mean pooling. sentence-transformers cannot load on the team's machines because Application Control blocks the `regex` DLL that `transformers` needs. It computes semantic similarity between skills and position requirements, groups requirements into matched and uncovered, and writes short reasons. Stopping that process is how TC-10 switches the AI off while verification keeps running (NFR-06). When deployed, AMS becomes a module inside the API that calls Gemini embeddings and caches the catalog's skill vectors. TC-10 then switches the AI off by making Gemini unreachable (the API key unset), and the rest of the API keeps running (OD-8 as revised for deployment).
 
 ### Services, operations, endpoints, and contract calls
 
@@ -198,3 +198,17 @@ As of 2026-11-19, no step has started. Following the report's risk mitigation, P
 | A-11 | F-07 audit trail: `recordAudit` in CIS, CSS, VRS, and AMS, plus API-10 with filters by operation and time | A-06, A-08, A-09, A-10 | TC-13 passes: every operation is logged with time, actor role, operation, object ID, and outcome, and no sensitive payload. |
 | A-12 | F-08 web interface: issuer, holder, and verifier portals following DESIGN.md and the surface brief in `.impeccable/surfaces/` | A-06 to A-11 | The three main flows run end to end in a browser. The impeccable detector and finish review have run on the verifier result page. |
 | A-13 | Run TC-01 to TC-16 and measure T-01 to T-05 | A-12 | Every TC has a record with steps or input, expected result, actual result, status, and evidence in `docs/evidence/`. T-01 to T-05 have measured values for the D3 report. |
+
+## Deployment Plan
+
+Re-planned on 2026-11-19 (PRD [Deployment decisions](PRD.md#deployment-decisions)). Each B step changes only infrastructure: endpoints, payloads, codes, enums, and the web UI's behavior stay as built in A-01 to A-13. The local stack keeps working at every step, so the existing pytest and Hardhat suites remain the regression net.
+
+| ID | Step | Depends on | Completion criteria |
+| --- | --- | --- | --- |
+| B-01 | Supabase project: apply `api/migrations` to Supabase Postgres, turn on Row Level Security with no policies on every table, load the issuers and skill catalog, and point `DATABASE_URL` at Supabase's connection pooler | — | The migrations apply to an empty Supabase database. Public (anon) PostgREST requests read nothing. pytest passes against a Supabase database as well as the local cluster. |
+| B-02 | Supabase Auth: create the seeded accounts as Supabase users with `role`, `issuerId`, and `holderRef` in `app_metadata`; API-00 proxies Supabase's password sign-in; every guard verifies Supabase JWTs (JWKS); drop `password_hash` | B-01 | API-00 still returns `{accessToken, tokenType, expiresIn, role}` and 401 `INVALID_CREDENTIALS`. TC-01 to TC-16 role checks pass with Supabase tokens. The web app needs no change. |
+| B-03 | Testnet registry: Hardhat network config for Base Sepolia, deploy `ProofSkillRegistry` from the platform admin key, fund one key per issuer from a faucet, sign transactions in RGS with the acting issuer's key (secrets only, OD-12), and register ISS-001 and ISS-002 on-chain | — | The contract is verified on Basescan. TC-01 and TC-14 pass against the testnet: issuing anchors a commitment, and another issuer's revoke reverts. No private key is committed. |
+| B-04 | Gemini embeddings: AMS calls Gemini (free tier) instead of the ONNX process, caches skill-label and alias vectors, and re-tunes the threshold on the seed positions | — | TC-08, TC-09, TC-10 (Gemini unreachable gives 503 `AI_UNAVAILABLE`, and API-06 still works), and TC-15 pass. Only skill and requirement text leaves the API. After the user confirms, the MiniLM files and the Git LFS rule are removed. |
+| B-05 | Deploy the API to Render: build from `api/` with uv, a health check on the existing `/api/v1/openapi.json` (no new endpoint), and secrets for `DATABASE_URL`, Supabase keys, `CHAIN_RPC_URL`, issuer keys, and `GEMINI_API_KEY` | B-01 to B-04 | The Render URL serves `/api/v1/docs`, and a smoke run of API-00, API-02, and API-06 succeeds against Supabase and the testnet. |
+| B-06 | Deploy the web app to Vercel: `API_ORIGIN` points at the Render URL, and `WEB_BASE_URL` on the API points at the Vercel URL so share links open the deployed verifier page | B-05 | The three main flows (issue, share, verify with skill fit) run end to end in a browser on the public URLs, at desktop and phone widths. |
+| B-07 | Re-run the evidence against the deployed stack and measure T-01 to T-05 again, warm and after Render's cold start | B-06 | `docs/evidence/` holds a deployed run in which TC-01 to TC-16 pass. T-01 is reported for a warm instance, and the cold-start time is reported separately. |
