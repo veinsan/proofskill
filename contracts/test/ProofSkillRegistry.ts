@@ -31,6 +31,12 @@ describe("ProofSkillRegistry", () => {
         .to.be.revertedWithCustomError(registry, "IssuerAlreadyRegistered");
     });
 
+    it("exposes the account bound to an issuer ID", async () => {
+      const { registry, iss001 } = await deployWithIssuers();
+      expect(await registry.issuerAccountOf("ISS-001")).to.equal(iss001.address);
+      expect(await registry.issuerAccountOf("ISS-404")).to.equal(ethers.ZeroAddress);
+    });
+
     it("rejects an empty issuer ID", async () => {
       const { registry, outsider } = await deployWithIssuers();
       await expect(registry.registerIssuer("", outsider.address))
