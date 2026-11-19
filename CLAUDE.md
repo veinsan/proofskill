@@ -26,7 +26,7 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinne
 | Tool | Version or role |
 | --- | --- |
 | Next.js with TypeScript | Next.js 16.4.6, React 19.3.0, TypeScript 5.9.3 (strict), ESLint 9. Web app with three portals in `web/` |
-| FastAPI | FastAPI 0.165.0 on Python 3.13.17, Uvicorn 0.54.0, Pydantic 2.14.3, pytest 9.2.0, psycopg 3.3.9, httpx 0.28.1. REST API under `/api/v1` in `api/`, one module per SoaML service |
+| FastAPI | FastAPI 0.165.0 on Python 3.13.17, Uvicorn 0.54.0, Pydantic 2.14.3, pytest 9.2.0, psycopg 3.3.9, httpx 0.28.1, PyJWT 2.15.1. REST API under `/api/v1` in `api/`, one module per SoaML service |
 | Windows Application Control | Blocks some unsigned native wheels on this machine (`psycopg-binary`, `regex`, `bitarray`). So psycopg runs its pure-Python driver with `libpq.dll` from `PG_BIN`, and RGS calls JSON-RPC through httpx with a minimal ABI codec instead of web3.py. Check new Python dependencies with an import before adopting them |
 | PostgreSQL | 17.11 (installed at `C:\Program Files\PostgreSQL\17`). Off-chain data, run as a project-local cluster by `scripts/db.ps1`: data in `.pgdata/`, port 5433, 127.0.0.1 only, trust auth |
 | Hardhat with Solidity | Hardhat 3.22.0, ethers 6.17.0, Mocha 12.0.3, Chai 6.3.0, Solidity 0.8.28. Local chain and the `ProofSkillRegistry` contract in `contracts/` |
@@ -88,9 +88,9 @@ skill/            # project skills: project-setup (docs workflow), run-test-scen
 
 ## Features
 
-No feature is built yet. Tick an item only after its completion criteria in ARCHITECTURE.md pass.
+Tick an item only after its completion criteria in ARCHITECTURE.md pass.
 
-- [ ] F-01 Authentication and RBAC (API-00, API-01)
+- [x] F-01 Authentication and RBAC (API-00, API-01)
 - [ ] F-02 Credential issuance (API-02, API-08)
 - [ ] F-03 Credential view and share links (API-03, API-04; API-05 optional)
 - [ ] F-04 Verification (API-06)
@@ -124,7 +124,7 @@ The defaults match `.env.example`, so set an environment variable only to overri
 | API | `cd api; uv run fastapi dev app/main.py` | `http://127.0.0.1:8000/api/v1/docs` |
 | Web | `cd web; pnpm install; pnpm dev` | `http://localhost:3000` |
 
-Checks: `pnpm test` in `contracts/`, `uv run pytest` in `api/` (needs the database cluster, the chain, and a deploy; it uses the separate `proofskill_test` database), and `pnpm lint` plus `pnpm build` in `web/`.
+Checks: `pnpm test` in `contracts/`, `uv run pytest` in `api/` (needs the database cluster and a running chain; it uses the separate `proofskill_test` database, deploys its own registry to `contracts/deployments/pytest.json`, and reverts the chain after each test), and `pnpm lint` plus `pnpm build` in `web/`.
 
 - **Contracts.** Hardhat tests cover issue, revoke, read, the other-issuer revert (TC-14), and issuer deactivation (TC-16).
 - **API.** pytest, one test per automatable TC (TC-01 to TC-16). Run them against the local Hardhat node and PostgreSQL.

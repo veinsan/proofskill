@@ -1,5 +1,6 @@
 """PostgreSQL access and the plain-SQL migration runner (A-03)."""
 
+from collections.abc import Iterator
 from pathlib import Path
 
 import psycopg
@@ -12,6 +13,12 @@ MIGRATIONS = Path(__file__).resolve().parent.parent / "migrations"
 
 def connect(url: str = config.DATABASE_URL) -> psycopg.Connection[DictRow]:
     return psycopg.connect(url, row_factory=dict_row)
+
+
+def get_conn() -> Iterator[psycopg.Connection[DictRow]]:
+    """FastAPI dependency: one connection per request; rolled back if the request raises."""
+    with connect() as conn:
+        yield conn
 
 
 def migrate(conn: psycopg.Connection[DictRow]) -> list[str]:

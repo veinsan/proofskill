@@ -127,8 +127,8 @@ CIS, CSS, VRS, and AMS call `AAS.recordAudit`. AMS always reads skills through `
 | Code | HTTP status | Endpoints |
 | --- | --- | --- |
 | `INVALID_CREDENTIALS` | 401 | API-00 |
-| `MALFORMED_REQUEST` | 400 | API-02 |
-| `UNAUTHENTICATED` | 401 | API-02, API-06, API-07 |
+| `MALFORMED_REQUEST` | 400 | API-02, and every other endpoint whose JSON body fails validation (A-04) |
+| `UNAUTHENTICATED` | 401 | API-02, API-06, API-07, and every other endpoint that needs a token (A-04) |
 | `ISSUER_NOT_AUTHORIZED` | 403 | API-02, API-09 |
 | `FORBIDDEN_ROLE` | 403 | API-01 (OD-1), API-06, API-07 |
 | `NOT_CREDENTIAL_OWNER` | 403 | API-03 (OD-1), API-04, API-05 (OD-1) |
@@ -143,10 +143,14 @@ CIS, CSS, VRS, and AMS call `AAS.recordAudit`. AMS always reads skills through `
 | `SKILL_NOT_IN_CATALOG` | 422 | API-02 |
 | `INVALID_SCOPE` | 422 | API-04 |
 | `INVALID_POSITION_TEXT` | 422 | API-07 |
-| `REGISTRY_UNAVAILABLE` | 503 | API-02, API-06, API-09 |
+| `REGISTRY_UNAVAILABLE` | 503 | API-01 (A-04), API-02, API-06, API-09 |
 | `AI_UNAVAILABLE` | 503 | API-07 |
 
 The report gives some error responses without naming their codes: API-01's 403 and 409, API-03's 403 and 404, and API-05's 403 and 404. OD-1 named them on 2026-11-19, as marked in the table. Only `ISSUER_ALREADY_REGISTERED` is new. Do not invent any other code.
+
+A-04 also applies three existing codes beyond the endpoints the report lists them for, marked "(A-04)" above: a malformed body, a missing token, and an unreachable registry during API-01. The report gives API-01's payload only in prose, so A-04 fixed these field names:
+- Request `IssuerRegistration`: `{name, unitType, registryAccount}`.
+- Response `IssuerRecord`: `{issuerId, name, unitType, registryAccount, txHash, registeredAt}`.
 
 ### Repository layout (proposed, created in A-01)
 
