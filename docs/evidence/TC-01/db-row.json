@@ -3,8 +3,8 @@
     "credential_id": "CRD-0001",
     "issuer_id": "ISS-001",
     "holder_ref": "HLD-2026-0007",
-    "commitment": "0x1a5152287ebb55e6d644f08990135ef9ea11c683be52b28c006c767d4a08e093",
-    "tx_hash": "0xa4b8e62d0edbc5f92ea7ac33b8a8849bf7988397831010b2acb4c6f136f58df7",
+    "commitment": "0x110f88acfd9e42ea6001888cf6ad92dee7dec665b98a52451b1a94979a6a3c5b",
+    "tx_hash": "0x87d3dd4eeefb547471b11b1d3c4497b606fb1fbaeb1d13b648b6b0dff928fedd",
     "status": "active"
   }
 ]

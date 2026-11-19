@@ -4,7 +4,7 @@
     "path": "/api/v1/verifications",
     "role": "verifier.a",
     "body": {
-      "shareToken": "sk_0b312e4ab2ef56a4146076a2374ce4e5"
+      "shareToken": "sk_84218fe70e15e3e9ae0542a33e056f93"
     }
   },
   "response": {
@@ -43,10 +43,10 @@
         ]
       },
       "chainRef": {
-        "txHash": "0xa4b8e62d0edbc5f92ea7ac33b8a8849bf7988397831010b2acb4c6f136f58df7"
+        "txHash": "0x87d3dd4eeefb547471b11b1d3c4497b606fb1fbaeb1d13b648b6b0dff928fedd"
       },
-      "verifiedAt": "2026-11-19T14:41:32.058960Z"
+      "verifiedAt": "2026-11-19T15:53:17.519761Z"
     }
   },
-  "elapsedMs": 95.2
+  "elapsedMs": 139.3
 }

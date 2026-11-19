@@ -4,7 +4,7 @@
     "path": "/api/v1/verifications",
     "role": "verifier.a",
     "body": {
-      "shareToken": "sk_be93c7650b35ffb018da13726c108f0c"
+      "shareToken": "sk_87a3deeb079c28010ad78e28d5338479"
     }
   },
   "response": {
@@ -13,9 +13,9 @@
       "error": {
         "code": "SHARE_LINK_EXPIRED",
         "message": "This share link has expired or was revoked. Ask the holder for a new link.",
-        "requestId": "req_c9a609c7254c5fea"
+        "requestId": "req_90da383ecb66252b"
       }
     }
   },
-  "elapsedMs": 32.9
+  "elapsedMs": 52.2
 }

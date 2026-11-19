@@ -1,7 +1,7 @@
 {
-  "commitment": "0x1a5152287ebb55e6d644f08990135ef9ea11c683be52b28c006c767d4a08e093",
+  "commitment": "0x110f88acfd9e42ea6001888cf6ad92dee7dec665b98a52451b1a94979a6a3c5b",
   "issuer_id": "ISS-001",
   "status": "active",
-  "timestamp": "2026-11-19 14:43:47+00:00",
+  "timestamp": "2026-11-19 16:00:09+00:00",
   "issuer_active": true
 }

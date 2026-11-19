@@ -29,7 +29,7 @@ Running Mocha tests
       ✔ rejects an unknown credential
 
 
-  15 passing (106ms)
+  15 passing (170ms)
 
 
 15 passing (15 mocha)

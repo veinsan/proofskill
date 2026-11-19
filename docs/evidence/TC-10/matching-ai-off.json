@@ -17,9 +17,9 @@
       "error": {
         "code": "AI_UNAVAILABLE",
         "message": "The AI service is unavailable. Verification still works.",
-        "requestId": "req_9a360d6078bf1cd3"
+        "requestId": "req_2f23012b5cfe7c35"
       }
     }
   },
-  "elapsedMs": 2078.8
+  "elapsedMs": 104.6
 }
