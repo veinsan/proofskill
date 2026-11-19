@@ -45,3 +45,11 @@ How the coding agent works on this repository across sessions. Deliverable 3 is 
 - TC-01 to TC-16 each have an evidence record.
 - T-01 to T-05 have measured values.
 - The limitations and the next development plan are written down for the report.
+
+## Definition of done for the deployment
+
+- Steps B-01 to B-07 in ARCHITECTURE.md pass their completion criteria.
+- The deployed web app and API run the three main flows on their public URLs.
+- TC-01 to TC-16 pass against the deployed stack, with the evidence in `docs/evidence/`.
+- No secret, private key, or real personal data is in the repository, and nothing touches a blockchain mainnet.
+- The API contract still matches report Bab IX. Any difference is listed in D-08.

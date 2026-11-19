@@ -28,6 +28,20 @@ Status values: **Pending**, **In progress**, **Blocked**, **Done**. Task IDs mat
 | A-12 | F-08 web interface for three portals | Done | 2026-11-19. Built in the Boarding Pass Gate direction (code-led, DESIGN.md tokens in `web/app/globals.css`). Routes: sign-in `/`; issuer list (API-13), issue form (API-08 + API-02), credential pass with an inline revoke confirmation (API-09), and audit log (API-10); holder list (API-12) and credential page with share link, QR, and revoke (API-04, API-05); verifier `/verifier` and `/v/[shareToken]` with inline verifier sign-in, the pass and verdict stub (API-06), and skill fit (API-07). Checked end to end in a browser: issue, share, verify VALID with a real-model REKOMENDASI, and revoke then REVOKED, at 1440 and 390 wide. `pnpm lint` and `pnpm build` pass, and `impeccable detect` reports 0 findings. The impeccable finish review returned "fix"; its seven material fixes were applied and recaptured (evidence in `.impeccable/review/`, which is local). |
 | A-13 | Run TC-01 to TC-16 and measure T-01 to T-05 | Done | 2026-11-19. `uv run python -m scripts.evidence` (from `api/`) builds an isolated stack (own database, registry, API on 8100, AMS on 8101), runs every TC over HTTP, and writes `docs/evidence/TC-xx.md` plus raw requests, responses, SQL, chain data, and timings in `docs/evidence/TC-xx/`. Result: 16 of 16 pass. T-01: median 0.063 s, max 0.093 s. T-02: 0 admin steps. T-03: scoped fields only and no personal data on-chain. T-04: 3/3 labeled REKOMENDASI. T-05: 5/5 REVOKED after the database reset, and the other-issuer revoke reverted. Also `docs/evidence/pytest.txt` and `docs/evidence/ui/` (portal screenshots). |
 
+## Deployment
+
+Re-planned 2026-11-19 (PRD, Deployment decisions). Step details and completion criteria are in ARCHITECTURE.md, Deployment Plan.
+
+| ID | Task | Status | Next step or verification |
+| --- | --- | --- | --- |
+| B-01 | Supabase Postgres: migrations, RLS on with no policies, catalog seed, pooler `DATABASE_URL` | Pending | Needs a Supabase project and its connection string from the user, stored outside git. |
+| B-02 | Supabase Auth behind API-00; guards verify Supabase JWTs | Pending | Needs B-01, plus the Supabase URL and keys. OD-11 (self sign-up) can follow later. |
+| B-03 | `ProofSkillRegistry` on Base Sepolia; RGS signs with per-issuer keys | Pending | Needs testnet keys for the deployer and each issuer, funded from a faucet, and an RPC URL. Uses the custodial default of OD-12. |
+| B-04 | Gemini embeddings in AMS; re-tune the threshold | Pending | Needs a Gemini API key. The MiniLM and LFS files are removed only after the user confirms. |
+| B-05 | API on Render | Pending | Needs B-01 to B-04 and a Render account. |
+| B-06 | Web on Vercel | Pending | Needs B-05 and a Vercel account. |
+| B-07 | Evidence and T-01 to T-05 on the deployed stack | Pending | Needs B-06. Report warm and cold-start times separately. |
+
 ## Decisions needed
 
 Details are in [PRD.md Open Decisions](PRD.md#open-decisions).
@@ -44,6 +58,8 @@ Details are in [PRD.md Open Decisions](PRD.md#open-decisions).
 | OD-8 | How the AI service is switched off for TC-10 | Done (2026-11-19) | A-10 |
 | OD-9 | Report versus deck: three or four verification results, and interview status | Pending | D-03, D-05 |
 | OD-10 | How the portals list a holder's own credentials and an issuer's issued credentials, since the report has no list endpoint | Done (2026-11-19) | A-12 |
+| OD-11 | Self sign-up for verifiers, and how a holder claims their `holderRef` | Pending | Public launch (after B-02) |
+| OD-12 | Issuer key custody on the testnet: custodial keys on the API, or issuers' own wallets | Pending (B-03 uses the custodial default) | B-03 |
 
 ## D3 report and presentation
 
@@ -55,5 +71,5 @@ Details are in [PRD.md Open Decisions](PRD.md#open-decisions).
 | D-04 | Restore the body of "Catatan Revisi" in the Google Doc | Pending | The Daftar Isi and the task table point to it. The content exists in the D1 revision docx and the deck appendix. |
 | D-05 | Align the deck's verification slides with the report's four results | Pending | Needs OD-9. |
 | D-06 | Build the D3 deck: main service flow demo, API interactions, technology contribution, plus a recorded demo video as a backup | Pending | Needs A-12 and A-13. |
-| D-08 | Update the report for the OD-1 to OD-8 decisions of 2026-11-19 | Pending | Tabel 9.15 and 9.16 plus the 9.5 error codes (`platform_admin`, named codes, `ISSUER_ALREADY_REGISTERED`); Tabel 8.5 `RegistryRecord` (`issuerActive`) and the Bab X contract function list (`deactivateIssuer`, read-only `issuerAccountOf`); Tabel 10.4 (TC-16); Gambar 10.1 (AMS as its own process); the API-02, API-04, and API-07 notes in 9.3 (canonical payload, scope and expiry limits, position-text limit, matching rules); T06/T27 and the deck blueprint (simulated email); Tabel 9.15 API-01 field names and the codes A-04 applies beyond the listed endpoints (see ARCHITECTURE.md, API conventions); Tabel 9.6 note that an unknown `holderRef` returns 400 `MALFORMED_REQUEST` (A-06); Tabel 9.15 `CredentialView` fields for API-03 (A-07); the API-06 note in 9.3 on result precedence when several checks fail (A-08); the API-07 matching threshold 0.55 tuned from OD-7's 0.60, and Tabel 10.3's AI row (same model, run with ONNX Runtime) (A-10); Tabel 9.15 API-10 filter names and per-issuer scope (A-11); Tabel 8.4, 9.2, and 9.17 plus the deck's endpoint slide for API-12 and API-13 (OD-10). |
+| D-08 | Update the report for the OD-1 to OD-8 decisions of 2026-11-19 | Pending | Tabel 9.15 and 9.16 plus the 9.5 error codes (`platform_admin`, named codes, `ISSUER_ALREADY_REGISTERED`); Tabel 8.5 `RegistryRecord` (`issuerActive`) and the Bab X contract function list (`deactivateIssuer`, read-only `issuerAccountOf`); Tabel 10.4 (TC-16); Gambar 10.1 (AMS as its own process); the API-02, API-04, and API-07 notes in 9.3 (canonical payload, scope and expiry limits, position-text limit, matching rules); T06/T27 and the deck blueprint (simulated email); Tabel 9.15 API-01 field names and the codes A-04 applies beyond the listed endpoints (see ARCHITECTURE.md, API conventions); Tabel 9.6 note that an unknown `holderRef` returns 400 `MALFORMED_REQUEST` (A-06); Tabel 9.15 `CredentialView` fields for API-03 (A-07); the API-06 note in 9.3 on result precedence when several checks fail (A-08); the API-07 matching threshold 0.55 tuned from OD-7's 0.60, and Tabel 10.3's AI row (same model, run with ONNX Runtime) (A-10); Tabel 9.15 API-10 filter names and per-issuer scope (A-11); Tabel 8.4, 9.2, and 9.17 plus the deck's endpoint slide for API-12 and API-13 (OD-10).; and, for the deployment re-plan: Tabel 10.3 and Gambar 10.1 (Vercel, Render, Supabase, Base Sepolia, Gemini), Bab X's local-only setup, Tabel 1.5's "permissioned blockchain" wording (now a permissioned contract on a public testnet), and the out-of-scope note on a public blockchain (now mainnet only). |
 | D-07 | Export the final single PDF (D1+D2+D3) and the final deck | Pending | Needs D-01 to D-06 and D-08. Submit by 2026-11-27, 23:59 WIB. |

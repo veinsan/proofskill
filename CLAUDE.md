@@ -1,8 +1,8 @@
 # CLAUDE.md: ProofSkill
 
-ProofSkill is the Deliverable 3 prototype for course II3120, built by Kelompok 02. It is a credential issuance and verification service for nonformal training organizers:
+ProofSkill began as the Deliverable 3 prototype for course II3120 (Kelompok 02) and is now being taken to a public deployment (PRD, Deployment decisions; ARCHITECTURE, steps B-01 to B-07). It is a credential issuance and verification service for nonformal training organizers:
 
-- Issuers record a nonce-salted hash commitment, the issuer, and the status on a local blockchain registry.
+- Issuers record a nonce-salted hash commitment, the issuer, and the status on a blockchain registry (a local Hardhat node in development; the Base Sepolia testnet when deployed).
 - Holders share a scoped link.
 - Verifiers check integrity, issuer, and status without contacting an admin, then read an AI skill-fit summary labeled `REKOMENDASI`.
 
@@ -32,6 +32,17 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinne
 | Hardhat with Solidity | Hardhat 3.22.0, ethers 6.17.0, Mocha 12.0.3, Chai 6.3.0, Solidity 0.8.28. Local chain and the `ProofSkillRegistry` contract in `contracts/` |
 | `paraphrase-multilingual-MiniLM-L12-v2` | Sentence embeddings for AI matching, run locally. Official ONNX export, revision `e8f8c211`, in `api/.models/` (470 MB, Git LFS). Runs with onnxruntime 1.32.0, tokenizers 0.23.3, and numpy 2.5.5 in the AMS process |
 | JWT Bearer tokens | Roles `issuer_admin`, `holder`, `verifier`, plus `platform_admin` for API-01 (OD-1) |
+
+**Deployment target (re-planned 2026-11-19, built in steps B-01 to B-07; not in place yet):**
+
+| Tool | Role |
+| --- | --- |
+| Vercel | Hosts `web/`. `API_ORIGIN` points at the Render API |
+| Render | Hosts `api/` (free tier, sleeps when idle) |
+| Supabase | Postgres for off-chain data (Row Level Security on, no policies) and Auth for accounts; API-00 proxies Supabase sign-in |
+| Base Sepolia testnet | Hosts `ProofSkillRegistry`. The API signs with one key per issuer, kept as a Render secret (OD-12) |
+| Gemini embeddings (free tier) | Replaces the MiniLM process in AMS (B-04) |
+| Reserved: OpenCV / YOLO / MediaPipe, RunPod, LangChain | Not used by any current feature. Add one only after the PRD scopes a feature that needs it |
 | Node v26.13.0 | Node package manager: pnpm 12.18.0 (decided at A-01) |
 | uv 0.13.7 | Python package manager: uv, lockfile `api/uv.lock` (decided at A-01) |
 
@@ -107,13 +118,13 @@ Tick an item only after its completion criteria in ARCHITECTURE.md pass.
 
 - **No candidate search.** Do not add any search, browse, list, or ranking endpoint or UI for candidates. Credential data leaves only through a share token its owner created. The only lists are API-12 and API-13 (OD-10): the caller's own or own-issued credentials, with no query or filter.
 - **No personal data on-chain.** Store only the commitment, issuer, status, and time on-chain. Never store NIK, names, GPA, or documents.
-- **No identity for the AI.** Do not send holder identity to the AI. AMS reads skills through `VRS.getVerification` only, never from data the verifier sends.
+- **No identity for the AI.** Do not send holder identity to the AI, local or Gemini. AMS reads skills through `VRS.getVerification` only, never from data the verifier sends, and sends only skill and requirement text.
 - **No total score.** Do not return a total candidate score, and never drop the `REKOMENDASI` label or the limitations from AI output.
 - **Verification never depends on AI.** If the AI is down, only API-07 returns 503.
 - **Contract changes go through the user.** Do not change endpoints, payloads, status codes, error codes, or enums without the user's approval. If a change is approved, list the report and deck sections that must change with it.
 - **Do not invent codes.** Use only the error codes in ARCHITECTURE.md (OD-1 named the formerly unnamed ones), and never settle an open decision (OD-9 is still open) on your own.
-- **No real secrets in git.** Keep secrets and private keys out of commits. Only the public Hardhat test accounts may appear in local config, and `.env` stays untracked.
-- **No real data.** Use synthetic data only (assumption A6), and never connect to a public blockchain.
+- **No real secrets in git.** Keep secrets and private keys out of commits: issuer and deployer keys, the Supabase service-role key, and the Gemini API key live only in Render, Vercel, or a local untracked `.env`. Only the public Hardhat test accounts may appear in local config.
+- **No real data, no mainnet.** Use synthetic data only (assumption A6) until a privacy review allows real participant data. Never deploy to or send transactions on a blockchain mainnet; the deployment uses the Base Sepolia testnet.
 - **Pink only on the action.** Do not use Signal Pink anywhere except the single primary action.
 
 ## Testing and Build
