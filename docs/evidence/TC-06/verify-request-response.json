@@ -1,0 +1,53 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/verifications",
+    "role": "verifier.a",
+    "body": {
+      "shareToken": "sk_0b312e4ab2ef56a4146076a2374ce4e5"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "verificationId": "VER-0014",
+      "result": "REVOKED",
+      "checks": {
+        "integrity": "PASS",
+        "issuerAuthorized": "PASS",
+        "status": "REVOKED"
+      },
+      "reason": "Data kelulusan keliru",
+      "credential": {
+        "credentialId": "CRD-0001",
+        "issuer": {
+          "issuerId": "ISS-001",
+          "name": "Unit Pelatihan Contoh"
+        },
+        "program": {
+          "title": "Pelatihan Keamanan Aplikasi Web Dasar",
+          "completedAt": "2026-10-20"
+        },
+        "skills": [
+          {
+            "skillId": "SK-014",
+            "label": "OWASP Top 10"
+          },
+          {
+            "skillId": "SK-021",
+            "label": "Web Security Testing"
+          },
+          {
+            "skillId": "SK-033",
+            "label": "Secure Coding"
+          }
+        ]
+      },
+      "chainRef": {
+        "txHash": "0xa4b8e62d0edbc5f92ea7ac33b8a8849bf7988397831010b2acb4c6f136f58df7"
+      },
+      "verifiedAt": "2026-11-19T14:41:36.820703Z"
+    }
+  },
+  "elapsedMs": 66.5
+}

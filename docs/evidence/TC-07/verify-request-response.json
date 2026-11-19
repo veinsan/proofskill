@@ -1,0 +1,21 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/verifications",
+    "role": "verifier.a",
+    "body": {
+      "shareToken": "sk_be93c7650b35ffb018da13726c108f0c"
+    }
+  },
+  "response": {
+    "status": 410,
+    "body": {
+      "error": {
+        "code": "SHARE_LINK_EXPIRED",
+        "message": "This share link has expired or was revoked. Ask the holder for a new link.",
+        "requestId": "req_c9a609c7254c5fea"
+      }
+    }
+  },
+  "elapsedMs": 32.9
+}

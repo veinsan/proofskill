@@ -1,0 +1,31 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/credentials",
+    "role": "admin.iss001",
+    "body": {
+      "holderRef": "HLD-2026-0007",
+      "holderDisplayName": "Peserta Contoh A",
+      "program": {
+        "title": "Pelatihan Keamanan Aplikasi Web Dasar",
+        "completedAt": "2026-10-20",
+        "criteria": "Kehadiran minimal 80 persen dan lulus proyek akhir"
+      },
+      "skills": [
+        "SK-014",
+        "SK-999"
+      ]
+    }
+  },
+  "response": {
+    "status": 422,
+    "body": {
+      "error": {
+        "code": "SKILL_NOT_IN_CATALOG",
+        "message": "Not in the skill catalog: SK-999.",
+        "requestId": "req_d3343ab5d66b200e"
+      }
+    }
+  },
+  "elapsedMs": 44.1
+}

@@ -1,0 +1,33 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/credentials",
+    "role": "admin.iss001",
+    "body": {
+      "holderRef": "HLD-2026-0007",
+      "holderDisplayName": "Peserta Contoh A",
+      "program": {
+        "title": "Pelatihan Keamanan Aplikasi Web Dasar",
+        "completedAt": "2026-10-20",
+        "criteria": "Kehadiran minimal 80 persen dan lulus proyek akhir"
+      },
+      "skills": [
+        "SK-014",
+        "SK-021",
+        "SK-033"
+      ]
+    }
+  },
+  "response": {
+    "status": 201,
+    "body": {
+      "credentialId": "CRD-0001",
+      "issuerId": "ISS-001",
+      "status": "active",
+      "commitment": "0x1a5152287ebb55e6d644f08990135ef9ea11c683be52b28c006c767d4a08e093",
+      "txHash": "0xa4b8e62d0edbc5f92ea7ac33b8a8849bf7988397831010b2acb4c6f136f58df7",
+      "issuedAt": "2026-11-19T14:41:28.367144Z"
+    }
+  },
+  "elapsedMs": 137.5
+}

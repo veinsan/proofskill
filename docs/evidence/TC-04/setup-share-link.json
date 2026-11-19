@@ -1,0 +1,26 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/credentials/CRD-0001/share-links",
+    "role": "holder.a",
+    "body": {
+      "scope": [
+        "program.title",
+        "completedAt",
+        "skills"
+      ],
+      "expiresInHours": 72
+    }
+  },
+  "response": {
+    "linkId": "SHL-0001",
+    "shareToken": "sk_0b312e4ab2ef56a4146076a2374ce4e5",
+    "url": "http://localhost:3000/v/sk_0b312e4ab2ef56a4146076a2374ce4e5",
+    "scope": [
+      "program.title",
+      "completedAt",
+      "skills"
+    ],
+    "expiresAt": "2026-11-22T14:41:28.671107Z"
+  }
+}
