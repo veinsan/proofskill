@@ -117,7 +117,7 @@ Copy `.env.example` to `.env` first. Start each part from the repository root:
 | Part | Command | Address |
 | --- | --- | --- |
 | Database | `powershell -ExecutionPolicy Bypass -File scripts/db.ps1 start` (also `stop`, `status`) | `postgresql://proofskill@127.0.0.1:5433/proofskill` |
-| Chain | `cd contracts; pnpm install; pnpm chain` | `http://127.0.0.1:8545` |
+| Chain | `cd contracts; pnpm install; pnpm chain`, then `pnpm deploy:local` in a second terminal | `http://127.0.0.1:8545`, contract address in `contracts/deployments/localhost.json` |
 | API | `cd api; uv sync; uv run fastapi dev app/main.py` | `http://127.0.0.1:8000/api/v1/docs` |
 | Web | `cd web; pnpm install; pnpm dev` | `http://localhost:3000` |
 
