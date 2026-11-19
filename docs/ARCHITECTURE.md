@@ -129,8 +129,8 @@ CIS, CSS, VRS, and AMS call `AAS.recordAudit`. AMS always reads skills through `
 | `INVALID_CREDENTIALS` | 401 | API-00 |
 | `MALFORMED_REQUEST` | 400 | API-02 (including an unknown `holderRef`, A-06), and every other endpoint whose JSON body fails validation (A-04) |
 | `UNAUTHENTICATED` | 401 | API-02, API-06, API-07, and every other endpoint that needs a token (A-04) |
-| `ISSUER_NOT_AUTHORIZED` | 403 | API-02, API-09 |
-| `FORBIDDEN_ROLE` | 403 | API-01 (OD-1), API-06, API-07 |
+| `ISSUER_NOT_AUTHORIZED` | 403 | API-02, API-09, API-10 for an issuer admin without an issuer (A-11) |
+| `FORBIDDEN_ROLE` | 403 | API-01 (OD-1), API-06, API-07, API-10 (A-11) |
 | `NOT_CREDENTIAL_OWNER` | 403 | API-03 (OD-1), API-04, API-05 (OD-1) |
 | `VERIFICATION_NOT_OWNED` | 403 | API-07 |
 | `CREDENTIAL_NOT_FOUND` | 404 | API-03 (OD-1), API-04, API-09 |
@@ -153,6 +153,8 @@ A-04 also applies three existing codes beyond the endpoints the report lists the
 - Response `IssuerRecord`: `{issuerId, name, unitType, registryAccount, txHash, registeredAt}`.
 
 API-03's `CredentialView` is also named but not detailed in the report. A-07 returns `{credentialId, issuer {issuerId, name}, holderRef, holderDisplayName, program {title, completedAt, criteria}, skills [{skillId, label}], status, commitment, txHash, issuedAt, revokedAt, revocationReason, shareLinks}`. `shareLinks` lists `{linkId, url, scope, expiresAt, revokedAt}` for the holder and is `null` for the issuer.
+
+API-10's filters are not named in the report. A-11 uses `operation`, `from`, `to`, `limit` (default 50, maximum 200), and `offset`. Each issuer sees only the events about its own credentials, including the share links, verifications, and matchings of those credentials.
 
 ### Repository layout (proposed, created in A-01)
 
