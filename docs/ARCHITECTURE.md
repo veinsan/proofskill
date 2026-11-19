@@ -31,7 +31,7 @@ This matches report Gambar 10.1 (Arsitektur prototipe).
 2. **REST API (FastAPI, `/api/v1`).** One module per SoaML service: IAS, CIS, CSS, AAS, VRS, AMS, and SCS. RGS is the adapter to the blockchain. The API enforces token auth and RBAC (NFR-01), keeps a consistent JSON contract and HTTP codes (NFR-08), and computes the nonce-salted SHA-256 hash of the canonical payload. It orchestrates validation, hashing, the registry call, and the audit record.
 3. **Off-chain database (PostgreSQL).** Reached over SQL. It holds credential metadata, skills, share links, the audit log, and the skill catalog. All data is synthetic.
 4. **Local blockchain (Hardhat).** Reached through JSON-RPC. `ProofSkillRegistry` has the report's four functions, `registerIssuer`, `issueCredential`, `revokeCredential`, and `getRecord`, plus `deactivateIssuer` (OD-2) and a read-only `issuerAccountOf` getter that the seed uses to check registrations. It stores only the hash commitment, issuer, issuer activity, status, and time.
-5. **AI module.** AMS runs as its own process on port 8001, and the API calls it over HTTP (OD-8). It computes semantic similarity between skills and position requirements, groups requirements into matched and uncovered, and writes short reasons. Stopping that process is how TC-10 switches the AI off while verification keeps running (NFR-06).
+5. **AI module.** AMS runs as its own process on port 8001, and the API calls it over HTTP (OD-8). The process runs the official ONNX export of the model with ONNX Runtime and applies the model's mean pooling. sentence-transformers cannot load on the team's machines because Application Control blocks the `regex` DLL that `transformers` needs. It computes semantic similarity between skills and position requirements, groups requirements into matched and uncovered, and writes short reasons. Stopping that process is how TC-10 switches the AI off while verification keeps running (NFR-06).
 
 ### Services, operations, endpoints, and contract calls
 
@@ -101,7 +101,7 @@ CIS, CSS, VRS, and AMS call `AAS.recordAudit`. AMS always reads skills through `
   3. AMS reads the verified skills and the catalog, then computes per-pair similarity.
   4. It returns matched skills (skill, requirement, similarity, reason), missing requirements, limitations, label `REKOMENDASI`, and `modelVersion`. It never returns a total candidate score.
   5. When the AI is down, it returns 503 `AI_UNAVAILABLE`, and API-06 keeps working.
-  6. Matching rules (OD-7): the description (1 to 2,000 characters, OD-4) is split into requirements at sentence ends, commas, semicolons, and "dan" or "and". Each requirement is compared with the label and aliases of every verified skill, and a cosine similarity of 0.60 or more is a match. The threshold is tuned on synthetic data.
+  6. Matching rules (OD-7): the description (1 to 2,000 characters, OD-4) is split into requirements at sentence ends, commas, semicolons, and "dan" or "and". Each requirement is compared with the label and aliases of every verified skill the link shares, and a cosine similarity of 0.55 or more is a match. A-10 tuned this down from 0.60 on the seed positions.
 - **Revocation (T24–T28).**
   1. The original issuer's admin posts a reason to API-09.
   2. CSS checks that the caller is the original issuer (403 `ISSUER_NOT_AUTHORIZED`) and that the credential is not already revoked (409 `ALREADY_REVOKED`).

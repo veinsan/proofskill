@@ -6,8 +6,11 @@ requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.165.0",
     "httpx>=0.28.1",
+    "numpy>=2.5.5",
+    "onnxruntime>=1.32.0",
     "psycopg>=3.3.9",
     "pyjwt>=2.15.1",
+    "tokenizers>=0.23.3",
 ]
 
 [dependency-groups]

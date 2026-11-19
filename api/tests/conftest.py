@@ -1,9 +1,13 @@
 import os
 import shutil
 import subprocess
+import sys
+import time
 from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -46,6 +50,39 @@ def registry() -> Iterator[Path]:
     yield TEST_DEPLOYMENT
     config.REGISTRY_DEPLOYMENT = previous
     rgs._deployment.cache_clear()
+
+
+@contextmanager
+def ams_process(port: int) -> Iterator[str]:
+    """Runs the real AMS model process (app/ams_server.py) and yields its URL; stops it on exit."""
+    process = subprocess.Popen(
+        [sys.executable, "-m", "uvicorn", "app.ams_server:app", "--host", "127.0.0.1", "--port", str(port)],
+        cwd=Path(__file__).resolve().parents[1],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    url = f"http://127.0.0.1:{port}"
+    try:
+        deadline = time.monotonic() + 90
+        while True:
+            try:
+                if httpx.post(f"{url}/embed", json={"texts": ["ok"]}, timeout=5).status_code == 200:
+                    break
+            except httpx.HTTPError:
+                pass
+            assert process.poll() is None, "the AMS process exited; is the model downloaded?"
+            assert time.monotonic() < deadline, "the AMS process did not start in 90 seconds"
+            time.sleep(0.5)
+        yield url
+    finally:
+        process.terminate()
+        process.wait(timeout=30)
+
+
+@pytest.fixture(scope="session")
+def ams_url() -> Iterator[str]:
+    with ams_process(8011) as url:
+        yield url
 
 
 @pytest.fixture

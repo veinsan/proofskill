@@ -27,10 +27,10 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinne
 | --- | --- |
 | Next.js with TypeScript | Next.js 16.4.6, React 19.3.0, TypeScript 5.9.3 (strict), ESLint 9. Web app with three portals in `web/` |
 | FastAPI | FastAPI 0.165.0 on Python 3.13.17, Uvicorn 0.54.0, Pydantic 2.14.3, pytest 9.2.0, psycopg 3.3.9, httpx 0.28.1, PyJWT 2.15.1. REST API under `/api/v1` in `api/`, one module per SoaML service |
-| Windows Application Control | Blocks some unsigned native wheels on this machine (`psycopg-binary`, `regex`, `bitarray`). So psycopg runs its pure-Python driver with `libpq.dll` from `PG_BIN`, and RGS calls JSON-RPC through httpx with a minimal ABI codec instead of web3.py. Check new Python dependencies with an import before adopting them |
+| Windows Application Control | Blocks some unsigned native wheels on this machine (`psycopg-binary`, `regex`, `bitarray`). So psycopg runs its pure-Python driver with `libpq.dll` from `PG_BIN`, RGS calls JSON-RPC through httpx with a minimal ABI codec instead of web3.py, and AMS uses ONNX Runtime instead of sentence-transformers. Check new Python dependencies with an import before adopting them |
 | PostgreSQL | 17.11 (installed at `C:\Program Files\PostgreSQL\17`). Off-chain data, run as a project-local cluster by `scripts/db.ps1`: data in `.pgdata/`, port 5433, 127.0.0.1 only, trust auth |
 | Hardhat with Solidity | Hardhat 3.22.0, ethers 6.17.0, Mocha 12.0.3, Chai 6.3.0, Solidity 0.8.28. Local chain and the `ProofSkillRegistry` contract in `contracts/` |
-| `paraphrase-multilingual-MiniLM-L12-v2` | Sentence embeddings for AI matching, run locally |
+| `paraphrase-multilingual-MiniLM-L12-v2` | Sentence embeddings for AI matching, run locally. Official ONNX export, revision `e8f8c211`, in `api/.models/` (470 MB, Git LFS). Runs with onnxruntime 1.32.0, tokenizers 0.23.3, and numpy 2.5.5 in the AMS process |
 | JWT Bearer tokens | Roles `issuer_admin`, `holder`, `verifier`, plus `platform_admin` for API-01 (OD-1) |
 | Node v26.13.0 | Node package manager: pnpm 12.18.0 (decided at A-01) |
 | uv 0.13.7 | Python package manager: uv, lockfile `api/uv.lock` (decided at A-01) |
@@ -53,6 +53,7 @@ contracts/        # Hardhat: ProofSkillRegistry.sol (registerIssuer, issueCreden
 api/              # FastAPI app
   app/            # modules per SoaML service: ias, cis, css, aas, vrs, rgs (blockchain adapter), scs, ams; plus config, db, seed
   migrations/     # plain SQL, applied in name order by app/db.py
+  .models/        # embedding model files (model.onnx through Git LFS)
   tests/          # pytest; name tests after TC IDs, e.g. test_tc05_tampered_db_content
 web/              # Next.js app: issuer portal, holder portal, verifier route /v/[shareToken]
 scripts/          # db.ps1: start, stop, or check the project-local PostgreSQL cluster
@@ -95,7 +96,7 @@ Tick an item only after its completion criteria in ARCHITECTURE.md pass.
 - [x] F-03 Credential view and share links (API-03, API-04; API-05 optional)
 - [x] F-04 Verification (API-06)
 - [x] F-05 Revocation (API-09)
-- [ ] F-06 Skill matching (API-07)
+- [x] F-06 Skill matching (API-07)
 - [ ] F-07 Audit trail (API-10)
 - [ ] F-08 Web interface for issuer, holder, and verifier
 
@@ -121,6 +122,7 @@ The defaults match `.env.example`, so set an environment variable only to overri
 | Database | `powershell -ExecutionPolicy Bypass -File scripts/db.ps1 start` (also `stop`, `status`) | `postgresql://proofskill@127.0.0.1:5433/proofskill` |
 | Chain | `cd contracts; pnpm install; pnpm chain`, then `pnpm deploy:local` in a second terminal | `http://127.0.0.1:8545`, contract address in `contracts/deployments/localhost.json` |
 | Seed | `cd api; uv sync; uv run python -m app.seed --reset` (needs the database, the chain, and a deploy). It migrates, loads the synthetic seed, and registers ISS-001 and ISS-002 on-chain. Accounts and the shared demo password are in `api/app/seed.py` | — |
+| AI (AMS) | `cd api; uv run fastapi run app/ams_server.py --host 127.0.0.1 --port 8001`. The model comes with the clone through Git LFS (`git lfs install` once, then `git lfs pull`); without LFS, `uv run python -m app.ams_model` downloads it | `http://127.0.0.1:8001` |
 | API | `cd api; uv run fastapi dev app/main.py` | `http://127.0.0.1:8000/api/v1/docs` |
 | Web | `cd web; pnpm install; pnpm dev` | `http://localhost:3000` |
 
