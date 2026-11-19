@@ -93,7 +93,7 @@ CIS, CSS, VRS, and AMS call `AAS.recordAudit`. AMS always reads skills through `
   1. A verifier posts the `shareToken` to API-06.
   2. VRS resolves the token: 404 `SHARE_LINK_NOT_FOUND` if unknown, 410 `SHARE_LINK_EXPIRED` if expired or revoked.
   3. VRS loads the metadata, recomputes the hash, reads the record through RGS `getRecord`, and compares integrity, issuer authorization, and status as three separate checks.
-  4. It returns 200 with `VALID`, `REVOKED` (with the issuer's reason), `TAMPERED` (integrity `FAIL`, no credential data), or `ISSUER_UNAUTHORIZED` (`issuerAuthorized` `FAIL` because `getRecord` reports the issuer as deactivated, OD-2). It returns only the fields in the scope, plus `chainRef`.
+  4. When several checks fail, the result names the main cause in this order (A-08): `TAMPERED`, then `REVOKED`, then `ISSUER_UNAUTHORIZED`. A credential the registry never anchored counts as `TAMPERED`. It returns 200 with `VALID`, `REVOKED` (with the issuer's reason), `TAMPERED` (integrity `FAIL`, no credential data), or `ISSUER_UNAUTHORIZED` (`issuerAuthorized` `FAIL` because `getRecord` reports the issuer as deactivated, OD-2). It returns only the fields in the scope, plus `chainRef`.
   5. It records an audit event. If the registry cannot be read, it returns 503 `REGISTRY_UNAVAILABLE`.
 - **Skill matching (T18–T23).**
   1. The verifier posts a `verificationId` and a position (title and description) to API-07.
