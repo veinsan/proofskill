@@ -4,10 +4,11 @@ expected result, actual result, status, evidence).
 
 It needs the PostgreSQL cluster (scripts/db.ps1 start) and the Hardhat node (pnpm chain). It creates
 its own database (proofskill_evidence), deploys its own registry (contracts/deployments/evidence.json),
-and starts its own API (port 8100) and AMS (port 8101), so TC-10 can really stop the AI service.
-All data is synthetic (A6), so nothing is masked; access tokens are recorded by role only.
+and starts its own API (port 8100). AI matching calls the Gemini API (B-04), so GEMINI_API_KEY must be
+set; TC-10 restarts the API without it to switch the AI off. All data is synthetic (A6), so nothing
+is masked; access tokens are recorded by role only.
 
-Run from api/: uv run python -m scripts.evidence
+Run from api/: uv run --env-file ../.env python -m scripts.evidence
 """
 
 import json
@@ -27,7 +28,7 @@ from typing import Any
 import httpx
 
 from app import db  # first: app/__init__.py puts libpq on PATH before psycopg loads
-from app import config, rgs, seed
+from app import ams, config, rgs, seed
 
 API_DIR = Path(__file__).resolve().parents[1]
 REPO = API_DIR.parent
@@ -35,7 +36,7 @@ CONTRACTS = REPO / "contracts"
 EVIDENCE = REPO / "docs" / "evidence"
 DEPLOYMENT = CONTRACTS / "deployments" / "evidence.json"
 DATABASE_URL = os.environ.get("EVIDENCE_DATABASE_URL", "postgresql://proofskill@127.0.0.1:5433/proofskill_evidence")
-API_PORT, AMS_PORT = 8100, 8101
+API_PORT = 8100
 API = f"http://127.0.0.1:{API_PORT}/api/v1"
 
 ISSUE_REQUEST: dict[str, Any] = {  # report API-02 example payload
@@ -78,13 +79,11 @@ class Record:
 class Stack:
     def __init__(self) -> None:
         self.tokens: dict[str, str] = {}
-        self.ams: subprocess.Popen[bytes] | None = None
         self.api: subprocess.Popen[bytes] | None = None
         self.env = {
             **os.environ,
             "DATABASE_URL": DATABASE_URL,
             "REGISTRY_DEPLOYMENT": str(DEPLOYMENT),
-            "AMS_URL": f"http://127.0.0.1:{AMS_PORT}",
             "JWT_SECRET": secrets.token_urlsafe(32),
         }
 
@@ -109,17 +108,24 @@ class Stack:
             db.migrate(conn)
             seed.seed(conn)
             seed.register_issuers_on_chain(conn)
-        self.start_ams()
-        self.api = self._spawn("app.main:app", API_PORT)
-        self._wait(lambda: httpx.get(f"{API}/openapi.json", timeout=5).status_code == 200, "API")
+        self.start_api()
         for username, *_ in seed.ACCOUNTS:
             self.tokens[username] = self.call("POST", "/auth/token", body={"username": username, "password": seed.DEMO_PASSWORD})[1]["accessToken"]
 
-    def _spawn(self, target: str, port: int) -> subprocess.Popen[bytes]:
-        return subprocess.Popen(
-            [sys.executable, "-m", "uvicorn", target, "--host", "127.0.0.1", "--port", str(port)],
-            cwd=API_DIR, env=self.env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+    def start_api(self, gemini_key: str | None = None) -> None:
+        """Starts the API; JWT_SECRET is fixed, so tokens survive a restart (TC-10)."""
+        env = self.env if gemini_key is None else {**self.env, "GEMINI_API_KEY": gemini_key}
+        self.api = subprocess.Popen(
+            [sys.executable, "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", str(API_PORT)],
+            cwd=API_DIR, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
+        self._wait(lambda: httpx.get(f"{API}/openapi.json", timeout=5).status_code == 200, "API")
+
+    def stop_api(self) -> None:
+        if self.api:
+            self.api.terminate()
+            self.api.wait(timeout=30)
+            self.api = None
 
     @staticmethod
     def _wait(ready: Any, name: str) -> None:
@@ -133,22 +139,8 @@ class Stack:
             time.sleep(0.5)
         raise RuntimeError(f"{name} did not start")
 
-    def start_ams(self) -> None:
-        self.ams = self._spawn("app.ams_server:app", AMS_PORT)
-        url = f"http://127.0.0.1:{AMS_PORT}/embed"
-        self._wait(lambda: httpx.post(url, json={"texts": ["ok"]}, timeout=10).status_code == 200, "AMS")
-
-    def stop_ams(self) -> None:
-        if self.ams:
-            self.ams.terminate()
-            self.ams.wait(timeout=30)
-            self.ams = None
-
     def close(self) -> None:
-        self.stop_ams()
-        if self.api:
-            self.api.terminate()
-            self.api.wait(timeout=30)
+        self.stop_api()
 
     # --- calls ---------------------------------------------------------------------------
 
@@ -288,15 +280,17 @@ def run(stack: Stack) -> tuple[list[Record], dict[str, str]]:
 
     # TC-10 ---------------------------------------------------------------------------------
     r = new("TC-10", "The AI service is switched off", "NFR-06", "API-07 returns 503; API-06 keeps working")
-    stack.stop_ams()
+    stack.stop_api()
+    stack.start_api(gemini_key="")
     status_ai, body_ai = stack.exchange(r, "matching-ai-off.json", "POST", "/matchings", "verifier.a", {"verificationId": ver_valid, "position": POSITION})
     status_v, body_v = stack.exchange(r, "verify-ai-off.json", "POST", "/verifications", "verifier.a", {"shareToken": link1["shareToken"]})
-    stack.start_ams()
+    stack.stop_api()
+    stack.start_api()
     r.steps = [
-        f"Stop the AMS process on port {AMS_PORT} (OD-8).",
+        f"Restart the API on port {API_PORT} with GEMINI_API_KEY empty, so Gemini is unreachable (OD-8 as revised in B-04).",
         f"As `verifier.a`, POST /api/v1/matchings with {ver_valid}.",
         "As `verifier.a`, POST /api/v1/verifications with the TC-04 share token.",
-        "Start AMS again for the remaining scenarios.",
+        "Restart the API with the key for the remaining scenarios.",
     ]
     r.passed = status_ai == 503 and error_code(body_ai) == "AI_UNAVAILABLE" and status_v == 200 and body_v.get("result") == "VALID"
     r.actual = f"API-07: {status_ai} `{error_code(body_ai)}`. API-06: {status_v}, result `{body_v.get('result')}`."
@@ -452,12 +446,14 @@ def write(records: list[Record], goals: dict[str, str], environment: str) -> Non
 
 def main() -> None:
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]  # Windows consoles default to cp1252
+    if not config.GEMINI_API_KEY:
+        raise SystemExit("Set GEMINI_API_KEY (for example in ../.env and run with uv run --env-file ../.env).")
     for old in EVIDENCE.glob("TC-*"):
         shutil.rmtree(old) if old.is_dir() else old.unlink()
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=REPO, capture_output=True, text=True).stdout.strip()
     environment = (f"{datetime.now(UTC):%Y-%m-%d %H:%M} UTC, commit {commit}, local Hardhat node + PostgreSQL 17 "
-                   f"(database proofskill_evidence), API and AMS on ports {API_PORT}/{AMS_PORT}")
+                   f"(database proofskill_evidence), API on port {API_PORT}, AI matching by Gemini {ams.GEMINI_MODEL}")
     stack = Stack()
     try:
         stack.prepare()

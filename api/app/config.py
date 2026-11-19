@@ -13,8 +13,8 @@ CHAIN_RPC_URL =os.environ.get("CHAIN_RPC_URL", "http://127.0.0.1:8545")
 # shortcut: without JWT_SECRET each API process signs with a random key, so tokens die on
 # restart. Set JWT_SECRET (never committed) if tokens must survive restarts.
 JWT_SECRET = os.environ.get("JWT_SECRET") or secrets.token_urlsafe(32)
-# AMS model process (OD-8). Stopping it switches the AI off for TC-10.
-AMS_URL = os.environ.get("AMS_URL", "http://127.0.0.1:8001")
+# Gemini API key for AMS embeddings (B-04). Never committed. Unset switches the AI off (TC-10).
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 # Origin of the web app; share links point to its verifier route /v/<shareToken> (report 9.3).
 WEB_BASE_URL = os.environ.get("WEB_BASE_URL", "http://localhost:3000")
 # Written by `pnpm deploy:local` in contracts/: registry address, owner, and ABI.

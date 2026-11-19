@@ -20,19 +20,19 @@
         {
           "skill": "OWASP Top 10",
           "requirement": "Menganalisis kerentanan aplikasi web",
-          "similarity": 0.93,
-          "reason": "Very close in meaning to the alias \"kerentanan aplikasi web\"."
+          "similarity": 0.85,
+          "reason": "Close in meaning to the alias \"kerentanan aplikasi web\"."
         },
         {
           "skill": "OWASP Top 10",
           "requirement": "memahami OWASP Top 10",
-          "similarity": 0.95,
-          "reason": "Very close in meaning to the skill name."
+          "similarity": 0.78,
+          "reason": "Close in meaning to the skill name."
         },
         {
           "skill": "Web Security Testing",
           "requirement": "melakukan pengujian keamanan dasar",
-          "similarity": 0.94,
+          "similarity": 0.85,
           "reason": "Very close in meaning to the alias \"pengujian keamanan\"."
         }
       ],
@@ -45,11 +45,11 @@
       "limitations": [
         "Text similarity is not proof of ability.",
         "Only the skills the issuer recorded and the holder shared are compared.",
-        "A requirement counts as matched at a similarity of 0.55 or higher; the value is indicative only.",
+        "A requirement counts as matched at a similarity of 0.72 or higher; the value is indicative only.",
         "This is a recommendation, not a decision. The hiring decision stays with you."
       ],
-      "modelVersion": "paraphrase-multilingual-MiniLM-L12-v2@e8f8c211 (onnx)"
+      "modelVersion": "gemini-embedding-001 (Gemini API, RETRIEVAL_QUERY/RETRIEVAL_DOCUMENT)"
     }
   },
-  "elapsedMs": 100.0
+  "elapsedMs": 2130.1
 }

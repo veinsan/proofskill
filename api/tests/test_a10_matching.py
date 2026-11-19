@@ -1,15 +1,18 @@
 """A-10 completion criteria: F-06 skill matching through API-07 (TC-08, TC-09, TC-10, TC-15;
-FR-08, FR-09, NFR-03, NFR-06, design rule 1.3). The logic tests use a word-overlap fake embedder;
-TC-08 and TC-10 run the real model process."""
+FR-08, FR-09, NFR-03, NFR-06, design rule 1.3). The logic tests use a word-overlap fake embedder or
+a fake Gemini endpoint; TC-08 calls the real Gemini API (B-04) when GEMINI_API_KEY is set."""
 
+import json
 import zlib
+from typing import Any
 
+import httpx
 import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
 from app import ams, config, db, seed
-from tests.conftest import ams_process, issue, login, share
+from tests.conftest import ISSUE_REQUEST, issue, login, share
 from tests.test_a04_auth_rbac import assert_error
 from tests.test_a08_verification import verify
 
@@ -18,14 +21,45 @@ SECURITY = {"title": seed.POSITIONS[0][0], "description": seed.POSITIONS[0][1]} 
 FRONTEND = {"title": seed.POSITIONS[2][0], "description": seed.POSITIONS[2][1]}
 
 
-def fake_embed(texts: list[str]) -> tuple[dict[str, np.ndarray], str]:
-    def vector(text: str) -> np.ndarray:
-        v = np.zeros(256)
-        for word in text.lower().split():
-            v[zlib.crc32(word.encode()) % 256] += 1
-        return v
+def word_vector(text: str) -> np.ndarray:
+    v = np.zeros(256)
+    for word in text.lower().split():
+        v[zlib.crc32(word.encode()) % 256] += 1
+    return v
 
-    return {t: vector(t) for t in texts}, "fake-word-overlap"
+
+def fake_embed(requirements: list[str], skill_texts: list[str]) -> tuple[dict[str, np.ndarray], dict[str, np.ndarray], str]:
+    return {t: word_vector(t) for t in requirements}, {t: word_vector(t) for t in skill_texts}, "fake-word-overlap"
+
+
+class FakeGemini:
+    """Stands in for httpx.post to batchEmbedContents and records every request AMS sends."""
+
+    def __init__(self, status: int = 200) -> None:
+        self.status = status
+        self.calls: list[dict[str, Any]] = []
+        self.real_post = httpx.post  # RGS shares the httpx module for JSON-RPC
+
+    def __call__(self, url: str, **kwargs: Any) -> httpx.Response:
+        if url != ams.GEMINI_URL:
+            return self.real_post(url, **kwargs)
+        json, headers = kwargs["json"], kwargs["headers"]
+        self.calls.append({"url": url, "json": json, "headers": headers})
+        texts = [r["content"]["parts"][0]["text"] for r in json["requests"]]
+        body = {"embeddings": [{"values": word_vector(t).tolist()} for t in texts]} if self.status == 200 else {"error": {}}
+        return httpx.Response(self.status, json=body, request=httpx.Request("POST", url))
+
+    def texts(self, task: str) -> list[str]:
+        return [r["content"]["parts"][0]["text"] for c in self.calls for r in c["json"]["requests"] if r["taskType"] == task]
+
+
+@pytest.fixture
+def gemini(monkeypatch: pytest.MonkeyPatch) -> FakeGemini:
+    fake = FakeGemini()
+    monkeypatch.setattr(ams.httpx, "post", fake)
+    monkeypatch.setattr(config, "GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(ams, "_skill_vectors", {})
+    return fake
 
 
 @pytest.fixture
@@ -62,10 +96,10 @@ def test_split_requirements_follows_od7_on_the_report_example() -> None:
 
 def test_group_matches_by_best_pair_and_never_totals() -> None:
     vectors = {"a": np.array([1.0, 0.0]), "b": np.array([0.0, 1.0]), "Skill A": np.array([0.9, 0.1]), "alias b": np.array([0.3, 1.0])}
-    matched, missing = ams.group(["a", "b"], [{"label": "Skill A", "aliases": ["alias b"]}], vectors)
+    matched, missing = ams.group(["a", "b"], [{"label": "Skill A", "aliases": ["alias b"]}], vectors, vectors)
     assert [(m.requirement, m.skill, m.similarity) for m in matched] == [("a", "Skill A", 0.99), ("b", "Skill A", 0.96)]
     assert 'alias "alias b"' in matched[1].reason
-    matched, missing = ams.group(["a"], [], vectors)
+    matched, missing = ams.group(["a"], [], vectors, vectors)
     assert matched == [] and missing[0].note == "The holder did not share skills in this link."
 
 
@@ -135,13 +169,52 @@ def test_api07_other_roles_get_403_forbidden_role(client: TestClient, fake_ai: N
     assert_error(match(client, "VER-0001", username=username), 403, "FORBIDDEN_ROLE")
 
 
-# --- Real model process ------------------------------------------------------------------
+# --- Gemini adapter (B-04) ---------------------------------------------------------------
 
 
-def test_tc08_matching_after_a_valid_verification_with_the_real_model(
-    client: TestClient, ams_url: str, monkeypatch: pytest.MonkeyPatch
+def test_b04_only_skill_and_requirement_text_leaves_the_api(client: TestClient, gemini: FakeGemini) -> None:
+    verification_id = valid_verification(client)
+    assert match(client, verification_id).status_code == 200
+    shared = ISSUE_REQUEST["skills"]
+    skill_texts = {t for skill_id, label, aliases in seed.SKILLS if skill_id in shared for t in [label, *aliases]}  # type: ignore[operator]
+    requirements = set(ams.split_requirements(SECURITY["description"]))
+    assert set(gemini.texts("RETRIEVAL_QUERY")) == requirements
+    assert set(gemini.texts("RETRIEVAL_DOCUMENT")) == skill_texts
+    sent = json.dumps([c["json"] for c in gemini.calls])
+    assert all(value not in sent for value in ["Peserta Contoh A", "HLD-2026-0007", "CRD-0001", "verifier.a", ISSUE_REQUEST["program"]["title"]])  # type: ignore[index]
+    assert all(c["headers"] == {"x-goog-api-key": "test-key"} and "key=" not in c["url"] for c in gemini.calls)
+
+    # Skill vectors are cached; the next matching sends only its requirements.
+    gemini.calls.clear()
+    assert match(client, verification_id, FRONTEND).status_code == 200
+    assert set(gemini.texts("RETRIEVAL_QUERY")) == set(ams.split_requirements(FRONTEND["description"]))
+    assert gemini.texts("RETRIEVAL_DOCUMENT") == []
+
+
+def test_b04_gemini_error_returns_503(client: TestClient, gemini: FakeGemini) -> None:
+    verification_id = valid_verification(client)
+    gemini.status = 429  # free-tier quota exhausted
+    assert_error(match(client, verification_id), 503, "AI_UNAVAILABLE")
+
+
+def test_tc10_ai_switched_off_returns_503_and_verification_keeps_working(
+    client: TestClient, conn: Conn, gemini: FakeGemini, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(config, "AMS_URL", ams_url)
+    issue(client)
+    token = share(client, "CRD-0001")["shareToken"]
+    first = verify(client, token).json()
+    assert match(client, first["verificationId"]).status_code == 200
+    monkeypatch.setattr(config, "GEMINI_API_KEY", "")  # the deployment switch-off (OD-8 revised)
+    calls = len(gemini.calls)
+    assert_error(match(client, first["verificationId"]), 503, "AI_UNAVAILABLE")
+    assert len(gemini.calls) == calls  # nothing was sent without a key
+    again = verify(client, token)
+    assert again.status_code == 200 and again.json()["result"] == "VALID"
+    assert conn.execute("SELECT count(*) AS n FROM matchings").fetchone() == {"n": 1}
+
+
+@pytest.mark.skipif(not config.GEMINI_API_KEY, reason="needs GEMINI_API_KEY (real Gemini call)")
+def test_tc08_matching_after_a_valid_verification_with_gemini(client: TestClient) -> None:
     verification_id = valid_verification(client)
     body = match(client, verification_id).json()
     pairs = {(m["requirement"], m["skill"]) for m in body["matchedSkills"]}
@@ -153,25 +226,9 @@ def test_tc08_matching_after_a_valid_verification_with_the_real_model(
     assert [m["requirement"] for m in body["missingRequirements"]] == ["memantau log dengan SIEM"]
     assert all(ams.THRESHOLD <= m["similarity"] <= 1 for m in body["matchedSkills"])
     assert body["label"] == "REKOMENDASI" and "score" not in str(body).lower()
-    assert body["modelVersion"].startswith("paraphrase-multilingual-MiniLM-L12-v2@")
+    assert body["modelVersion"].startswith("gemini-embedding-001")
 
     # AI differentiator: the same security credential against a frontend position covers nothing.
     unrelated = match(client, verification_id, FRONTEND).json()
     assert unrelated["matchedSkills"] == []
     assert len(unrelated["missingRequirements"]) == len(ams.split_requirements(FRONTEND["description"]))
-
-
-def test_tc10_ai_switched_off_returns_503_and_verification_keeps_working(
-    client: TestClient, conn: Conn, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    issue(client)
-    token = share(client, "CRD-0001")["shareToken"]
-    with ams_process(8012) as url:
-        monkeypatch.setattr(config, "AMS_URL", url)
-        first = verify(client, token).json()
-        assert match(client, first["verificationId"]).status_code == 200
-    # The AMS process is now stopped (OD-8).
-    assert_error(match(client, first["verificationId"]), 503, "AI_UNAVAILABLE")
-    again = verify(client, token)
-    assert again.status_code == 200 and again.json()["result"] == "VALID"
-    assert conn.execute("SELECT count(*) AS n FROM matchings").fetchone() == {"n": 1}

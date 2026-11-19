@@ -14,13 +14,13 @@
   },
   "response": {
     "linkId": "SHL-0001",
-    "shareToken": "sk_0b312e4ab2ef56a4146076a2374ce4e5",
-    "url": "http://localhost:3000/v/sk_0b312e4ab2ef56a4146076a2374ce4e5",
+    "shareToken": "sk_84218fe70e15e3e9ae0542a33e056f93",
+    "url": "http://localhost:3000/v/sk_84218fe70e15e3e9ae0542a33e056f93",
     "scope": [
       "program.title",
       "completedAt",
       "skills"
     ],
-    "expiresAt": "2026-11-22T14:41:28.671107Z"
+    "expiresAt": "2026-11-22T15:53:10.936843Z"
   }
 }

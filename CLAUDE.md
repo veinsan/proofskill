@@ -26,11 +26,11 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinne
 | Tool | Version or role |
 | --- | --- |
 | Next.js with TypeScript | Next.js 16.4.6, React 19.3.0, TypeScript 5.9.3 (strict), ESLint 9, qrcode 1.5.4 (share-link QR, approved 2026-11-19). Web app with three portals in `web/`. It proxies `/api/v1` to FastAPI (`API_ORIGIN`), so the API needs no CORS |
-| FastAPI | FastAPI 0.165.0 on Python 3.13.17, Uvicorn 0.54.0, Pydantic 2.14.3, pytest 9.2.0, psycopg 3.3.9, httpx 0.28.1, PyJWT 2.15.1. REST API under `/api/v1` in `api/`, one module per SoaML service |
-| Windows Application Control | Blocks some unsigned native wheels on this machine (`psycopg-binary`, `regex`, `bitarray`). So psycopg runs its pure-Python driver with `libpq.dll` from `PG_BIN`, RGS calls JSON-RPC through httpx with a minimal ABI codec instead of web3.py, and AMS uses ONNX Runtime instead of sentence-transformers. Check new Python dependencies with an import before adopting them |
+| FastAPI | FastAPI 0.165.0 on Python 3.13.17, Uvicorn 0.54.0, Pydantic 2.14.3, pytest 9.2.0, psycopg 3.3.9, httpx 0.28.1, PyJWT 2.15.1, numpy 2.5.5. REST API under `/api/v1` in `api/`, one module per SoaML service |
+| Windows Application Control | Blocks some unsigned native wheels on this machine (`psycopg-binary`, `regex`, `bitarray`). So psycopg runs its pure-Python driver with `libpq.dll` from `PG_BIN`, and RGS calls JSON-RPC through httpx with a minimal ABI codec instead of web3.py. Check new Python dependencies with an import before adopting them |
 | PostgreSQL | 17.11 (installed at `C:\Program Files\PostgreSQL\17`). Off-chain data, run as a project-local cluster by `scripts/db.ps1`: data in `.pgdata/`, port 5433, 127.0.0.1 only, trust auth |
 | Hardhat with Solidity | Hardhat 3.22.0, ethers 6.17.0, Mocha 12.0.3, Chai 6.3.0, Solidity 0.8.28. Local chain and the `ProofSkillRegistry` contract in `contracts/` |
-| `paraphrase-multilingual-MiniLM-L12-v2` | Sentence embeddings for AI matching, run locally. Official ONNX export, revision `e8f8c211`, in `api/.models/` (470 MB, Git LFS). Runs with onnxruntime 1.32.0, tokenizers 0.23.3, and numpy 2.5.5 in the AMS process |
+| Gemini embeddings | `gemini-embedding-001` through the Gemini REST API (`batchEmbedContents`, called with httpx; no SDK). Requirements are embedded as `RETRIEVAL_QUERY` and skills as `RETRIEVAL_DOCUMENT`, threshold 0.72 (B-04). Needs `GEMINI_API_KEY`; replaced the local MiniLM model and its ONNX process on 2026-11-19 |
 | JWT Bearer tokens | Roles `issuer_admin`, `holder`, `verifier`, plus `platform_admin` for API-01 (OD-1) |
 
 **Deployment target (re-planned 2026-11-19, built in steps B-01 to B-07; not in place yet):**
@@ -41,7 +41,7 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinne
 | Render | Hosts `api/` (free tier, sleeps when idle) |
 | Supabase | Postgres for off-chain data (Row Level Security on, no policies) and Auth for accounts; API-00 proxies Supabase sign-in |
 | Base Sepolia testnet | Hosts `ProofSkillRegistry`. The API signs with one key per issuer, kept as a Render secret (OD-12) |
-| Gemini embeddings (free tier) | Replaces the MiniLM process in AMS (B-04) |
+| Gemini embeddings (free tier) | Used by AMS since B-04 (done); the key becomes a Render secret in B-05 |
 | Reserved: OpenCV / YOLO / MediaPipe, RunPod, LangChain | Not used by any current feature. Add one only after the PRD scopes a feature that needs it |
 | Node v26.13.0 | Node package manager: pnpm 12.18.0 (decided at A-01) |
 | uv 0.13.7 | Python package manager: uv, lockfile `api/uv.lock` (decided at A-01) |
@@ -64,7 +64,6 @@ contracts/        # Hardhat: ProofSkillRegistry.sol (registerIssuer, issueCreden
 api/              # FastAPI app
   app/            # modules per SoaML service: ias, cis, css, aas, vrs, rgs (blockchain adapter), scs, ams; plus config, db, seed
   migrations/     # plain SQL, applied in name order by app/db.py
-  .models/        # embedding model files (model.onnx through Git LFS)
   tests/          # pytest; name tests after TC IDs, e.g. test_tc05_tampered_db_content
 web/              # Next.js app: sign in /, issuer portal /issuer, holder portal /holder, verifier /verifier and /v/[shareToken]
   app/            # routes; globals.css holds the DESIGN.md tokens as CSS custom properties
@@ -79,7 +78,7 @@ skill/            # project skills: project-setup (docs workflow), run-test-scen
 
 - Endpoint code belongs to the module of the SoaML service that owns the operation (ARCHITECTURE.md mapping table).
 - Only `rgs` talks to the chain.
-- Only `ams` loads the embedding model.
+- Only `ams` calls the embedding API (Gemini).
 
 ## Code Conventions
 
@@ -129,23 +128,22 @@ Tick an item only after its completion criteria in ARCHITECTURE.md pass.
 
 ## Testing and Build
 
-The defaults match `.env.example`, so set an environment variable only to override one. Start each part from the repository root:
+The defaults match `.env.example`, so set an environment variable only to override one. AI matching needs `GEMINI_API_KEY`: copy `.env.example` to the untracked `.env`, add the key there, and pass `--env-file ../.env` to `uv run` (the API reads only real environment variables). Start each part from the repository root:
 
 | Part | Command | Address |
 | --- | --- | --- |
 | Database | `powershell -ExecutionPolicy Bypass -File scripts/db.ps1 start` (also `stop`, `status`) | `postgresql://proofskill@127.0.0.1:5433/proofskill` |
 | Chain | `cd contracts; pnpm install; pnpm chain`, then `pnpm deploy:local` in a second terminal | `http://127.0.0.1:8545`, contract address in `contracts/deployments/localhost.json` |
 | Seed | `cd api; uv sync; uv run python -m app.seed --reset` (needs the database, the chain, and a deploy). It migrates, loads the synthetic seed, and registers ISS-001 and ISS-002 on-chain. Accounts and the shared demo password are in `api/app/seed.py` | — |
-| AI (AMS) | `cd api; uv run fastapi run app/ams_server.py --host 127.0.0.1 --port 8001`. The model comes with the clone through Git LFS (`git lfs install` once, then `git lfs pull`); without LFS, `uv run python -m app.ams_model` downloads it | `http://127.0.0.1:8001` |
-| API | `cd api; uv run fastapi dev app/main.py` | `http://127.0.0.1:8000/api/v1/docs` |
+| API | `cd api; uv run --env-file ../.env fastapi dev app/main.py`. Without `GEMINI_API_KEY`, everything works except API-07, which returns 503 `AI_UNAVAILABLE` (TC-10) | `http://127.0.0.1:8000/api/v1/docs` |
 | Web | `cd web; pnpm install; pnpm dev` (needs the API on port 8000). Sign in at `/` with a seeded account; the portal follows the role, and each browser tab keeps its own session | `http://localhost:3000` |
 
-Checks: `pnpm test` in `contracts/`, `uv run pytest` in `api/` (needs the database cluster and a running chain; it uses the separate `proofskill_test` database, deploys its own registry to `contracts/deployments/pytest.json`, and reverts the chain after each test), and `pnpm lint` plus `pnpm build` in `web/`.
+Checks: `pnpm test` in `contracts/`, `uv run --env-file ../.env pytest` in `api/` (needs the database cluster and a running chain; it uses the separate `proofskill_test` database, deploys its own registry to `contracts/deployments/pytest.json`, and reverts the chain after each test; TC-08 calls the real Gemini API and is skipped without `GEMINI_API_KEY`, the other AI tests use a fake Gemini endpoint), and `pnpm lint` plus `pnpm build` in `web/`.
 
 - **Contracts.** Hardhat tests cover issue, revoke, read, the other-issuer revert (TC-14), and issuer deactivation (TC-16).
 - **API.** pytest, one test per automatable TC (TC-01 to TC-16). Run them against the local Hardhat node and PostgreSQL.
 - **Web.** Production build of the Next.js app, plus manual checks in a browser of the three flows: issue, share, verify with skill fit.
-- **Evidence.** `cd api; uv run python -m scripts.evidence` (needs the database cluster and a running chain; it starts its own API and AMS on ports 8100 and 8101) runs TC-01 to TC-16 and rewrites `docs/evidence/` in the D3 format: scenario, steps or input, expected result, actual result, status, evidence. `docs/evidence/README.md` summarizes the results and T-01 to T-05. `skill/run-test-scenario/SKILL.md` (local) describes the same format for manual runs.
+- **Evidence.** `cd api; uv run --env-file ../.env python -m scripts.evidence` (needs the database cluster, a running chain, and `GEMINI_API_KEY`; it starts its own API on port 8100 and restarts it without the key for TC-10) runs TC-01 to TC-16 and rewrites `docs/evidence/` in the D3 format: scenario, steps or input, expected result, actual result, status, evidence. `docs/evidence/README.md` summarizes the results and T-01 to T-05. `skill/run-test-scenario/SKILL.md` (local) describes the same format for manual runs.
 
 ## Git Rules
 
