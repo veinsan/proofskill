@@ -181,7 +181,7 @@ These gaps or conflicts in the source documents need a team decision. Until each
 6. **Canonical payload.** The exact canonical form and field list hashed with the nonce. `holderDisplayName` is excluded, and NIK is never included.
    - **Decided 2026-11-19:** JSON with sorted keys and no whitespace, encoded in UTF-8, over `credentialId`, `issuerId`, `holderRef`, `program.title`, `program.completedAt`, `program.criteria`, and `skills` (skill IDs sorted). `commitment = SHA-256(canonical JSON bytes ‖ 32-byte random nonce)`.
 7. **Matching mechanics.** The similarity threshold separating matched from uncovered requirements, and how a position description is split into requirements.
-   - **Decided 2026-11-19:** split the description into requirements at sentence ends, commas, semicolons, and the word "dan" or "and". Compare each requirement with the label and aliases of every verified skill. A cosine similarity of 0.60 or more is a match, and the rest go to `missingRequirements`. Tune the threshold on synthetic data and record the result.
+   - **Decided 2026-11-19:** split the description into requirements at sentence ends, commas, semicolons, and the word "dan" or "and". Compare each requirement with the label and aliases of every verified skill. A cosine similarity of 0.60 or more is a match, and the rest go to `missingRequirements`. Tune the threshold on synthetic data and record the result. A-10 tuned it to 0.55 (see TODO.md A-10).
 8. **TC-10 setup.** How the AI service is switched off for TC-10.
    - **Decided 2026-11-19:** AMS runs as its own process on port 8001, and the API calls it over HTTP. TC-10 stops that process.
 9. **Report versus deck.**

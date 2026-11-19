@@ -159,3 +159,30 @@ def verify_credential(
         chain_ref=ChainRef(tx_hash=credential["tx_hash"]),
         verified_at=row["verified_at"],
     )
+
+
+# --- VRS.getVerification (internal, SC-9) -------------------------------------------------
+
+
+def get_verification(conn: Connection[DictRow], verification_id: str) -> DictRow:
+    """getVerification (T19): the stored result with its verifier, link scope, and credential.
+    AMS reads skills only through here, never from data the verifier sends (SC-9)."""
+    verification = conn.execute(
+        "SELECT v.*, l.scope, l.credential_id FROM verifications v JOIN share_links l USING (link_id)"
+        " WHERE v.verification_id = %s",
+        (verification_id,),
+    ).fetchone()
+    if verification is None:
+        raise ApiError(404, "VERIFICATION_NOT_FOUND", f"Verification {verification_id} does not exist.")
+    return verification
+
+
+def verified_skills(conn: Connection[DictRow], verification: DictRow) -> list[DictRow]:
+    """The credential's skills with labels and aliases, only if the holder shared skills in the link."""
+    if "skills" not in verification["scope"]:
+        return []
+    return conn.execute(
+        "SELECT s.skill_id, s.label, s.aliases FROM credential_skills cs JOIN skills s USING (skill_id)"
+        " WHERE cs.credential_id = %s ORDER BY s.skill_id",
+        (verification["credential_id"],),
+    ).fetchall()
