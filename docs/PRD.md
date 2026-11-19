@@ -166,7 +166,7 @@ Report Tabel 4.12. The targets are acceptance criteria for the design, not measu
 
 ## Open Decisions
 
-These gaps or conflicts in the source documents need a team decision. Until each is decided, no document or code treats it as settled. OD-1 to OD-8 were decided on 2026-11-19. The report sections each decision changes are tracked as D-08 in TODO.md. OD-9 is still open.
+These gaps or conflicts in the source documents need a team decision. Until each is decided, no document or code treats it as settled. OD-1 to OD-8 were decided on 2026-11-19. The report sections each decision changes are tracked as D-08 in TODO.md. OD-9 and OD-10 are still open.
 
 1. **Platform admin role and unnamed error codes.** API-01 requires a "platform admin", but the role enum in Tabel 9.16 lists only `issuer_admin`, `holder`, and `verifier`. Some error responses also have no code names: API-01 (403, 409), API-03 (403, 404), and API-05 (403, 404).
    - **Decided 2026-11-19:** add the role `platform_admin`, used only by API-01. API-01 403 is `FORBIDDEN_ROLE` and 409 is the one new code, `ISSUER_ALREADY_REGISTERED`. API-03 403 is `NOT_CREDENTIAL_OWNER` and 404 is `CREDENTIAL_NOT_FOUND`. API-05 403 is `NOT_CREDENTIAL_OWNER` and 404 is `SHARE_LINK_NOT_FOUND`.
@@ -187,3 +187,6 @@ These gaps or conflicts in the source documents need a team decision. Until each
 9. **Report versus deck.**
    - The deck's verification slides (BPMN To-Be 3, To-Be blueprint) list three results (VALID, REVOKED, TAMPERED). The report lists four (adding ISSUER_UNAUTHORIZED), and this PRD follows the report.
    - The deck shows interviews as done, while the report's Executive Summary, Tabel 4.1, and Tabel 4.17–4.18 still mark them as not done or empty.
+10. **Portal lists (found in A-07).** The report has no endpoint that lists credentials. API-03 reads one credential by ID, so the holder portal cannot show "my credentials" and the issuer portal cannot show the credential table DESIGN.md describes. The design rule against candidate search (report 1.3) rules out any cross-holder listing. Options:
+    - Add two owner-scoped list endpoints: the holder's own credentials, and the credentials the caller's issuer issued. Neither can search across holders.
+    - Add no endpoint. The holder opens a credential from the ID in the simulated email, and the issuer portal lists the IDs it can see in its own audit log (API-10).
