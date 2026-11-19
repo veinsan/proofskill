@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "chain": "hardhat node",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "deploy:local": "hardhat run scripts/deploy.ts --network localhost"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "4.2.2",
