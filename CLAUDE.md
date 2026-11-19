@@ -25,7 +25,7 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinne
 
 | Tool | Version or role |
 | --- | --- |
-| Next.js with TypeScript | Next.js 16.4.6, React 19.3.0, TypeScript 5.9.3 (strict), ESLint 9. Web app with three portals in `web/` |
+| Next.js with TypeScript | Next.js 16.4.6, React 19.3.0, TypeScript 5.9.3 (strict), ESLint 9, qrcode 1.5.4 (share-link QR, approved 2026-11-19). Web app with three portals in `web/`. It proxies `/api/v1` to FastAPI (`API_ORIGIN`), so the API needs no CORS |
 | FastAPI | FastAPI 0.165.0 on Python 3.13.17, Uvicorn 0.54.0, Pydantic 2.14.3, pytest 9.2.0, psycopg 3.3.9, httpx 0.28.1, PyJWT 2.15.1. REST API under `/api/v1` in `api/`, one module per SoaML service |
 | Windows Application Control | Blocks some unsigned native wheels on this machine (`psycopg-binary`, `regex`, `bitarray`). So psycopg runs its pure-Python driver with `libpq.dll` from `PG_BIN`, RGS calls JSON-RPC through httpx with a minimal ABI codec instead of web3.py, and AMS uses ONNX Runtime instead of sentence-transformers. Check new Python dependencies with an import before adopting them |
 | PostgreSQL | 17.11 (installed at `C:\Program Files\PostgreSQL\17`). Off-chain data, run as a project-local cluster by `scripts/db.ps1`: data in `.pgdata/`, port 5433, 127.0.0.1 only, trust auth |
@@ -55,7 +55,10 @@ api/              # FastAPI app
   migrations/     # plain SQL, applied in name order by app/db.py
   .models/        # embedding model files (model.onnx through Git LFS)
   tests/          # pytest; name tests after TC IDs, e.g. test_tc05_tampered_db_content
-web/              # Next.js app: issuer portal, holder portal, verifier route /v/[shareToken]
+web/              # Next.js app: sign in /, issuer portal /issuer, holder portal /holder, verifier /verifier and /v/[shareToken]
+  app/            # routes; globals.css holds the DESIGN.md tokens as CSS custom properties
+  components/     # Pass (signature), portal shell, skill fit, share QR, notices, icons
+  lib/            # typed API client, per-tab session, formatting
 scripts/          # db.ps1: start, stop, or check the project-local PostgreSQL cluster
 docs/             # project docs: PRD, ARCHITECTURE, TODO, WORKFLOW, DESIGN, PRODUCT
   evidence/       # one record per TC (TC-01..TC-16) for the D3 report
@@ -98,7 +101,7 @@ Tick an item only after its completion criteria in ARCHITECTURE.md pass.
 - [x] F-05 Revocation (API-09)
 - [x] F-06 Skill matching (API-07)
 - [x] F-07 Audit trail (API-10)
-- [ ] F-08 Web interface for issuer, holder, and verifier
+- [x] F-08 Web interface for issuer, holder, and verifier
 
 ## Do Not
 
@@ -124,7 +127,7 @@ The defaults match `.env.example`, so set an environment variable only to overri
 | Seed | `cd api; uv sync; uv run python -m app.seed --reset` (needs the database, the chain, and a deploy). It migrates, loads the synthetic seed, and registers ISS-001 and ISS-002 on-chain. Accounts and the shared demo password are in `api/app/seed.py` | — |
 | AI (AMS) | `cd api; uv run fastapi run app/ams_server.py --host 127.0.0.1 --port 8001`. The model comes with the clone through Git LFS (`git lfs install` once, then `git lfs pull`); without LFS, `uv run python -m app.ams_model` downloads it | `http://127.0.0.1:8001` |
 | API | `cd api; uv run fastapi dev app/main.py` | `http://127.0.0.1:8000/api/v1/docs` |
-| Web | `cd web; pnpm install; pnpm dev` | `http://localhost:3000` |
+| Web | `cd web; pnpm install; pnpm dev` (needs the API on port 8000). Sign in at `/` with a seeded account; the portal follows the role, and each browser tab keeps its own session | `http://localhost:3000` |
 
 Checks: `pnpm test` in `contracts/`, `uv run pytest` in `api/` (needs the database cluster and a running chain; it uses the separate `proofskill_test` database, deploys its own registry to `contracts/deployments/pytest.json`, and reverts the chain after each test), and `pnpm lint` plus `pnpm build` in `web/`.
 

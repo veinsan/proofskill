@@ -12,7 +12,8 @@ MIGRATIONS = Path(__file__).resolve().parent.parent / "migrations"
 
 
 def connect(url: str = config.DATABASE_URL) -> psycopg.Connection[DictRow]:
-    return psycopg.connect(url, row_factory=dict_row)
+    # Times leave the API in UTC (report Tabel 9.1), whatever the server's local time zone is.
+    return psycopg.connect(url, row_factory=dict_row, options="-c TimeZone=UTC")
 
 
 def get_conn() -> Iterator[psycopg.Connection[DictRow]]:
