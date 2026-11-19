@@ -104,6 +104,39 @@ describe("ProofSkillRegistry", () => {
     });
   });
 
+  describe("deactivateIssuer (OD-2)", () => {
+    it("TC-16: keeps the record but reports the issuer as no longer authorized", async () => {
+      const { registry, iss001 } = await deployWithIssuers();
+      await registry.connect(iss001).issueCredential("CRD-0001", COMMITMENT);
+      expect((await registry.getRecord("CRD-0001"))[4]).to.equal(true);
+
+      await expect(registry.deactivateIssuer("ISS-001"))
+        .to.emit(registry, "IssuerDeactivated")
+        .withArgs("ISS-001", iss001.address);
+
+      const [commitment, issuerId, status, , issuerActive] = await registry.getRecord("CRD-0001");
+      expect(commitment).to.equal(COMMITMENT);
+      expect(issuerId).to.equal("ISS-001");
+      expect(status).to.equal(ACTIVE);
+      expect(issuerActive).to.equal(false);
+    });
+
+    it("stops a deactivated issuer from issuing", async () => {
+      const { registry, iss001 } = await deployWithIssuers();
+      await registry.deactivateIssuer("ISS-001");
+      await expect(registry.connect(iss001).issueCredential("CRD-0001", COMMITMENT))
+        .to.be.revertedWithCustomError(registry, "IssuerNotActive");
+    });
+
+    it("lets only the platform admin deactivate a registered issuer", async () => {
+      const { registry, outsider } = await deployWithIssuers();
+      await expect(registry.connect(outsider).deactivateIssuer("ISS-001"))
+        .to.be.revertedWithCustomError(registry, "NotOwner");
+      await expect(registry.deactivateIssuer("ISS-404"))
+        .to.be.revertedWithCustomError(registry, "IssuerNotRegistered");
+    });
+  });
+
   describe("getRecord (FR-06)", () => {
     it("rejects an unknown credential", async () => {
       const { registry } = await deployWithIssuers();

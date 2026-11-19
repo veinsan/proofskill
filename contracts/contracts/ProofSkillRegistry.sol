@@ -4,8 +4,9 @@ pragma solidity ^0.8.28;
 /// @title ProofSkillRegistry
 /// @notice Local credential registry for ProofSkill (FR-01, FR-04, FR-06, FR-07).
 /// It stores only the RegistryRecord fields of report Tabel 8.5 (commitment, issuerId,
-/// status, timestamp), never personal data (NFR-02). Status changes are new transactions
-/// with events, so history is never overwritten.
+/// status, timestamp) plus whether the issuer is still authorized (OD-2), never personal
+/// data (NFR-02). Status changes are new transactions with events, so history is never
+/// overwritten.
 contract ProofSkillRegistry {
     enum Status {
         None,
@@ -25,9 +26,11 @@ contract ProofSkillRegistry {
 
     mapping(address => string) private issuerIdOf;
     mapping(string => address) private issuerAccountOf;
+    mapping(address => bool) private deactivated;
     mapping(string => Record) private records;
 
     event IssuerRegistered(string issuerId, address indexed account);
+    event IssuerDeactivated(string issuerId, address indexed account);
     event CredentialIssued(string credentialId, bytes32 commitment, string issuerId);
     event CredentialRevoked(string credentialId, string issuerId);
 
@@ -35,6 +38,7 @@ contract ProofSkillRegistry {
     error InvalidIssuer();
     error IssuerAlreadyRegistered();
     error IssuerNotRegistered();
+    error IssuerNotActive();
     error CredentialExists();
     error CredentialNotFound();
     error NotOriginalIssuer();
@@ -56,16 +60,28 @@ contract ProofSkillRegistry {
         emit IssuerRegistered(issuerId, account);
     }
 
+    /// @notice Withdraws an issuer's authorization. Its credentials then verify as
+    /// ISSUER_UNAUTHORIZED (OD-2, TC-16). Their records and status are kept.
+    function deactivateIssuer(string calldata issuerId) external {
+        if (msg.sender != owner) revert NotOwner();
+        address account = issuerAccountOf[issuerId];
+        if (account == address(0)) revert IssuerNotRegistered();
+        deactivated[account] = true;
+        emit IssuerDeactivated(issuerId, account);
+    }
+
     /// @notice Anchors a nonce-salted commitment for a new credential (T05, RGS.anchorCommitment).
     function issueCredential(string calldata credentialId, bytes32 commitment) external {
         string memory issuerId = issuerIdOf[msg.sender];
         if (bytes(issuerId).length == 0) revert IssuerNotRegistered();
+        if (deactivated[msg.sender]) revert IssuerNotActive();
         if (records[credentialId].status != Status.None) revert CredentialExists();
         records[credentialId] = Record(commitment, msg.sender, Status.Active, uint64(block.timestamp));
         emit CredentialIssued(credentialId, commitment, issuerId);
     }
 
     /// @notice Revokes a credential. Only its original issuer may do so (T26, RGS.setStatus, TC-14).
+    /// A deactivated issuer may still revoke, because revoking only lowers trust.
     function revokeCredential(string calldata credentialId) external {
         Record storage record = records[credentialId];
         if (record.status == Status.None) revert CredentialNotFound();
@@ -80,10 +96,16 @@ contract ProofSkillRegistry {
     function getRecord(string calldata credentialId)
         external
         view
-        returns (bytes32 commitment, string memory issuerId, Status status, uint64 timestamp)
+        returns (bytes32 commitment, string memory issuerId, Status status, uint64 timestamp, bool issuerActive)
     {
         Record storage record = records[credentialId];
         if (record.status == Status.None) revert CredentialNotFound();
-        return (record.commitment, issuerIdOf[record.issuer], record.status, record.timestamp);
+        return (
+            record.commitment,
+            issuerIdOf[record.issuer],
+            record.status,
+            record.timestamp,
+            !deactivated[record.issuer]
+        );
     }
 }

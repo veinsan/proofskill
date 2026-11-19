@@ -30,7 +30,7 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinne
 | PostgreSQL | 17.11 (installed at `C:\Program Files\PostgreSQL\17`). Off-chain data, run as a project-local cluster by `scripts/db.ps1`: data in `.pgdata/`, port 5433, 127.0.0.1 only, trust auth |
 | Hardhat with Solidity | Hardhat 3.22.0, ethers 6.17.0, Mocha 12.0.3, Chai 6.3.0, Solidity 0.8.28. Local chain and the `ProofSkillRegistry` contract in `contracts/` |
 | `paraphrase-multilingual-MiniLM-L12-v2` | Sentence embeddings for AI matching, run locally |
-| JWT Bearer tokens | Roles `issuer_admin`, `holder`, `verifier` (platform admin is pending, OD-1) |
+| JWT Bearer tokens | Roles `issuer_admin`, `holder`, `verifier`, plus `platform_admin` for API-01 (OD-1) |
 | Node v26.13.0 | Node package manager: pnpm 12.18.0 (decided at A-01) |
 | uv 0.13.7 | Python package manager: uv, lockfile `api/uv.lock` (decided at A-01) |
 
@@ -48,14 +48,14 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinne
 `contracts/`, `api/`, `web/`, and `scripts/` exist since A-01. The rest of the tree fills in as later steps land.
 
 ```text
-contracts/        # Hardhat: ProofSkillRegistry.sol (registerIssuer, issueCredential, revokeCredential, getRecord), tests, deploy script
+contracts/        # Hardhat: ProofSkillRegistry.sol (registerIssuer, issueCredential, revokeCredential, getRecord, deactivateIssuer), tests, deploy script
 api/              # FastAPI app
   app/            # modules per SoaML service: ias, cis, css, aas, vrs, rgs (blockchain adapter), scs, ams
   tests/          # pytest; name tests after TC IDs, e.g. test_tc05_tampered_db_content
 web/              # Next.js app: issuer portal, holder portal, verifier route /v/[shareToken]
 scripts/          # db.ps1: start, stop, or check the project-local PostgreSQL cluster
 docs/             # project docs: PRD, ARCHITECTURE, TODO, WORKFLOW, DESIGN, PRODUCT
-  evidence/       # one record per TC (TC-01..TC-15) for the D3 report
+  evidence/       # one record per TC (TC-01..TC-16) for the D3 report
 skill/            # project skills: project-setup (docs workflow), run-test-scenario
 .impeccable/      # impeccable design context (surface briefs, decision sketches)
 ```
@@ -76,12 +76,12 @@ skill/            # project skills: project-setup (docs workflow), run-test-scen
   - Credential status: `active`, `revoked`.
   - Verification result: `VALID`, `REVOKED`, `TAMPERED`, `ISSUER_UNAUTHORIZED`.
   - Check values: `PASS`/`FAIL` and `ACTIVE`/`REVOKED`.
-  - Roles: `issuer_admin`, `holder`, `verifier`.
+  - Roles: `issuer_admin`, `holder`, `verifier`, plus `platform_admin` (OD-1).
   - AI label: `REKOMENDASI`.
 - **Traceability.** Reference the report's IDs (FR-xx, NFR-xx, Txx BPMN activity, TC-xx, API-xx) in docstrings and test names where they explain why code exists.
 - **Python.** Use type hints throughout, and Pydantic models that match the report's MessageTypes (`IssueCredentialRequest`, `CredentialIssued`, `VerificationResult`, `MatchingRequest`, `MatchingResult`, `RegistryRecord`, `AuditEvent`).
 - **TypeScript.** Strict mode with no `any`. Write UI copy in English and keep enums and error codes verbatim.
-- **Hashing.** Use SHA-256 over the canonical payload plus a random nonce. Exclude `holderDisplayName` and never include NIK. The canonical form is pending (OD-6).
+- **Hashing.** Use SHA-256 over the canonical payload plus a random nonce. Exclude `holderDisplayName` and never include NIK. The canonical form is in ARCHITECTURE.md (OD-6).
 - **Ambiguity.** If a request is ambiguous, or would change something the report defines, ask before writing code.
 
 ## Features
@@ -105,7 +105,7 @@ No feature is built yet. Tick an item only after its completion criteria in ARCH
 - **No total score.** Do not return a total candidate score, and never drop the `REKOMENDASI` label or the limitations from AI output.
 - **Verification never depends on AI.** If the AI is down, only API-07 returns 503.
 - **Contract changes go through the user.** Do not change endpoints, payloads, status codes, error codes, or enums without the user's approval. If a change is approved, list the report and deck sections that must change with it.
-- **Do not invent codes.** Never invent names for the unnamed error codes (OD-1) or settle any other open decision on your own.
+- **Do not invent codes.** Use only the error codes in ARCHITECTURE.md (OD-1 named the formerly unnamed ones), and never settle an open decision (OD-9 is still open) on your own.
 - **No real secrets in git.** Keep secrets and private keys out of commits. Only the public Hardhat test accounts may appear in local config, and `.env` stays untracked.
 - **No real data.** Use synthetic data only (assumption A6), and never connect to a public blockchain.
 - **Pink only on the action.** Do not use Signal Pink anywhere except the single primary action.
@@ -123,8 +123,8 @@ Copy `.env.example` to `.env` first. Start each part from the repository root:
 
 Checks: `pnpm test` in `contracts/`, `uv run pytest` in `api/`, and `pnpm lint` plus `pnpm build` in `web/`.
 
-- **Contracts.** Hardhat tests cover issue, revoke, read, and the other-issuer revert (TC-14).
-- **API.** pytest, one test per automatable TC (TC-01 to TC-15). Run them against the local Hardhat node and PostgreSQL.
+- **Contracts.** Hardhat tests cover issue, revoke, read, the other-issuer revert (TC-14), and issuer deactivation (TC-16).
+- **API.** pytest, one test per automatable TC (TC-01 to TC-16). Run them against the local Hardhat node and PostgreSQL.
 - **Web.** Production build of the Next.js app, plus manual checks in a browser of the three flows: issue, share, verify with skill fit.
 - **Evidence.** Use `skill/run-test-scenario/SKILL.md` to record each TC in `docs/evidence/` in the D3 format: scenario, steps or input, expected result, actual result, status, evidence.
 

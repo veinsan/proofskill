@@ -67,12 +67,12 @@ ProofSkill is not a talent-search tool and not just certificate storage. It comp
   - The holder's scope and expiry decide which fields a verifier sees.
 - **Terminology.** Enum values and error codes stay exactly as written in the report. That covers VALID, REVOKED, TAMPERED, ISSUER_UNAUTHORIZED, REKOMENDASI, active, revoked, and the codes in report 9.5. ID prefixes are CRD-, ISS-, SHL-, VER-, MAT-, HLD-, and SK-.
 - **Out of scope.** Candidate search, PDDikti or PISN integration, ATS integration, payment, a public blockchain, storing original documents, and production-grade identity management. Correction versions (API-11, FR-11) are specified only, not built.
-- **Open decisions:**
-  - Which role represents the platform admin for API-01. The role enum lists only issuer_admin, holder, and verifier.
-  - How the ISSUER_UNAUTHORIZED result can occur with the four-function contract.
-  - Which channel delivers notifications.
-  - Which fields are allowed in a share scope, and the maximum link lifetime.
-  - The maximum length of a position description.
+- **Decisions of 2026-11-19 (PRD Open Decisions):**
+  - A `platform_admin` role registers issuers through API-01.
+  - ISSUER_UNAUTHORIZED appears when the platform admin deactivates an issuer on the registry.
+  - Notifications are simulated emails, not sent.
+  - Share scopes may include holderDisplayName, program.title, completedAt, program.criteria, and skills. Links last 1 to 720 hours.
+  - A position description is 1 to 2,000 characters.
 
 ## Brand Commitments
 
