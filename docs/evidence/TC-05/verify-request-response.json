@@ -1,0 +1,27 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/verifications",
+    "role": "verifier.a",
+    "body": {
+      "shareToken": "sk_90fa4f04afb7b1cfbe5058c63eb100d2"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "verificationId": "VER-0013",
+      "result": "TAMPERED",
+      "checks": {
+        "integrity": "FAIL",
+        "issuerAuthorized": "PASS",
+        "status": "ACTIVE"
+      },
+      "chainRef": {
+        "txHash": "0xdc7cae7b0f4996d22c34fd851f008efc4b6502d4c3d7e76ea56893c64ec64593"
+      },
+      "verifiedAt": "2026-11-19T14:41:35.256426Z"
+    }
+  },
+  "elapsedMs": 59.5
+}

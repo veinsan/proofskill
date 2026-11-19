@@ -1,0 +1,56 @@
+{
+  "runs": [
+    {
+      "status": 200,
+      "result": "VALID",
+      "seconds": 0.0555
+    },
+    {
+      "status": 200,
+      "result": "VALID",
+      "seconds": 0.063
+    },
+    {
+      "status": 200,
+      "result": "VALID",
+      "seconds": 0.0812
+    },
+    {
+      "status": 200,
+      "result": "VALID",
+      "seconds": 0.0932
+    },
+    {
+      "status": 200,
+      "result": "VALID",
+      "seconds": 0.0722
+    },
+    {
+      "status": 200,
+      "result": "VALID",
+      "seconds": 0.0633
+    },
+    {
+      "status": 200,
+      "result": "VALID",
+      "seconds": 0.0633
+    },
+    {
+      "status": 200,
+      "result": "VALID",
+      "seconds": 0.0637
+    },
+    {
+      "status": 200,
+      "result": "VALID",
+      "seconds": 0.0473
+    },
+    {
+      "status": 200,
+      "result": "VALID",
+      "seconds": 0.0481
+    }
+  ],
+  "medianSeconds": 0.0633,
+  "maxSeconds": 0.0932
+}

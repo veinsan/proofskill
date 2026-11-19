@@ -1,0 +1,220 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/audit-logs?limit=200",
+    "role": "admin.iss001",
+    "body": null
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "items": [
+        {
+          "time": "2026-11-19T14:41:37.171913Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0019",
+          "outcome": "REVOKED"
+        },
+        {
+          "time": "2026-11-19T14:41:37.111402Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0018",
+          "outcome": "REVOKED"
+        },
+        {
+          "time": "2026-11-19T14:41:37.018970Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0017",
+          "outcome": "REVOKED"
+        },
+        {
+          "time": "2026-11-19T14:41:36.961826Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0016",
+          "outcome": "REVOKED"
+        },
+        {
+          "time": "2026-11-19T14:41:36.907336Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0015",
+          "outcome": "REVOKED"
+        },
+        {
+          "time": "2026-11-19T14:41:36.820703Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0014",
+          "outcome": "REVOKED"
+        },
+        {
+          "time": "2026-11-19T14:41:36.728325Z",
+          "actorRole": "issuer_admin",
+          "operation": "revokeCredential",
+          "objectId": "CRD-0001",
+          "outcome": "success"
+        },
+        {
+          "time": "2026-11-19T14:41:35.361364Z",
+          "actorRole": "holder",
+          "operation": "createShareLink",
+          "objectId": "SHL-0003",
+          "outcome": "success"
+        },
+        {
+          "time": "2026-11-19T14:41:35.256426Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0013",
+          "outcome": "TAMPERED"
+        },
+        {
+          "time": "2026-11-19T14:41:35.167815Z",
+          "actorRole": "holder",
+          "operation": "createShareLink",
+          "objectId": "SHL-0002",
+          "outcome": "success"
+        },
+        {
+          "time": "2026-11-19T14:41:35.078195Z",
+          "actorRole": "issuer_admin",
+          "operation": "issueCredential",
+          "objectId": "CRD-0002",
+          "outcome": "success"
+        },
+        {
+          "time": "2026-11-19T14:41:32.058960Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0012",
+          "outcome": "VALID"
+        },
+        {
+          "time": "2026-11-19T14:41:29.801889Z",
+          "actorRole": "verifier",
+          "operation": "matchSkills",
+          "objectId": "MAT-0004",
+          "outcome": "success"
+        },
+        {
+          "time": "2026-11-19T14:41:29.716669Z",
+          "actorRole": "verifier",
+          "operation": "matchSkills",
+          "objectId": "MAT-0003",
+          "outcome": "success"
+        },
+        {
+          "time": "2026-11-19T14:41:29.606793Z",
+          "actorRole": "verifier",
+          "operation": "matchSkills",
+          "objectId": "MAT-0002",
+          "outcome": "success"
+        },
+        {
+          "time": "2026-11-19T14:41:29.488482Z",
+          "actorRole": "verifier",
+          "operation": "matchSkills",
+          "objectId": "MAT-0001",
+          "outcome": "success"
+        },
+        {
+          "time": "2026-11-19T14:41:29.440821Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0011",
+          "outcome": "VALID"
+        },
+        {
+          "time": "2026-11-19T14:41:29.392894Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0010",
+          "outcome": "VALID"
+        },
+        {
+          "time": "2026-11-19T14:41:29.331816Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0009",
+          "outcome": "VALID"
+        },
+        {
+          "time": "2026-11-19T14:41:29.265766Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0008",
+          "outcome": "VALID"
+        },
+        {
+          "time": "2026-11-19T14:41:29.219895Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0007",
+          "outcome": "VALID"
+        },
+        {
+          "time": "2026-11-19T14:41:29.156274Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0006",
+          "outcome": "VALID"
+        },
+        {
+          "time": "2026-11-19T14:41:29.060183Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0005",
+          "outcome": "VALID"
+        },
+        {
+          "time": "2026-11-19T14:41:28.973703Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0004",
+          "outcome": "VALID"
+        },
+        {
+          "time": "2026-11-19T14:41:28.909589Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0003",
+          "outcome": "VALID"
+        },
+        {
+          "time": "2026-11-19T14:41:28.846135Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0002",
+          "outcome": "VALID"
+        },
+        {
+          "time": "2026-11-19T14:41:28.751808Z",
+          "actorRole": "verifier",
+          "operation": "verifyCredential",
+          "objectId": "VER-0001",
+          "outcome": "VALID"
+        },
+        {
+          "time": "2026-11-19T14:41:28.671107Z",
+          "actorRole": "holder",
+          "operation": "createShareLink",
+          "objectId": "SHL-0001",
+          "outcome": "success"
+        },
+        {
+          "time": "2026-11-19T14:41:28.367144Z",
+          "actorRole": "issuer_admin",
+          "operation": "issueCredential",
+          "objectId": "CRD-0001",
+          "outcome": "success"
+        }
+      ],
+      "total": 29
+    }
+  },
+  "elapsedMs": 65.2
+}

@@ -134,7 +134,7 @@ Checks: `pnpm test` in `contracts/`, `uv run pytest` in `api/` (needs the databa
 - **Contracts.** Hardhat tests cover issue, revoke, read, the other-issuer revert (TC-14), and issuer deactivation (TC-16).
 - **API.** pytest, one test per automatable TC (TC-01 to TC-16). Run them against the local Hardhat node and PostgreSQL.
 - **Web.** Production build of the Next.js app, plus manual checks in a browser of the three flows: issue, share, verify with skill fit.
-- **Evidence.** Use `skill/run-test-scenario/SKILL.md` to record each TC in `docs/evidence/` in the D3 format: scenario, steps or input, expected result, actual result, status, evidence.
+- **Evidence.** `cd api; uv run python -m scripts.evidence` (needs the database cluster and a running chain; it starts its own API and AMS on ports 8100 and 8101) runs TC-01 to TC-16 and rewrites `docs/evidence/` in the D3 format: scenario, steps or input, expected result, actual result, status, evidence. `docs/evidence/README.md` summarizes the results and T-01 to T-05. `skill/run-test-scenario/SKILL.md` (local) describes the same format for manual runs.
 
 ## Git Rules
 

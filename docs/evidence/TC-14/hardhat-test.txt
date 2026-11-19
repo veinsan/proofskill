@@ -1,0 +1,36 @@
+No contracts to compile
+
+Running Solidity tests
+
+
+Running Mocha tests
+
+
+  ProofSkillRegistry
+    registerIssuer (FR-01)
+      ✔ lets only the platform admin register issuers
+      ✔ rejects an issuer ID or account that is already registered
+      ✔ exposes the account bound to an issuer ID
+      ✔ rejects an empty issuer ID
+    issueCredential (FR-04, TC-01)
+      ✔ records commitment, issuer, active status, and time
+      ✔ rejects an account that is not a registered issuer
+      ✔ rejects a credential ID that already exists
+    revokeCredential (FR-07)
+      ✔ sets the status to revoked when the original issuer revokes
+      ✔ TC-14: reverts when another issuer revokes, and the status stays active
+      ✔ rejects a second revocation
+      ✔ rejects an unknown credential
+    deactivateIssuer (OD-2)
+      ✔ TC-16: keeps the record but reports the issuer as no longer authorized
+      ✔ stops a deactivated issuer from issuing
+      ✔ lets only the platform admin deactivate a registered issuer
+    getRecord (FR-06)
+      ✔ rejects an unknown credential
+
+
+  15 passing (106ms)
+
+
+15 passing (15 mocha)
+
