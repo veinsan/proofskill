@@ -93,7 +93,7 @@ Tick an item only after its completion criteria in ARCHITECTURE.md pass.
 - [x] F-01 Authentication and RBAC (API-00, API-01)
 - [x] F-02 Credential issuance (API-02, API-08)
 - [x] F-03 Credential view and share links (API-03, API-04; API-05 optional)
-- [ ] F-04 Verification (API-06)
+- [x] F-04 Verification (API-06)
 - [ ] F-05 Revocation (API-09)
 - [ ] F-06 Skill matching (API-07)
 - [ ] F-07 Audit trail (API-10)
