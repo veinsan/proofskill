@@ -4,7 +4,7 @@ This plan turns [PRD.md](PRD.md) into implementation steps for Deliverable 3. It
 
 ## Technical Stack
 
-The team locked the stack on 2026-11-19 (report Tabel 10.3). Library versions are pinned when each part is scaffolded (step A-01) and recorded in [CLAUDE.md](CLAUDE.md).
+The team locked the stack on 2026-11-19 (report Tabel 10.3). Library versions are pinned when each part is scaffolded (step A-01) and recorded in [CLAUDE.md](../CLAUDE.md).
 
 | Area | Choice | Role |
 | --- | --- | --- |
@@ -153,18 +153,19 @@ proofskill/
   api/              # FastAPI app: one module per SoaML service (ias, cis, css, aas, vrs, rgs, scs, ams)
     tests/          # automated tests named after TC IDs where a scenario is automatable
   web/              # Next.js app: issuer, holder, and verifier portals; verifier route /v/[shareToken]
-  docs/evidence/    # TC-01..TC-15 evidence records for the D3 report
+  docs/             # project docs: PRD, ARCHITECTURE, TODO, WORKFLOW, DESIGN, PRODUCT
+    evidence/       # TC-01..TC-15 evidence records for the D3 report
   skill/            # project skills (project-setup, run-test-scenario)
   .impeccable/      # impeccable design context: surface briefs and decision sketches
 ```
 
 ## Implementation Plan
 
-The steps are in dependency order. The report's schedule (Tabel 10.5) was:
+The steps are in dependency order. The schedule starts on 2026-11-19 and replaces the dates in report Tabel 10.5, which must be updated to match:
 
-- 14–16 Nov: A-01 to A-05
-- 17–20 Nov: A-06 and A-08
-- 21–24 Nov: A-07 and A-09 to A-11
+- 19–20 Nov: A-01 to A-05
+- 21–22 Nov: A-06 and A-08
+- 23–24 Nov: A-07 and A-09 to A-11
 - 25–26 Nov: A-12 and A-13
 - 27 Nov: submission
 

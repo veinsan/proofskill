@@ -10,12 +10,12 @@ ProofSkill is the Deliverable 3 prototype for course II3120, built by Kelompok 0
 
 | Document | Use it for |
 | --- | --- |
-| [PRD.md](PRD.md) | Scope, users, user stories, FR and NFR, open decisions |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Stack, service-to-endpoint mapping, API conventions, implementation steps A-01 to A-13 |
-| [TODO.md](TODO.md) | Current status, blockers, next step |
-| [WORKFLOW.md](WORKFLOW.md) | When to proceed, when to ask, when a task is done |
-| [DESIGN.md](DESIGN.md) | Visual tokens and UI rules |
-| [PRODUCT.md](PRODUCT.md) | Product context that the impeccable design skill loads |
+| [PRD.md](docs/PRD.md) | Scope, users, user stories, FR and NFR, open decisions |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Stack, service-to-endpoint mapping, API conventions, implementation steps A-01 to A-13 |
+| [TODO.md](docs/TODO.md) | Current status, blockers, next step |
+| [WORKFLOW.md](docs/WORKFLOW.md) | When to proceed, when to ask, when a task is done |
+| [DESIGN.md](docs/DESIGN.md) | Visual tokens and UI rules |
+| [PRODUCT.md](docs/PRODUCT.md) | Product context that the impeccable design skill loads |
 
 The external sources of truth are the team's D1+D2 report (Google Doc) and deck (Google Slides). The API contract, codes, and enums in this repository must stay identical to report Bab IX.
 
@@ -53,7 +53,8 @@ api/              # FastAPI app
   app/            # modules per SoaML service: ias, cis, css, aas, vrs, rgs (blockchain adapter), scs, ams
   tests/          # pytest; name tests after TC IDs, e.g. test_tc05_tampered_db_content
 web/              # Next.js app: issuer portal, holder portal, verifier route /v/[shareToken]
-docs/evidence/    # one record per TC (TC-01..TC-15) for the D3 report
+docs/             # project docs: PRD, ARCHITECTURE, TODO, WORKFLOW, DESIGN, PRODUCT
+  evidence/       # one record per TC (TC-01..TC-15) for the D3 report
 skill/            # project skills: project-setup (docs workflow), run-test-scenario
 .impeccable/      # impeccable design context (surface briefs, decision sketches)
 ```
