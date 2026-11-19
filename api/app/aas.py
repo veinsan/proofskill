@@ -3,15 +3,15 @@
 
 import secrets
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Query, Response
 from psycopg import Connection
 from psycopg.rows import DictRow
 
 from app import cis, config
 from app.errors import ApiError
-from app.ias import Conn, Principal, current_principal
+from app.ias import Conn, Principal, check_authorization, current_principal, require_roles
 from app.models import ApiModel
 
 router = APIRouter()
@@ -110,3 +110,68 @@ def revoke_share_link(
         record_audit(conn, principal.role, "revokeShareLink", link_id, "success")
         conn.commit()
     return Response(status_code=204)
+
+
+# --- API-10 GET /audit-logs -------------------------------------------------------------
+
+Operation = Literal[
+    "issueCredential", "createShareLink", "revokeShareLink", "verifyCredential", "matchSkills", "revokeCredential"
+]
+
+# Maps each event's object ID (CRD-, SHL-, VER-, MAT-) to the credential it concerns, so an issuer
+# sees only events about its own credentials.
+_SCOPED_EVENTS = """
+    FROM audit_events e
+    JOIN credentials c ON c.credential_id = CASE
+        WHEN e.object_id LIKE 'CRD-%%' THEN e.object_id
+        WHEN e.object_id LIKE 'SHL-%%' THEN (SELECT credential_id FROM share_links WHERE link_id = e.object_id)
+        WHEN e.object_id LIKE 'VER-%%' THEN (
+            SELECT l.credential_id FROM verifications v JOIN share_links l USING (link_id)
+            WHERE v.verification_id = e.object_id)
+        WHEN e.object_id LIKE 'MAT-%%' THEN (
+            SELECT l.credential_id FROM matchings m JOIN verifications v USING (verification_id)
+            JOIN share_links l USING (link_id) WHERE m.matching_id = e.object_id)
+    END
+    WHERE c.issuer_id = %(issuer)s
+      AND (%(operation)s::text IS NULL OR e.operation = %(operation)s)
+      AND (%(since)s::timestamptz IS NULL OR e.time >= %(since)s)
+      AND (%(until)s::timestamptz IS NULL OR e.time <= %(until)s)
+"""
+
+
+class AuditEvent(ApiModel):
+    """report Tabel 8.5 AuditEvent: time, actor role, operation, object, outcome, never payload (NFR-07)."""
+
+    time: datetime
+    actor_role: str
+    operation: str
+    object_id: str | None
+    outcome: str
+
+
+class AuditLog(ApiModel):
+    items: list[AuditEvent]
+    total: int
+
+
+@router.get("/audit-logs", response_model=AuditLog, tags=["AAS"])
+def query_audit_log(
+    principal: Annotated[Principal, Depends(require_roles("issuer_admin"))],
+    conn: Conn,
+    operation: Operation | None = None,
+    since: Annotated[datetime | None, Query(alias="from")] = None,
+    until: Annotated[datetime | None, Query(alias="to")] = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
+) -> AuditLog:
+    """API-10: the issuer admin reads the audit trail of its own credentials, newest first,
+    filtered by operation and time (FR-10, TC-13)."""
+    issuer = check_authorization(principal, conn)
+    params = {"issuer": issuer["issuer_id"], "operation": operation, "since": since, "until": until, "limit": limit, "offset": offset}
+    total = conn.execute(f"SELECT count(*) AS n {_SCOPED_EVENTS}", params).fetchone()  # type: ignore[arg-type]
+    rows = conn.execute(
+        f"SELECT e.time, e.actor_role, e.operation, e.object_id, e.outcome {_SCOPED_EVENTS}"  # type: ignore[arg-type]
+        " ORDER BY e.time DESC, e.event_id DESC LIMIT %(limit)s OFFSET %(offset)s",
+        params,
+    ).fetchall()
+    return AuditLog(items=[AuditEvent(**row) for row in rows], total=total["n"] if total else 0)

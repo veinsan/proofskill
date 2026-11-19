@@ -97,7 +97,7 @@ Tick an item only after its completion criteria in ARCHITECTURE.md pass.
 - [x] F-04 Verification (API-06)
 - [x] F-05 Revocation (API-09)
 - [x] F-06 Skill matching (API-07)
-- [ ] F-07 Audit trail (API-10)
+- [x] F-07 Audit trail (API-10)
 - [ ] F-08 Web interface for issuer, holder, and verifier
 
 ## Do Not
