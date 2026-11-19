@@ -81,6 +81,26 @@ def client(conn: db.psycopg.Connection[db.DictRow], chain: None) -> Iterator[Tes
     app.dependency_overrides.clear()
 
 
+ISSUE_REQUEST = {  # report API-02 example payload, synthetic
+    "holderRef": "HLD-2026-0007",
+    "holderDisplayName": "Peserta Contoh A",
+    "program": {
+        "title": "Pelatihan Keamanan Aplikasi Web Dasar",
+        "completedAt": "2026-10-20",
+        "criteria": "Kehadiran minimal 80 persen dan lulus proyek akhir",
+    },
+    "skills": ["SK-014", "SK-021", "SK-033"],
+}
+
+
+def issue(client: TestClient, issuer_admin: str = "admin.iss001", **overrides: object) -> dict[str, object]:
+    """Issues the sample credential through API-02 and returns the 201 body."""
+    response = client.post("/api/v1/credentials", json={**ISSUE_REQUEST, **overrides}, headers=login(client, issuer_admin))
+    assert response.status_code == 201, response.text
+    body: dict[str, object] = response.json()
+    return body
+
+
 def login(client: TestClient, username: str) -> dict[str, str]:
     """Authorization header for a seeded account."""
     response = client.post("/api/v1/auth/token", json={"username": username, "password": seed.DEMO_PASSWORD})
