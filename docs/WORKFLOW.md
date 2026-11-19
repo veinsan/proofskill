@@ -42,6 +42,6 @@ How the coding agent works on this repository across sessions. Deliverable 3 is 
 
 - All in-scope endpoints work: API-00, 01, 02, 03, 04, 06, 07, 08, 09, 10.
 - The web interface runs the three main flows.
-- TC-01 to TC-15 each have an evidence record.
+- TC-01 to TC-16 each have an evidence record.
 - T-01 to T-05 have measured values.
 - The limitations and the next development plan are written down for the report.

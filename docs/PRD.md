@@ -88,6 +88,7 @@ Design rules that keep ProofSkill a verification service and not a talent-search
     - An intact credential returns 200 with `VALID` and no admin involvement (TC-04).
     - Content changed directly in the database returns 200 with `TAMPERED` and no credential data (TC-05).
     - Verification on test data takes less than 5 seconds (TC-12).
+    - A credential whose issuer was deactivated on the registry returns 200 with `ISSUER_UNAUTHORIZED` (TC-16, OD-2).
 - **US-04:** As a verifier, I want to compare verified skills with a position's needs so that my initial review is supported.
   - **Acceptance criteria:**
     - After a `VALID` verification, the result shows matched skills, uncovered requirements, limitations, and the label `REKOMENDASI`, with no total score (TC-08).
@@ -145,7 +146,7 @@ Report Tabel 4.12. The targets are acceptance criteria for the design, not measu
 - **In scope (build):**
   - Endpoints API-00, 01, 02, 03, 04, 06, 07, 08, 09, and 10, plus the web portal for three roles.
   - Features F-01 to F-08.
-  - Test scenarios TC-01 to TC-15.
+  - Test scenarios TC-01 to TC-15, plus TC-16 (added by OD-2).
   - Data that is entirely synthetic (assumption A6): at least two test issuers (ISS-001 and ISS-002) to test the original-issuer rule, one small skill catalog, and several position descriptions.
 - **Optional:** API-05 (revoke a share link), built if time remains.
 - **Specification only:** API-11 (correction version, FR-11 deferred).
@@ -165,16 +166,24 @@ Report Tabel 4.12. The targets are acceptance criteria for the design, not measu
 
 ## Open Decisions
 
-These gaps or conflicts in the source documents need a team decision. Until each is decided, no document or code treats it as settled.
+These gaps or conflicts in the source documents need a team decision. Until each is decided, no document or code treats it as settled. OD-1 to OD-8 were decided on 2026-11-19. The report sections each decision changes are tracked as D-08 in TODO.md. OD-9 is still open.
 
 1. **Platform admin role and unnamed error codes.** API-01 requires a "platform admin", but the role enum in Tabel 9.16 lists only `issuer_admin`, `holder`, and `verifier`. Some error responses also have no code names: API-01 (403, 409), API-03 (403, 404), and API-05 (403, 404).
+   - **Decided 2026-11-19:** add the role `platform_admin`, used only by API-01. API-01 403 is `FORBIDDEN_ROLE` and 409 is the one new code, `ISSUER_ALREADY_REGISTERED`. API-03 403 is `NOT_CREDENTIAL_OWNER` and 404 is `CREDENTIAL_NOT_FOUND`. API-05 403 is `NOT_CREDENTIAL_OWNER` and 404 is `SHARE_LINK_NOT_FOUND`.
 2. **How ISSUER_UNAUTHORIZED can happen.** F-04 requires four verification results, but the four-function contract cannot deactivate an issuer, and no TC covers this result.
+   - **Decided 2026-11-19:** the contract gets a fifth function, `deactivateIssuer(issuerId)`, callable only by the platform admin account, with no endpoint. `getRecord` also returns `issuerActive`. A credential whose issuer is deactivated verifies as `ISSUER_UNAUTHORIZED`, covered by the new scenario TC-16.
 3. **Notification channel** for T06 and T27. The deck's To-Be blueprint says "notifikasi surel" (email notification), and the report does not specify a channel.
+   - **Decided 2026-11-19:** a simulated email recorded in a `notifications` table. Nothing is sent over SMTP, because all data is synthetic (A6).
 4. **Share and matching limits.** The allowed share-scope fields and maximum link lifetime behind `INVALID_SCOPE`, and the maximum position-text length behind `INVALID_POSITION_TEXT`.
+   - **Decided 2026-11-19:** scope fields are `holderDisplayName`, `program.title`, `completedAt`, `program.criteria`, and `skills`. `expiresInHours` must be 1 to 720. A position description must be 1 to 2,000 characters.
 5. **Holder accounts.** How a holder account maps to `holderRef` (for example HLD-2026-0007).
+   - **Decided 2026-11-19:** each holder account has one fixed `holderRef`, created in the seed. A holder sees only the credentials issued to that `holderRef`.
 6. **Canonical payload.** The exact canonical form and field list hashed with the nonce. `holderDisplayName` is excluded, and NIK is never included.
+   - **Decided 2026-11-19:** JSON with sorted keys and no whitespace, encoded in UTF-8, over `credentialId`, `issuerId`, `holderRef`, `program.title`, `program.completedAt`, `program.criteria`, and `skills` (skill IDs sorted). `commitment = SHA-256(canonical JSON bytes ‖ 32-byte random nonce)`.
 7. **Matching mechanics.** The similarity threshold separating matched from uncovered requirements, and how a position description is split into requirements.
+   - **Decided 2026-11-19:** split the description into requirements at sentence ends, commas, semicolons, and the word "dan" or "and". Compare each requirement with the label and aliases of every verified skill. A cosine similarity of 0.60 or more is a match, and the rest go to `missingRequirements`. Tune the threshold on synthetic data and record the result.
 8. **TC-10 setup.** How the AI service is switched off for TC-10.
+   - **Decided 2026-11-19:** AMS runs as its own process on port 8001, and the API calls it over HTTP. TC-10 stops that process.
 9. **Report versus deck.**
    - The deck's verification slides (BPMN To-Be 3, To-Be blueprint) list three results (VALID, REVOKED, TAMPERED). The report lists four (adding ISSUER_UNAUTHORIZED), and this PRD follows the report.
    - The deck shows interviews as done, while the report's Executive Summary, Tabel 4.1, and Tabel 4.17–4.18 still mark them as not done or empty.
