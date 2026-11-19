@@ -126,6 +126,12 @@ def issue_credential(credential_id: str, commitment: str, issuer_account: str) -
     )
 
 
+def revoke_credential(credential_id: str, issuer_account: str) -> str:
+    """T26 setStatus: ProofSkillRegistry.revokeCredential sent by the issuer's account. The contract
+    itself refuses any other issuer (RegistryError "NotOriginalIssuer", TC-14)."""
+    return _transact("revokeCredential(string)", [("string", credential_id)], issuer_account)
+
+
 def get_record(credential_id: str) -> RegistryRecord:
     """T14 getRecord. Raises RegistryError("CredentialNotFound") for an unknown credential."""
     out = _call("getRecord(string)", [("string", credential_id)])
