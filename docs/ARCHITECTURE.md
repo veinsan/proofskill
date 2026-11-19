@@ -45,6 +45,7 @@ Every endpoint maps to one SoaML operation and to BPMN To-Be activities (report 
 | | `ProofSkillRegistry.deactivateIssuer` only (OD-2) | none: the platform admin account calls the contract directly (TC-16) | — | FR-01 |
 | CIS Credential Issuance (task) | `issueCredential` | API-02 `POST /credentials` | T02–T06 | FR-02, 03, 04 |
 | | `getCredential` | API-03 `GET /credentials/{id}` | T07, T28 | FR-05 |
+| | `listOwnCredentials` (OD-10) | API-12 `GET /holders/me/credentials` (holder) and API-13 `GET /issuers/me/credentials` (issuer admin) | Portal entry to T07 and T24 | FR-05 |
 | CSS Credential Status (task) | `revokeCredential` | API-09 `POST /credentials/{id}/revocations` | T24–T27 | FR-07 |
 | | `createCorrectionVersion` | API-11 `POST /credentials/{id}/versions` (specification only) | Deferred | FR-11 |
 | AAS Access & Audit (utility) | `createShareLink` | API-04 `POST /credentials/{id}/share-links` | T08, T09 | FR-05 |
@@ -122,15 +123,15 @@ CIS, CSS, VRS, and AMS call `AAS.recordAudit`. AMS always reads skills through `
   - Checks: `integrity` PASS/FAIL, `issuerAuthorized` PASS/FAIL, `status` ACTIVE/REVOKED.
   - Roles: `issuer_admin`, `holder`, and `verifier`, plus `platform_admin` (OD-1).
   - AI label: `REKOMENDASI`.
-- **Product boundary:** no search, browse, or candidate-list endpoint. Credential data leaves the system only through a share token its owner created.
+- **Product boundary:** no search, browse, or candidate-list endpoint. Credential data leaves the system only through a share token its owner created. API-12 and API-13 (OD-10) list only what the caller owns or issued, take no query or filter, and return `{items: [{credentialId, issuer, holderRef, holderDisplayName, program, status, issuedAt, revokedAt}], total}`.
 
 | Code | HTTP status | Endpoints |
 | --- | --- | --- |
 | `INVALID_CREDENTIALS` | 401 | API-00 |
 | `MALFORMED_REQUEST` | 400 | API-02 (including an unknown `holderRef`, A-06), and every other endpoint whose JSON body fails validation (A-04) |
 | `UNAUTHENTICATED` | 401 | API-02, API-06, API-07, and every other endpoint that needs a token (A-04) |
-| `ISSUER_NOT_AUTHORIZED` | 403 | API-02, API-09, API-10 for an issuer admin without an issuer (A-11) |
-| `FORBIDDEN_ROLE` | 403 | API-01 (OD-1), API-06, API-07, API-10 (A-11) |
+| `ISSUER_NOT_AUTHORIZED` | 403 | API-02, API-09, and API-10 and API-13 for an issuer admin without an issuer (A-11, OD-10) |
+| `FORBIDDEN_ROLE` | 403 | API-01 (OD-1), API-06, API-07, API-10 (A-11), API-12 and API-13 (OD-10) |
 | `NOT_CREDENTIAL_OWNER` | 403 | API-03 (OD-1), API-04, API-05 (OD-1) |
 | `VERIFICATION_NOT_OWNED` | 403 | API-07 |
 | `CREDENTIAL_NOT_FOUND` | 404 | API-03 (OD-1), API-04, API-09 |

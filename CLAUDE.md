@@ -102,7 +102,7 @@ Tick an item only after its completion criteria in ARCHITECTURE.md pass.
 
 ## Do Not
 
-- **No candidate search.** Do not add any search, browse, list, or ranking endpoint or UI for candidates. Credential data leaves only through a share token its owner created.
+- **No candidate search.** Do not add any search, browse, list, or ranking endpoint or UI for candidates. Credential data leaves only through a share token its owner created. The only lists are API-12 and API-13 (OD-10): the caller's own or own-issued credentials, with no query or filter.
 - **No personal data on-chain.** Store only the commitment, issuer, status, and time on-chain. Never store NIK, names, GPA, or documents.
 - **No identity for the AI.** Do not send holder identity to the AI. AMS reads skills through `VRS.getVerification` only, never from data the verifier sends.
 - **No total score.** Do not return a total candidate score, and never drop the `REKOMENDASI` label or the limitations from AI output.
