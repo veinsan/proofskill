@@ -30,7 +30,7 @@ This matches report Gambar 10.1 (Arsitektur prototipe).
    It talks to the API over HTTPS/JSON with a Bearer token.
 2. **REST API (FastAPI, `/api/v1`).** One module per SoaML service: IAS, CIS, CSS, AAS, VRS, AMS, and SCS. RGS is the adapter to the blockchain. The API enforces token auth and RBAC (NFR-01), keeps a consistent JSON contract and HTTP codes (NFR-08), and computes the nonce-salted SHA-256 hash of the canonical payload. It orchestrates validation, hashing, the registry call, and the audit record.
 3. **Off-chain database (PostgreSQL).** Reached over SQL. It holds credential metadata, skills, share links, the audit log, and the skill catalog. All data is synthetic.
-4. **Local blockchain (Hardhat).** Reached through web3/JSON-RPC. `ProofSkillRegistry` has the report's four functions, `registerIssuer`, `issueCredential`, `revokeCredential`, and `getRecord`, plus `deactivateIssuer` (OD-2). It stores only the hash commitment, issuer, issuer activity, status, and time.
+4. **Local blockchain (Hardhat).** Reached through JSON-RPC. `ProofSkillRegistry` has the report's four functions, `registerIssuer`, `issueCredential`, `revokeCredential`, and `getRecord`, plus `deactivateIssuer` (OD-2) and a read-only `issuerAccountOf` getter that the seed uses to check registrations. It stores only the hash commitment, issuer, issuer activity, status, and time.
 5. **AI module.** AMS runs as its own process on port 8001, and the API calls it over HTTP (OD-8). It computes semantic similarity between skills and position requirements, groups requirements into matched and uncovered, and writes short reasons. Stopping that process is how TC-10 switches the AI off while verification keeps running (NFR-06).
 
 ### Services, operations, endpoints, and contract calls
