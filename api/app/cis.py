@@ -1,4 +1,5 @@
-"""CIS Credential Issuance service: API-02 issueCredential (T02–T06, FR-02, FR-03, FR-04)."""
+"""CIS Credential Issuance service: API-02 issueCredential (T02–T06, FR-02, FR-03, FR-04) and
+API-03 getCredential (T07, T28, FR-05)."""
 
 import hashlib
 import json
@@ -150,4 +151,109 @@ def issue_credential(
         commitment=commitment,
         tx_hash=tx_hash,
         issued_at=row["issued_at"],
+    )
+
+
+# --- API-03 GET /credentials/{credentialId} ---------------------------------------------
+
+
+def load_credential(conn: Connection[DictRow], credential_id: str) -> DictRow:
+    """The credential row, or 404 CREDENTIAL_NOT_FOUND."""
+    credential = conn.execute("SELECT * FROM credentials WHERE credential_id = %s", (credential_id,)).fetchone()
+    if credential is None:
+        raise ApiError(404, "CREDENTIAL_NOT_FOUND", f"Credential {credential_id} does not exist.")
+    return credential
+
+
+def is_holder(principal: Principal, credential: DictRow) -> bool:
+    return principal.role == "holder" and principal.holder_ref == credential["holder_ref"]
+
+
+def is_original_issuer(principal: Principal, credential: DictRow) -> bool:
+    return principal.role == "issuer_admin" and principal.issuer_id == credential["issuer_id"]
+
+
+class IssuerRef(ApiModel):
+    issuer_id: str
+    name: str
+
+
+class ProgramView(ApiModel):
+    title: str
+    completed_at: date
+    criteria: str
+
+
+class SkillRef(ApiModel):
+    skill_id: str
+    label: str
+
+
+class ShareLinkSummary(ApiModel):
+    link_id: str
+    url: str
+    scope: list[str]
+    expires_at: datetime
+    revoked_at: datetime | None
+
+
+class CredentialView(ApiModel):
+    credential_id: str
+    issuer: IssuerRef
+    holder_ref: str
+    holder_display_name: str
+    program: ProgramView
+    skills: list[SkillRef]
+    status: Literal["active", "revoked"]
+    commitment: str
+    tx_hash: str | None
+    issued_at: datetime
+    revoked_at: datetime | None
+    revocation_reason: str | None
+    share_links: list[ShareLinkSummary] | None  # holder only; the issuer never sees how it was shared
+
+
+@router.get("/credentials/{credential_id}", response_model=CredentialView, tags=["CIS"])
+def get_credential(
+    credential_id: str,
+    principal: Annotated[Principal, Depends(current_principal)],
+    conn: Conn,
+) -> CredentialView:
+    """API-03: the holder or the original issuer reads a credential and its status (T07, T28).
+    404 CREDENTIAL_NOT_FOUND if it does not exist, 403 NOT_CREDENTIAL_OWNER for anyone else (OD-1)."""
+    credential = load_credential(conn, credential_id)
+    holder = is_holder(principal, credential)
+    if not holder and not is_original_issuer(principal, credential):
+        raise ApiError(403, "NOT_CREDENTIAL_OWNER", "Only the holder or the original issuer can read this credential.")
+
+    issuer = conn.execute("SELECT issuer_id, name FROM issuers WHERE issuer_id = %s", (credential["issuer_id"],)).fetchone()
+    skills = conn.execute(
+        "SELECT s.skill_id, s.label FROM credential_skills cs JOIN skills s USING (skill_id)"
+        " WHERE cs.credential_id = %s ORDER BY s.skill_id",
+        (credential_id,),
+    ).fetchall()
+    links = None
+    if holder:
+        rows = conn.execute(
+            "SELECT link_id, share_token, scope, expires_at, revoked_at FROM share_links"
+            " WHERE credential_id = %s ORDER BY link_id",
+            (credential_id,),
+        ).fetchall()
+        links = [ShareLinkSummary(url=aas.share_url(r["share_token"]), **{k: r[k] for k in r if k != "share_token"}) for r in rows]
+    return CredentialView(
+        credential_id=credential_id,
+        issuer=IssuerRef(**issuer) if issuer else IssuerRef(issuer_id=credential["issuer_id"], name=""),
+        holder_ref=credential["holder_ref"],
+        holder_display_name=credential["holder_display_name"],
+        program=ProgramView(
+            title=credential["program_title"], completed_at=credential["completed_at"], criteria=credential["criteria"]
+        ),
+        skills=[SkillRef(**s) for s in skills],
+        status=credential["status"],
+        commitment=credential["commitment"],
+        tx_hash=credential["tx_hash"],
+        issued_at=credential["issued_at"],
+        revoked_at=credential["revoked_at"],
+        revocation_reason=credential["revocation_reason"],
+        share_links=links,
     )

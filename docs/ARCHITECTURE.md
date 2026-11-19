@@ -152,6 +152,8 @@ A-04 also applies three existing codes beyond the endpoints the report lists the
 - Request `IssuerRegistration`: `{name, unitType, registryAccount}`.
 - Response `IssuerRecord`: `{issuerId, name, unitType, registryAccount, txHash, registeredAt}`.
 
+API-03's `CredentialView` is also named but not detailed in the report. A-07 returns `{credentialId, issuer {issuerId, name}, holderRef, holderDisplayName, program {title, completedAt, criteria}, skills [{skillId, label}], status, commitment, txHash, issuedAt, revokedAt, revocationReason, shareLinks}`. `shareLinks` lists `{linkId, url, scope, expiresAt, revokedAt}` for the holder and is `null` for the issuer.
+
 ### Repository layout (proposed, created in A-01)
 
 ```text

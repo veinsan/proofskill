@@ -101,6 +101,15 @@ def issue(client: TestClient, issuer_admin: str = "admin.iss001", **overrides: o
     return body
 
 
+def share(client: TestClient, credential_id: str, scope: list[str] | None = None, hours: int = 72) -> dict[str, object]:
+    """Creates a share link as the sample holder through API-04 and returns the 201 body."""
+    body = {"scope": scope or ["program.title", "completedAt", "skills"], "expiresInHours": hours}
+    response = client.post(f"/api/v1/credentials/{credential_id}/share-links", json=body, headers=login(client, "holder.a"))
+    assert response.status_code == 201, response.text
+    link: dict[str, object] = response.json()
+    return link
+
+
 def login(client: TestClient, username: str) -> dict[str, str]:
     """Authorization header for a seeded account."""
     response = client.post("/api/v1/auth/token", json={"username": username, "password": seed.DEMO_PASSWORD})
