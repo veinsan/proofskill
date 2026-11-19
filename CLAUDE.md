@@ -21,18 +21,18 @@ The external sources of truth are the team's D1+D2 report (Google Doc) and deck 
 
 ## Tech Stack
 
-The team locked the stack on 2026-11-19 (report Tabel 10.3). Pin library versions when scaffolding (A-01) and update this table.
+The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinned at A-01 (2026-11-19); the lockfiles hold the exact tree.
 
 | Tool | Version or role |
 | --- | --- |
-| Next.js with TypeScript | Web app with three portals. Version pinned at A-01 |
-| FastAPI (Python 3.13.17 installed) | REST API under `/api/v1`, one module per SoaML service. Version pinned at A-01 |
-| PostgreSQL | Off-chain data. **Not installed on this machine yet** (TODO A-01) |
-| Hardhat with Solidity | Local chain and the `ProofSkillRegistry` contract. Version pinned at A-01 |
+| Next.js with TypeScript | Next.js 16.4.6, React 19.3.0, TypeScript 5.9.3 (strict), ESLint 9. Web app with three portals in `web/` |
+| FastAPI | FastAPI 0.165.0 on Python 3.13.17, Uvicorn 0.54.0, Pydantic 2.14.3, pytest 9.2.0. REST API under `/api/v1` in `api/`, one module per SoaML service |
+| PostgreSQL | 17.11 (installed at `C:\Program Files\PostgreSQL\17`). Off-chain data, run as a project-local cluster by `scripts/db.ps1`: data in `.pgdata/`, port 5433, 127.0.0.1 only, trust auth |
+| Hardhat with Solidity | Hardhat 3.22.0, ethers 6.17.0, Mocha 12.0.3, Chai 6.3.0, Solidity 0.8.28. Local chain and the `ProofSkillRegistry` contract in `contracts/` |
 | `paraphrase-multilingual-MiniLM-L12-v2` | Sentence embeddings for AI matching, run locally |
 | JWT Bearer tokens | Roles `issuer_admin`, `holder`, `verifier` (platform admin is pending, OD-1) |
-| Node v26.13.0 | Installed. The Node package manager (npm 11.20, pnpm 12.18, or bun 1.4, all installed) is **pending**; decide at A-01 |
-| uv 0.13.7 | Installed. The Python package manager (uv or pip) is **pending**; decide at A-01 |
+| Node v26.13.0 | Node package manager: pnpm 12.18.0 (decided at A-01) |
+| uv 0.13.7 | Python package manager: uv, lockfile `api/uv.lock` (decided at A-01) |
 
 ## Design system
 
@@ -45,7 +45,7 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Pin library version
 
 ## Project Structure
 
-Planned. Created in A-01, so update this tree once it exists.
+`contracts/`, `api/`, `web/`, and `scripts/` exist since A-01. The rest of the tree fills in as later steps land.
 
 ```text
 contracts/        # Hardhat: ProofSkillRegistry.sol (registerIssuer, issueCredential, revokeCredential, getRecord), tests, deploy script
@@ -53,6 +53,7 @@ api/              # FastAPI app
   app/            # modules per SoaML service: ias, cis, css, aas, vrs, rgs (blockchain adapter), scs, ams
   tests/          # pytest; name tests after TC IDs, e.g. test_tc05_tampered_db_content
 web/              # Next.js app: issuer portal, holder portal, verifier route /v/[shareToken]
+scripts/          # db.ps1: start, stop, or check the project-local PostgreSQL cluster
 docs/             # project docs: PRD, ARCHITECTURE, TODO, WORKFLOW, DESIGN, PRODUCT
   evidence/       # one record per TC (TC-01..TC-15) for the D3 report
 skill/            # project skills: project-setup (docs workflow), run-test-scenario
@@ -111,7 +112,16 @@ No feature is built yet. Tick an item only after its completion criteria in ARCH
 
 ## Testing and Build
 
-Commands are pending until A-01 creates the projects. Record them here once they exist.
+Copy `.env.example` to `.env` first. Start each part from the repository root:
+
+| Part | Command | Address |
+| --- | --- | --- |
+| Database | `powershell -ExecutionPolicy Bypass -File scripts/db.ps1 start` (also `stop`, `status`) | `postgresql://proofskill@127.0.0.1:5433/proofskill` |
+| Chain | `cd contracts; pnpm install; pnpm chain` | `http://127.0.0.1:8545` |
+| API | `cd api; uv sync; uv run fastapi dev app/main.py` | `http://127.0.0.1:8000/api/v1/docs` |
+| Web | `cd web; pnpm install; pnpm dev` | `http://localhost:3000` |
+
+Checks: `pnpm test` in `contracts/`, `uv run pytest` in `api/`, and `pnpm lint` plus `pnpm build` in `web/`.
 
 - **Contracts.** Hardhat tests cover issue, revoke, read, and the other-issuer revert (TC-14).
 - **API.** pytest, one test per automatable TC (TC-01 to TC-15). Run them against the local Hardhat node and PostgreSQL.

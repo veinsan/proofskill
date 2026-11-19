@@ -14,7 +14,7 @@ Status values: **Pending**, **In progress**, **Blocked**, **Done**. Task IDs mat
 
 | ID | Task | Status | Next step or verification |
 | --- | --- | --- | --- |
-| A-01 | Scaffold `contracts/`, `api/`, `web/`, PostgreSQL, `.env.example` | Blocked | PostgreSQL is not installed on this machine (`psql` and `docker` are not on PATH). Install PostgreSQL or choose another way to run it, and choose the Node and Python package managers. Then scaffold and record versions and commands in CLAUDE.md. |
+| A-01 | Scaffold `contracts/`, `api/`, `web/`, PostgreSQL, `.env.example` | Done | 2026-11-19. pnpm and uv chosen. PostgreSQL 17.11 runs as a project-local cluster (`scripts/db.ps1 start`, port 5433). Verified: `pnpm chain` serves 8545, `uv run pytest` 1 passed, `uv run fastapi dev app/main.py` serves `/api/v1/docs` (200), `pnpm lint` and `pnpm build` pass in `web/`. Versions and commands are in CLAUDE.md. |
 | A-02 | `ProofSkillRegistry` contract and contract tests | Pending | Needs A-01. Done when issue, revoke, and read tests pass and a revoke from another issuer reverts (TC-14). Open Decision 2 may add an issuer-suspend function. |
 | A-03 | Off-chain schema and synthetic seed (ISS-001, ISS-002, accounts, catalog, positions) | Pending | Needs A-01 and A-02. Open Decisions 5 and 6 affect the schema. |
 | A-04 | F-01 auth and RBAC (API-00, API-01) | Pending | Needs A-03. API-01's role depends on Open Decision 1. |

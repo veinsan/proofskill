@@ -1,2 +1,4 @@
 .impeccable/
 skill/
+.pgdata/
+.env
