@@ -25,7 +25,8 @@ contract ProofSkillRegistry {
     address public immutable owner;
 
     mapping(address => string) private issuerIdOf;
-    mapping(string => address) private issuerAccountOf;
+    /// @notice Chain account bound to an issuer ID, or the zero address if it is not registered.
+    mapping(string => address) public issuerAccountOf;
     mapping(address => bool) private deactivated;
     mapping(string => Record) private records;
 
