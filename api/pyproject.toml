@@ -1,0 +1,20 @@
+[project]
+name = "proofskill-api"
+version = "0.1.0"
+description = "ProofSkill REST API (/api/v1), one module per SoaML service"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[standard]>=0.165.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

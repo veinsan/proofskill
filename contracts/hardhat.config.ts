@@ -1,0 +1,13 @@
+import { defineConfig } from "hardhat/config";
+import hardhatEthers from "@nomicfoundation/hardhat-ethers";
+import hardhatEthersChaiMatchers from "@nomicfoundation/hardhat-ethers-chai-matchers";
+import hardhatMocha from "@nomicfoundation/hardhat-mocha";
+
+export default defineConfig({
+  plugins: [hardhatEthers, hardhatEthersChaiMatchers, hardhatMocha],
+  solidity: { version: "0.8.28" },
+  networks: {
+    // `pnpm chain` serves this node; only public Hardhat test accounts, never a public chain (A6).
+    localhost: { type: "http", url: "http://127.0.0.1:8545" },
+  },
+});
