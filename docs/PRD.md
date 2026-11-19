@@ -144,7 +144,7 @@ Report Tabel 4.12. The targets are acceptance criteria for the design, not measu
 ## 7. Scope
 
 - **In scope (build):**
-  - Endpoints API-00, 01, 02, 03, 04, 06, 07, 08, 09, and 10, plus the web portal for three roles.
+  - Endpoints API-00, 01, 02, 03, 04, 06, 07, 08, 09, and 10, plus API-12 and API-13 (OD-10), and the web portal for three roles.
   - Features F-01 to F-08.
   - Test scenarios TC-01 to TC-15, plus TC-16 (added by OD-2).
   - Data that is entirely synthetic (assumption A6): at least two test issuers (ISS-001 and ISS-002) to test the original-issuer rule, one small skill catalog, and several position descriptions.
@@ -166,7 +166,7 @@ Report Tabel 4.12. The targets are acceptance criteria for the design, not measu
 
 ## Open Decisions
 
-These gaps or conflicts in the source documents need a team decision. Until each is decided, no document or code treats it as settled. OD-1 to OD-8 were decided on 2026-11-19. The report sections each decision changes are tracked as D-08 in TODO.md. OD-9 and OD-10 are still open.
+These gaps or conflicts in the source documents need a team decision. Until each is decided, no document or code treats it as settled. OD-1 to OD-8 were decided on 2026-11-19. The report sections each decision changes are tracked as D-08 in TODO.md. OD-10 was decided the same day. OD-9 is still open.
 
 1. **Platform admin role and unnamed error codes.** API-01 requires a "platform admin", but the role enum in Tabel 9.16 lists only `issuer_admin`, `holder`, and `verifier`. Some error responses also have no code names: API-01 (403, 409), API-03 (403, 404), and API-05 (403, 404).
    - **Decided 2026-11-19:** add the role `platform_admin`, used only by API-01. API-01 403 is `FORBIDDEN_ROLE` and 409 is the one new code, `ISSUER_ALREADY_REGISTERED`. API-03 403 is `NOT_CREDENTIAL_OWNER` and 404 is `CREDENTIAL_NOT_FOUND`. API-05 403 is `NOT_CREDENTIAL_OWNER` and 404 is `SHARE_LINK_NOT_FOUND`.
@@ -190,3 +190,4 @@ These gaps or conflicts in the source documents need a team decision. Until each
 10. **Portal lists (found in A-07).** The report has no endpoint that lists credentials. API-03 reads one credential by ID, so the holder portal cannot show "my credentials" and the issuer portal cannot show the credential table DESIGN.md describes. The design rule against candidate search (report 1.3) rules out any cross-holder listing. Options:
     - Add two owner-scoped list endpoints: the holder's own credentials, and the credentials the caller's issuer issued. Neither can search across holders.
     - Add no endpoint. The holder opens a credential from the ID in the simulated email, and the issuer portal lists the IDs it can see in its own audit log (API-10).
+    - **Decided 2026-11-19:** add the two owner-scoped endpoints. API-12 `GET /holders/me/credentials` lists the signed-in holder's credentials. API-13 `GET /issuers/me/credentials` lists the credentials the caller's issuer issued. Both take only `limit` and `offset`, with no query or filter, so neither can search across holders.

@@ -7,14 +7,14 @@ import secrets
 from datetime import date, datetime
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from psycopg import Connection
 from psycopg.rows import DictRow
 from pydantic import Field
 
 from app import aas, rgs
 from app.errors import ApiError
-from app.ias import Conn, Principal, check_authorization, current_principal
+from app.ias import Conn, Principal, check_authorization, current_principal, require_roles
 from app.models import ApiModel
 
 router = APIRouter()
@@ -257,3 +257,70 @@ def get_credential(
         revocation_reason=credential["revocation_reason"],
         share_links=links,
     )
+
+
+# --- API-12 and API-13: owner-scoped credential lists (OD-10) ----------------------------
+# Each lists only what the caller owns: no query, filter, or cross-holder search (report 1.3).
+
+
+class CredentialSummary(ApiModel):
+    credential_id: str
+    issuer: IssuerRef
+    holder_ref: str
+    holder_display_name: str
+    program: ProgramView
+    status: Literal["active", "revoked"]
+    issued_at: datetime
+    revoked_at: datetime | None
+
+
+class CredentialList(ApiModel):
+    items: list[CredentialSummary]
+    total: int
+
+
+def _list_credentials(conn: Connection[DictRow], column: str, value: str, limit: int, offset: int) -> CredentialList:
+    assert column in {"holder_ref", "issuer_id"}
+    params = {"value": value, "limit": limit, "offset": offset}
+    total = conn.execute(f"SELECT count(*) AS n FROM credentials WHERE {column} = %(value)s", params).fetchone()  # type: ignore[arg-type]
+    rows = conn.execute(
+        "SELECT c.*, i.name AS issuer_name FROM credentials c JOIN issuers i USING (issuer_id)"  # type: ignore[arg-type]
+        f" WHERE c.{column} = %(value)s ORDER BY c.issued_at DESC, c.credential_id DESC LIMIT %(limit)s OFFSET %(offset)s",
+        params,
+    ).fetchall()
+    items = [
+        CredentialSummary(
+            credential_id=r["credential_id"],
+            issuer=IssuerRef(issuer_id=r["issuer_id"], name=r["issuer_name"]),
+            holder_ref=r["holder_ref"],
+            holder_display_name=r["holder_display_name"],
+            program=ProgramView(title=r["program_title"], completed_at=r["completed_at"], criteria=r["criteria"]),
+            status=r["status"],
+            issued_at=r["issued_at"],
+            revoked_at=r["revoked_at"],
+        )
+        for r in rows
+    ]
+    return CredentialList(items=items, total=total["n"] if total else 0)
+
+
+Limit = Annotated[int, Query(ge=1, le=200)]
+Offset = Annotated[int, Query(ge=0)]
+
+
+@router.get("/holders/me/credentials", response_model=CredentialList, tags=["CIS"])
+def list_my_credentials(
+    principal: Annotated[Principal, Depends(require_roles("holder"))], conn: Conn, limit: Limit = 50, offset: Offset = 0
+) -> CredentialList:
+    """API-12 (OD-10): the signed-in holder's own credentials, newest first."""
+    assert principal.holder_ref is not None
+    return _list_credentials(conn, "holder_ref", principal.holder_ref, limit, offset)
+
+
+@router.get("/issuers/me/credentials", response_model=CredentialList, tags=["CIS"])
+def list_issued_credentials(
+    principal: Annotated[Principal, Depends(require_roles("issuer_admin"))], conn: Conn, limit: Limit = 50, offset: Offset = 0
+) -> CredentialList:
+    """API-13 (OD-10): credentials the caller's issuer issued, newest first."""
+    issuer = check_authorization(principal, conn)
+    return _list_credentials(conn, "issuer_id", issuer["issuer_id"], limit, offset)
