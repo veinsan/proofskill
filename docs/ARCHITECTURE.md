@@ -127,7 +127,7 @@ CIS, CSS, VRS, and AMS call `AAS.recordAudit`. AMS always reads skills through `
 | Code | HTTP status | Endpoints |
 | --- | --- | --- |
 | `INVALID_CREDENTIALS` | 401 | API-00 |
-| `MALFORMED_REQUEST` | 400 | API-02, and every other endpoint whose JSON body fails validation (A-04) |
+| `MALFORMED_REQUEST` | 400 | API-02 (including an unknown `holderRef`, A-06), and every other endpoint whose JSON body fails validation (A-04) |
 | `UNAUTHENTICATED` | 401 | API-02, API-06, API-07, and every other endpoint that needs a token (A-04) |
 | `ISSUER_NOT_AUTHORIZED` | 403 | API-02, API-09 |
 | `FORBIDDEN_ROLE` | 403 | API-01 (OD-1), API-06, API-07 |

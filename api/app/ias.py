@@ -108,6 +108,18 @@ def require_roles(*roles: Role) -> Callable[[Principal], Principal]:
     return guard
 
 
+def check_authorization(principal: Principal, conn: Connection[DictRow]) -> DictRow:
+    """checkAuthorization (T03, T25): the caller must be an issuer admin of a registered issuer.
+    Returns that issuer's row, or raises 403 ISSUER_NOT_AUTHORIZED. The registry itself also
+    refuses a deactivated issuer when the transaction is sent."""
+    issuer = None
+    if principal.role == "issuer_admin" and principal.issuer_id:
+        issuer = conn.execute("SELECT * FROM issuers WHERE issuer_id = %s", (principal.issuer_id,)).fetchone()
+    if issuer is None:
+        raise ApiError(403, "ISSUER_NOT_AUTHORIZED", "This account is not an admin of a registered issuer.")
+    return issuer
+
+
 # --- API-00 POST /auth/token ------------------------------------------------------------
 
 

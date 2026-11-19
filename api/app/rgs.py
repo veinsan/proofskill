@@ -7,6 +7,8 @@ so no private key lives in this repository (CLAUDE.md, assumption A6).
 """
 
 import json
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from functools import cache
 from typing import Any
 
@@ -36,7 +38,7 @@ def _word(value: int) -> bytes:
 
 
 def encode_args(args: list[tuple[str, str]]) -> bytes:
-    """ABI-encodes (type, value) pairs for the types the registry calls use so far: string, address."""
+    """ABI-encodes (type, value) pairs for the types the registry calls use: string, address, bytes32."""
     head, tail = b"", b""
     for kind, value in args:
         if kind == "string":
@@ -45,6 +47,11 @@ def encode_args(args: list[tuple[str, str]]) -> bytes:
             tail += _word(len(data)) + data.ljust(-(-len(data) // 32) * 32, b"\0")
         elif kind == "address":
             head += bytes.fromhex(value.removeprefix("0x")).rjust(32, b"\0")
+        elif kind == "bytes32":
+            word = bytes.fromhex(value.removeprefix("0x"))
+            if len(word) != 32:
+                raise ValueError("bytes32 needs exactly 32 bytes")
+            head += word
         else:
             raise ValueError(f"unsupported ABI type {kind}")
     return head + tail
@@ -94,6 +101,45 @@ def issuer_account(issuer_id: str) -> str | None:
     """Chain account bound to the issuer ID (lowercase hex), or None when it is not registered."""
     account = "0x" + _call("issuerAccountOf(string)", [("string", issuer_id)])[12:32].hex()
     return None if account == ZERO_ADDRESS else account
+
+
+@dataclass(frozen=True)
+class RegistryRecord:
+    """report Tabel 8.5 RegistryRecord, plus issuer_active from OD-2."""
+
+    commitment: str  # 0x-prefixed lowercase hex
+    issuer_id: str
+    status: str  # "active" or "revoked"
+    timestamp: datetime
+    issuer_active: bool
+
+
+_STATUS = {1: "active", 2: "revoked"}
+
+
+def issue_credential(credential_id: str, commitment: str, issuer_account: str) -> str:
+    """T05 anchorCommitment: ProofSkillRegistry.issueCredential sent by the issuer's account."""
+    return _transact(
+        "issueCredential(string,bytes32)",
+        [("string", credential_id), ("bytes32", commitment)],
+        issuer_account,
+    )
+
+
+def get_record(credential_id: str) -> RegistryRecord:
+    """T14 getRecord. Raises RegistryError("CredentialNotFound") for an unknown credential."""
+    out = _call("getRecord(string)", [("string", credential_id)])
+    words = [int.from_bytes(out[i : i + 32], "big") for i in range(0, 160, 32)]
+    issuer_offset = words[1]
+    issuer_length = int.from_bytes(out[issuer_offset : issuer_offset + 32], "big")
+    issuer_id = out[issuer_offset + 32 : issuer_offset + 32 + issuer_length].decode()
+    return RegistryRecord(
+        commitment="0x" + out[0:32].hex(),
+        issuer_id=issuer_id,
+        status=_STATUS[words[2]],
+        timestamp=datetime.fromtimestamp(words[3], UTC),
+        issuer_active=bool(words[4]),
+    )
 
 
 def register_issuer(issuer_id: str, account: str) -> str:
