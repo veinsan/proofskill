@@ -1,16 +1,14 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { type FormEvent, useState } from "react";
 import { DemoSignIn } from "@/components/demo-accounts";
-import { Notice } from "@/components/notice";
 import { Pass, type PassCell, SkillChips, VerificationStub } from "@/components/pass";
 import { Canopy, TopBar } from "@/components/portal-shell";
 import { SkillFitPanel } from "@/components/skill-fit";
-import { api, type ApiError, type ApiResult, type VerificationResult } from "@/lib/api";
+import { api, type ApiResult, type VerificationResult } from "@/lib/api";
 import { DEMO_GROUPS } from "@/lib/demo";
 import { formatDate, middle } from "@/lib/format";
-import { type Session, signIn, signOut, useSession } from "@/lib/session";
+import { type Session, useSession } from "@/lib/session";
 import { useApi } from "@/lib/use-api";
 
 const VERIFIERS = DEMO_GROUPS.filter((group) => group.role === "Verifier");
@@ -65,25 +63,6 @@ function verifierCells(verification: VerificationResult): PassCell[] {
 }
 
 function VerifierSignIn({ shareToken, session }: { shareToken: string; session: Session | null }) {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<ApiError | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [withPassword, setWithPassword] = useState(false);
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
-    setError(null);
-    const result = await signIn(username.trim(), password);
-    setBusy(false);
-    if (!result.ok) setError(result.error);
-    else if (result.data.role !== "verifier") {
-      signOut();
-      setError({ code: "FORBIDDEN_ROLE", message: "Only a verifier account can check a credential.", requestId: "" });
-    }
-  }
-
   return (
     <div className="signin">
       <section className="signin__panel" aria-labelledby="verify-lead">
@@ -111,24 +90,7 @@ function VerifierSignIn({ shareToken, session }: { shareToken: string; session: 
           )}
         </div>
         {/* Only verifier accounts are listed, so a one-click sign-in always lands on the check. */}
-        <DemoSignIn groups={VERIFIERS} action="Sign in and verify" onSignedIn={() => undefined} onOff={() => setWithPassword(true)} />
-        <details className="password-signin" open={withPassword} onToggle={(e) => setWithPassword(e.currentTarget.open)}>
-          <summary>Sign in with a password</summary>
-          <form className="stack" onSubmit={submit} noValidate>
-            <label className="field">
-              <span className="label">Username</span>
-              <input className="input" autoComplete="username" placeholder="verifier.a" value={username} onChange={(e) => setUsername(e.target.value)} />
-            </label>
-            <label className="field">
-              <span className="label">Password</span>
-              <input className="input" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
-            </label>
-            {error ? <Notice error={error} /> : null}
-            <button className="btn btn--secondary btn--block" type="submit" disabled={busy || !username || !password}>
-              {busy ? "Signing in" : "Sign in and verify"}
-            </button>
-          </form>
-        </details>
+        <DemoSignIn groups={VERIFIERS} action="Sign in and verify" onSignedIn={() => undefined} />
       </section>
     </div>
   );
