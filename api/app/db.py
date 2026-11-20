@@ -13,7 +13,8 @@ MIGRATIONS = Path(__file__).resolve().parent.parent / "migrations"
 
 def connect(url: str = config.DATABASE_URL) -> psycopg.Connection[DictRow]:
     # Times leave the API in UTC (report Tabel 9.1), whatever the server's local time zone is.
-    return psycopg.connect(url, row_factory=dict_row, options="-c TimeZone=UTC")
+    # No server-side prepared statements, which Supabase's transaction pooler cannot keep (B-01).
+    return psycopg.connect(url, row_factory=dict_row, options="-c TimeZone=UTC", prepare_threshold=None)
 
 
 def get_conn() -> Iterator[psycopg.Connection[DictRow]]:
@@ -41,7 +42,14 @@ def migrate(conn: psycopg.Connection[DictRow]) -> list[str]:
 
 
 def reset(conn: psycopg.Connection[DictRow]) -> None:
-    """Drops every table in the local database. Development and tests only."""
-    conn.execute("DROP SCHEMA public CASCADE")
-    conn.execute("CREATE SCHEMA public")
+    """Drops every table and sequence in the public schema: all ProofSkill data in that database.
+    The schema itself stays, so Supabase keeps its grants on it (B-01). Development and tests only."""
+    conn.execute(
+        "DO $$ DECLARE r record; BEGIN"
+        " FOR r IN SELECT tablename FROM pg_tables WHERE schemaname = 'public' LOOP"
+        "  EXECUTE format('DROP TABLE public.%I CASCADE', r.tablename); END LOOP;"
+        " FOR r IN SELECT sequence_name FROM information_schema.sequences WHERE sequence_schema = 'public' LOOP"
+        "  EXECUTE format('DROP SEQUENCE public.%I CASCADE', r.sequence_name); END LOOP;"
+        " END $$"
+    )
     conn.commit()
