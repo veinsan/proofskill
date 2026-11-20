@@ -134,10 +134,10 @@ SUPABASE_TEST_URL = "https://supabase.test"
 SIGNING_KEY = ec.derive_private_key(int.from_bytes(hashlib.sha256(b"proofskill-test-signing-key").digest()), ec.SECP256R1())
 
 
-def supabase_token(username: str, key: Any = SIGNING_KEY, expires_in: int = 3600, **app_metadata: object) -> str:
+def supabase_token(username: str, key: Any = SIGNING_KEY, expires_in: int = 3600, skew: int = 0, **app_metadata: object) -> str:
     """An access token as Supabase Auth issues it for a seed account; app_metadata overrides allowed."""
     _, role, issuer_id, holder_ref = next(a for a in seed.ACCOUNTS if a[0] == username)
-    now = int(time.time())
+    now = int(time.time()) + skew  # skew > 0: the issuer's clock runs ahead of the API's
     claims = {
         "sub": str(uuid.uuid5(uuid.NAMESPACE_DNS, username)),
         "aud": "authenticated",

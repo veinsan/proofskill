@@ -81,6 +81,7 @@ def current_principal(
             audience="authenticated",
             issuer=f"{config.SUPABASE_URL}/auth/v1",
             options={"require": ["exp", "sub"]},
+            leeway=30,  # clock skew: a host a second behind Supabase would see a fresh token's iat ahead
         )
     except (jwt.InvalidTokenError, jwt.PyJWKClientError) as exc:
         raise ApiError(401, "UNAUTHENTICATED", "Access token is invalid or expired.") from exc

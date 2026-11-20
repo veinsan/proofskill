@@ -37,11 +37,10 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinne
 
 | Tool | Role |
 | --- | --- |
-| Vercel | Hosts `web/`. `API_ORIGIN` points at the Render API |
-| Render | Hosts `api/` (free tier, sleeps when idle) |
+| Vercel | Hosts `web/` (B-06) and, since B-05, `api/` as a Python function (Hobby plan, no card; region `sin1`; `api/vercel.json` and `[tool.vercel]` in `api/pyproject.toml`). The web app's `API_ORIGIN` points at the API project. Render was dropped on 2026-11-20 because it refused the team's debit cards |
 | Supabase | Postgres for off-chain data since B-01 (project in Singapore, reached through the session pooler; Row Level Security on every table, no policies) and Auth for accounts in B-02; API-00 proxies Supabase sign-in |
-| Base Sepolia testnet | Hosts `ProofSkillRegistry` at `0xFB11769EBD22fe1Ac40391227e6526ccf077D136` (B-03, `contracts/deployments/baseSepolia.json`). RGS signs with one key per issuer plus the registry owner's key, kept in the untracked `.env.testnet` and later as Render secrets (OD-12) |
-| Gemini embeddings (free tier) | Used by AMS since B-04 (done); the key becomes a Render secret in B-05 |
+| Base Sepolia testnet | Hosts `ProofSkillRegistry` at `0xFB11769EBD22fe1Ac40391227e6526ccf077D136` (B-03, `api/deployments/baseSepolia.json`, inside the API's Vercel project). RGS signs with one key per issuer plus the registry owner's key, kept in the untracked `.env.testnet` and as Vercel environment variables (OD-12). Signed sends are serialized per account by a Postgres advisory lock, because Vercel runs requests concurrently in and across instances |
+| Gemini embeddings (free tier) | Used by AMS since B-04 (done); the key is a Vercel environment variable of the API project |
 | Reserved: OpenCV / YOLO / MediaPipe, RunPod, LangChain | Not used by any current feature. Add one only after the PRD scopes a feature that needs it |
 | Node v26.13.0 | Node package manager: pnpm 12.18.0 (decided at A-01) |
 | uv 0.13.7 | Python package manager: uv, lockfile `api/uv.lock` (decided at A-01) |
@@ -60,7 +59,7 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinne
 `contracts/`, `api/`, `web/`, and `scripts/` exist since A-01. The rest of the tree fills in as later steps land.
 
 ```text
-contracts/        # Hardhat: ProofSkillRegistry.sol (registerIssuer, issueCredential, revokeCredential, getRecord, deactivateIssuer), tests, deploy script; deployments/baseSepolia.json is the only tracked deployment
+contracts/        # Hardhat: ProofSkillRegistry.sol (registerIssuer, issueCredential, revokeCredential, getRecord, deactivateIssuer), tests, deploy script; the testnet deployment is written to api/deployments/baseSepolia.json, the only tracked one
 api/              # FastAPI app
   app/            # modules per SoaML service: ias, cis, css, aas, vrs, rgs (blockchain adapter), scs, ams; plus config, db, seed
   migrations/     # plain SQL, applied in name order by app/db.py
@@ -122,7 +121,7 @@ Tick an item only after its completion criteria in ARCHITECTURE.md pass.
 - **Verification never depends on AI.** If the AI is down, only API-07 returns 503.
 - **Contract changes go through the user.** Do not change endpoints, payloads, status codes, error codes, or enums without the user's approval. If a change is approved, list the report and deck sections that must change with it.
 - **Do not invent codes.** Use only the error codes in ARCHITECTURE.md (OD-1 named the formerly unnamed ones), and never settle an open decision (OD-9 is still open) on your own.
-- **No real secrets in git.** Keep secrets and private keys out of commits: issuer and deployer keys, the Etherscan key, the Supabase service-role key, the accounts' `SEED_PASSWORD`, and the Gemini API key live only in Render, Vercel, or the local untracked `.env` and `.env.testnet`. Only the public Hardhat test accounts may appear in local config and tests.
+- **No real secrets in git.** Keep secrets and private keys out of commits: issuer and deployer keys, the Etherscan key, the Supabase service-role key, the accounts' `SEED_PASSWORD`, and the Gemini API key live only in Vercel environment variables or the local untracked `.env` and `.env.testnet`. Only the public Hardhat test accounts may appear in local config and tests.
 - **No real data, no mainnet.** Use synthetic data only (assumption A6) until a privacy review allows real participant data. Never deploy to or send transactions on a blockchain mainnet; the deployment uses the Base Sepolia testnet.
 - **Pink only on the action.** Do not use Signal Pink anywhere except the single primary action.
 
@@ -136,6 +135,7 @@ The defaults match `.env.example`, so set an environment variable only to overri
 | Chain | `cd contracts; pnpm install; pnpm chain`, then `pnpm deploy:local` in a second terminal | `http://127.0.0.1:8545`, contract address in `contracts/deployments/localhost.json` |
 | Seed | `cd api; uv sync; uv run python -m app.seed --reset` (needs the database, the chain, and a deploy). It migrates, loads the synthetic seed, and registers ISS-001 and ISS-002 on-chain. The accounts are listed in `api/app/seed.py`; they live in Supabase Auth, and with `SUPABASE_SERVICE_ROLE_KEY` set (in `.env.testnet`) the seed creates or updates them there with the secret `SEED_PASSWORD` from `.env`. Sign in with that password; it is never in git | — |
 | Deployed stack (B-01, B-03) | `.env.testnet` (untracked) holds `DATABASE_URL` (Supabase session pooler, `?sslmode=require`), `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `CHAIN_RPC_URL`, `REGISTRY_DEPLOYMENT`, `REGISTRY_OWNER_KEY`, `ISSUER_KEY_ISS_001`, `ISSUER_KEY_ISS_002`, and `ETHERSCAN_API_KEY`. Deploy: `cd contracts; pnpm deploy:base-sepolia`; verify: `pnpm hardhat verify etherscan --network baseSepolia <address>` (done; plain `verify` also tries Blockscout and Sourcify and can hang). Run any API command against the testnet by adding `--env-file ../.env.testnet` after `--env-file ../.env` (the later file wins), for example `uv run --env-file ../.env --env-file ../.env.testnet python -m app.seed --reset` | `https://sepolia.basescan.org/address/0xFB11769EBD22fe1Ac40391227e6526ccf077D136` |
+| API on Vercel (B-05) | Vercel project with Root Directory `api/` (zero-config FastAPI through `[tool.vercel]` in `api/pyproject.toml`, region `sin1` in `api/vercel.json`). Environment variables: `DATABASE_URL` (Supabase transaction pooler, port 6543, `?sslmode=require`), `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `CHAIN_RPC_URL`, `REGISTRY_DEPLOYMENT=deployments/baseSepolia.json`, `REGISTRY_OWNER_KEY`, `ISSUER_KEY_ISS_001`, `ISSUER_KEY_ISS_002`, `GEMINI_API_KEY`, `WEB_BASE_URL`. Never set the seed-only `SUPABASE_SERVICE_ROLE_KEY` or `SEED_PASSWORD` there | `https://<project>.vercel.app/api/v1/docs` |
 | API | `cd api; uv run --env-file ../.env fastapi dev app/main.py`. Without `GEMINI_API_KEY`, everything works except API-07, which returns 503 `AI_UNAVAILABLE` (TC-10) | `http://127.0.0.1:8000/api/v1/docs` |
 | Web | `cd web; pnpm install; pnpm dev` (needs the API on port 8000). Sign in at `/` with a seeded account; the portal follows the role, and each browser tab keeps its own session | `http://localhost:3000` |
 

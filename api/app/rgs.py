@@ -6,10 +6,10 @@ the team's machines. Locally, transactions are sent from the Hardhat node's unlo
 accounts. On the Base Sepolia testnet (B-03), RGS signs EIP-1559 transactions itself with the key of
 the acting account (OD-12 custodial default): coincurve signs, and keccak-256 is written below because
 pycryptodome is blocked too. Keys come only from the environment, never from this repository.
+Signed transactions are serialized per account by a Postgres advisory lock (see _transact).
 """
 
 import json
-import threading
 import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -19,7 +19,7 @@ from typing import Any
 import httpx
 from coincurve import PrivateKey
 
-from app import config
+from app import config, db
 
 ZERO_ADDRESS = "0x" + "0" * 40
 
@@ -169,40 +169,28 @@ def _call(signature: str, args: list[tuple[str, str]]) -> bytes:
     return bytes.fromhex(result.removeprefix("0x"))
 
 
-# shortcut: one lock per API process keeps nonces in order; a second instance signing for the same
-# account would need a shared nonce store (Render free tier runs one instance).
-_nonce_lock = threading.Lock()
-
-
 def _send_signed(key: str, sender: str, data: str) -> str:
     """Signs and sends an EIP-1559 transaction. A revert surfaces at eth_estimateGas with the
-    contract's custom error, before anything is sent (TC-14)."""
+    contract's custom error, before anything is sent (TC-14). Call only under the nonce lock."""
     to = _deployment()["address"]
     gas = int(_rpc("eth_estimateGas", [{"from": sender, "to": to, "data": data}]), 16)
     tip = int(_rpc("eth_maxPriorityFeePerGas", []), 16)
     base_fee = int(_rpc("eth_getBlockByNumber", ["latest", False])["baseFeePerGas"], 16)
-    with _nonce_lock:
-        nonce = int(_rpc("eth_getTransactionCount", [sender, "pending"]), 16)
-        fields: list[Any] = [
-            int(_deployment()["chainId"]), nonce, tip, 2 * base_fee + tip, gas * 6 // 5,  # 20% gas margin
-            bytes.fromhex(to.removeprefix("0x")), 0, bytes.fromhex(data.removeprefix("0x")), [],
-        ]
-        signature = PrivateKey(bytes.fromhex(key.removeprefix("0x"))).sign_recoverable(
-            keccak256(b"\x02" + _rlp(fields)), hasher=None
-        )
-        r, s = int.from_bytes(signature[:32], "big"), int.from_bytes(signature[32:64], "big")
-        raw = b"\x02" + _rlp([*fields, signature[64], r, s])
-        tx_hash: str = _rpc("eth_sendRawTransaction", ["0x" + raw.hex()])
+    nonce = int(_rpc("eth_getTransactionCount", [sender, "pending"]), 16)
+    fields: list[Any] = [
+        int(_deployment()["chainId"]), nonce, tip, 2 * base_fee + tip, gas * 6 // 5,  # 20% gas margin
+        bytes.fromhex(to.removeprefix("0x")), 0, bytes.fromhex(data.removeprefix("0x")), [],
+    ]
+    signature = PrivateKey(bytes.fromhex(key.removeprefix("0x"))).sign_recoverable(
+        keccak256(b"\x02" + _rlp(fields)), hasher=None
+    )
+    r, s = int.from_bytes(signature[:32], "big"), int.from_bytes(signature[32:64], "big")
+    raw = b"\x02" + _rlp([*fields, signature[64], r, s])
+    tx_hash: str = _rpc("eth_sendRawTransaction", ["0x" + raw.hex()])
     return tx_hash
 
 
-def _transact(signature: str, args: list[tuple[str, str]], sender: str) -> str:
-    data = _calldata(signature, args)
-    key = _key_for(sender)
-    if key:
-        tx_hash = _send_signed(key, sender, data)
-    else:  # local Hardhat node: unlocked public test accounts
-        tx_hash = _rpc("eth_sendTransaction", [{"from": sender, "to": _deployment()["address"], "data": data}])
+def _wait_mined(tx_hash: str) -> None:
     # Hardhat automines, so the receipt exists at once; Base Sepolia mines a block every 2 seconds.
     # shortcut: after 60 s this gives up with 503 although the transaction may still be mined later.
     deadline = time.monotonic() + 60
@@ -212,6 +200,23 @@ def _transact(signature: str, args: list[tuple[str, str]], sender: str) -> str:
         time.sleep(1)
     if receipt["status"] != "0x1":
         raise RegistryError(f"transaction {tx_hash} failed")
+
+
+def _transact(signature: str, args: list[tuple[str, str]], sender: str) -> str:
+    data = _calldata(signature, args)
+    key = _key_for(sender)
+    if not key:  # local Hardhat node: unlocked public test accounts
+        tx_hash: str = _rpc("eth_sendTransaction", [{"from": sender, "to": _deployment()["address"], "data": data}])
+        _wait_mined(tx_hash)
+        return tx_hash
+    # Nonce lock (B-05): on Vercel, one instance serves several requests at once and several
+    # instances run side by side, so an in-process lock cannot order nonces. A Postgres advisory
+    # lock per sender can, because every instance shares the database. It is held until the receipt,
+    # so the next transaction from this account reads a settled nonce; any error releases it.
+    with db.connect(config.DATABASE_URL) as lock:
+        lock.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", (sender.lower(),))
+        tx_hash = _send_signed(key, sender, data)
+        _wait_mined(tx_hash)
     return tx_hash
 
 
