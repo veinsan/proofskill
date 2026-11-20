@@ -300,14 +300,14 @@ On navy, secondary text is Paper White at reduced opacity rather than a new colo
 - **Small** (400, 0.8125rem, line-height 1.45): helper text, limitations, check reasons, notices, and navigation items.
 - **Label** (600, 0.71875rem, width 72, letter-spacing 0.14em, uppercase): every field label, every table header, the portal name, and the single stub label.
 - **Mono** (500, 0.8125rem, tabular figures): IDs (CRD-, ISS-, SHL-, VER-, MAT-, HLD-, SK-), hashes, share URLs, and timestamps.
-- **Mono tag** (500 to 600, 0.6875rem, letter-spacing 0.06em, uppercase): tags (REKOMENDASI, AI · EMBEDDING MODEL), check states (PASS, FAIL, ACTIVE, REVOKED), table status words, and the Synthetic data pill.
+- **Mono tag** (500 to 600, 0.6875rem, letter-spacing 0.06em, uppercase): tags (REKOMENDASI, AI · GEMINI MODELS), check states (PASS, FAIL, ACTIVE, REVOKED), table status words, and the Synthetic data pill.
 
 ### Named Rules
 **The Label-Over-Value Rule.** Every field is a tracked capital label above its value, never "Label: value" on one line. Values align on a shared baseline.
 
 **The Mono-for-Machines Rule.** Anything a machine issued (IDs, hashes, tokens, UTC timestamps) is set in Red Hat Mono. Human words are never set in mono. Long hashes are truncated in the middle (`0x0b9e242b…9ce3`), with the full value available to copy.
 
-**The No-Eyebrow Rule.** No tag or label sits above a heading. Technology markers ride inside the content they mark: the stub's single label names the blockchain registry, and the AI · EMBEDDING MODEL tag sits in the REKOMENDASI row of the model's output, never above a panel title.
+**The No-Eyebrow Rule.** No tag or label sits above a heading. Technology markers ride inside the content they mark: the stub's single label names the blockchain registry, and the AI · GEMINI MODELS tag sits in the REKOMENDASI row of the model's output, never above a panel title.
 
 ## Layout
 
@@ -375,7 +375,7 @@ The pass is one object, the credential, with the same structure everywhere.
 
 ### Tags and states
 - **Tags:** transparent with a 1px outline in the current text color, Red Hat Mono uppercase, 4px radius.
-- **REKOMENDASI row:** the first line of any AI output is a row with the REKOMENDASI tag, the AI · EMBEDDING MODEL tag, and "A recommendation, not a decision. No total score." in Small Muted Ink, over a 1px Rule.
+- **REKOMENDASI row:** the first line of any AI output is a row with the REKOMENDASI tag, the AI · GEMINI MODELS tag, and "A recommendation, not a decision. No total score." in Small Muted Ink, over a 1px Rule.
 - **Status in tables and lists:** the status word in mono tag next to a 10px filled dot (active) or hollow ring (revoked).
 - **Skill chips:** a 1px navy outline at 4px radius, the skill label in Body with its SK- ID in Muted Ink mono beside it.
 
@@ -416,7 +416,7 @@ The pass is one object, the credential, with the same structure everywhere.
 - **Do** pair every verdict enum with its plain-English sentence and show the three checks separately with their reasons.
 - **Do** keep the Synthetic data pill visible on every screen while demo data is in use.
 - **Do** show only the fields inside the holder's share scope, and say "Not shared" for anything outside it.
-- **Do** name the blockchain registry in the stub's single label, and put the AI · EMBEDDING MODEL tag in the REKOMENDASI row of model output.
+- **Do** name the blockchain registry in the stub's single label, and put the AI · GEMINI MODELS tag in the REKOMENDASI row of model output.
 - **Do** write interface copy in English and keep API enums and error codes verbatim (VALID, REVOKED, TAMPERED, ISSUER_UNAUTHORIZED, REKOMENDASI, SHARE_LINK_EXPIRED, and so on).
 - **Do** let the verdict, status word, and codes scale to their container instead of wrapping mid-word; an enum breaks only after "_".
 - **Do** put the stub above the pass body below 768px so the verdict is read first.

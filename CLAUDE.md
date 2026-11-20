@@ -1,6 +1,6 @@
 # CLAUDE.md: ProofSkill
 
-ProofSkill began as the Deliverable 3 prototype for course II3120 (Kelompok 02) and is now being taken to a public deployment (PRD, Deployment decisions; ARCHITECTURE, steps B-01 to B-07). It is a credential issuance and verification service for nonformal training organizers:
+ProofSkill began as the Deliverable 3 prototype for course II3120 (Kelompok 02) and is now being taken to a public deployment (PRD, Deployment decisions; ARCHITECTURE, steps B-01 to B-08). It is a credential issuance and verification service for nonformal training organizers:
 
 - Issuers record a nonce-salted hash commitment, the issuer, and the status on a blockchain registry (a local Hardhat node in development; the Base Sepolia testnet when deployed).
 - Holders share a scoped link.
@@ -30,17 +30,17 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinne
 | Windows Application Control | Blocks some unsigned native wheels on this machine (`psycopg-binary`, `regex`, `bitarray`, `pycryptodome`, and the `pydantic-core` build that `eth-account` pulls in). So psycopg runs its pure-Python driver with `libpq.dll` from `PG_BIN`, RGS calls JSON-RPC through httpx with a minimal ABI codec instead of web3.py, and RGS signs testnet transactions with coincurve plus its own pure-Python keccak-256 and RLP instead of eth-account. Check new Python dependencies with an import before adopting them |
 | PostgreSQL | 17.11 (installed at `C:\Program Files\PostgreSQL\17`). Off-chain data, run as a project-local cluster by `scripts/db.ps1`: data in `.pgdata/`, port 5433, 127.0.0.1 only, trust auth |
 | Hardhat with Solidity | Hardhat 3.22.0, ethers 6.17.0, Mocha 12.0.3, Chai 6.3.0, Solidity 0.8.28, hardhat-verify 3.1.5 (Basescan verification, approved 2026-11-20). Local chain, the `baseSepolia` network, and the `ProofSkillRegistry` contract in `contracts/` |
-| Gemini embeddings | `gemini-embedding-001` through the Gemini REST API (`batchEmbedContents`, called with httpx; no SDK). Requirements are embedded as `RETRIEVAL_QUERY` and skills as `RETRIEVAL_DOCUMENT`, threshold 0.72 (B-04). Needs `GEMINI_API_KEY`; replaced the local MiniLM model and its ONNX process on 2026-11-19 |
+| Gemini models | Called with httpx through the Gemini REST API; no SDK. Embeddings (B-04): `gemini-embedding-001` through `batchEmbedContents`, requirements as `RETRIEVAL_QUERY` and skills as `RETRIEVAL_DOCUMENT`. Judge (B-08): `gemini-3.1-flash-lite` through `generateContent`, with a JSON response schema at temperature 0, decides each requirement among the verified skills whose embedding similarity is 0.60 or more and writes the reason; it was chosen on the locked gold set `api/evals/matching_gold.json` (`docs/evidence/matching-eval/`). When the judge does not answer, AMS serves a cached judged result (`api/app/matching_cache.json`) or matches by embedding similarity alone at 0.71, and says which in `modelVersion`. Needs `GEMINI_API_KEY`; replaced the local MiniLM model and its ONNX process on 2026-11-19 |
 | Supabase Auth with JWT Bearer tokens | Since B-02, API-00 proxies Supabase's password sign-in (username `x` signs in as `x@proofskill.example`) and returns its ES256 access token; guards verify it against the project's JWKS with PyJWT plus cryptography 50.0.2 (approved 2026-11-20). Roles `issuer_admin`, `holder`, `verifier`, plus `platform_admin` for API-01 (OD-1), with `issuerId`, `holderRef`, and `username`, come from `app_metadata`, which only the service-role key can write |
 
-**Deployment target (re-planned 2026-11-19, built in steps B-01 to B-07; B-01 to B-07 done; the API is live at https://proofskill-api.vercel.app and the web app at https://proofskill-two.vercel.app):**
+**Deployment target (re-planned 2026-11-19, built in steps B-01 to B-07, plus B-08 for the quality of AI matching; B-01 to B-08 done; the API is live at https://proofskill-api.vercel.app and the web app at https://proofskill-two.vercel.app):**
 
 | Tool | Role |
 | --- | --- |
 | Vercel | Hosts `web/` (B-06) and, since B-05, `api/` as a Python function (Hobby plan, no card; region `sin1`; `api/vercel.json` and `[tool.vercel]` in `api/pyproject.toml`). The web app's `API_ORIGIN` points at the API project. Render was dropped on 2026-11-20 because it refused the team's debit cards |
 | Supabase | Postgres for off-chain data since B-01 (project in Singapore, reached through the session pooler; Row Level Security on every table, no policies) and Auth for accounts in B-02; API-00 proxies Supabase sign-in |
 | Base Sepolia testnet | Hosts `ProofSkillRegistry` at `0xFB11769EBD22fe1Ac40391227e6526ccf077D136` (B-03, `api/deployments/baseSepolia.json`, inside the API's Vercel project). RGS signs with one key per issuer plus the registry owner's key, kept in the untracked `.env.testnet` and as Vercel environment variables (OD-12). Signed sends are serialized per account by a Postgres advisory lock, because Vercel runs requests concurrently in and across instances |
-| Gemini embeddings (free tier) | Used by AMS since B-04 (done); the key is a Vercel environment variable of the API project |
+| Gemini API (free tier) | Embeddings since B-04 and the matching judge since B-08, both called by AMS; the key is a Vercel environment variable of the API project |
 | Reserved: OpenCV / YOLO / MediaPipe, RunPod, LangChain | Not used by any current feature. Add one only after the PRD scopes a feature that needs it |
 | Node v26.13.0 | Node package manager: pnpm 12.18.0 (decided at A-01) |
 | uv 0.13.7 | Python package manager: uv, lockfile `api/uv.lock` (decided at A-01) |
@@ -77,7 +77,7 @@ skill/            # project skills: project-setup (docs workflow), run-test-scen
 
 - Endpoint code belongs to the module of the SoaML service that owns the operation (ARCHITECTURE.md mapping table).
 - Only `rgs` talks to the chain.
-- Only `ams` calls the embedding API (Gemini).
+- Only `ams` calls the Gemini API (embeddings and the judge).
 
 ## Code Conventions
 
@@ -140,12 +140,14 @@ The defaults match `.env.example`, so set an environment variable only to overri
 | Web on Vercel (B-06) | Vercel project with Root Directory `web/`; environment variable `API_ORIGIN=https://proofskill-api.vercel.app` (the build fails without it). `web/vercel.json` installs pnpm 12.18.0 itself and calls it by path, because Vercel's own pnpm cannot read pnpm 12's lockfile. The API project's `WEB_BASE_URL` must be this site's URL so share links open its verifier page | `https://proofskill-two.vercel.app` |
 | Web | `cd web; pnpm install; pnpm dev` (needs the API on port 8000). Sign in at `/` with a seeded account; the portal follows the role, and each browser tab keeps its own session | `http://localhost:3000` |
 
-Checks: `pnpm test` in `contracts/`, `uv run --env-file ../.env pytest` in `api/` (needs the database cluster and a running chain; it uses the separate `proofskill_test` database, or whatever `TEST_DATABASE_URL` names, and empties that database before every test, so never point it at a database whose data matters; it deploys its own registry to `contracts/deployments/pytest.json`, and reverts the chain after each test; TC-08 calls the real Gemini API and is skipped without `GEMINI_API_KEY`, the other AI tests use a fake Gemini endpoint; sign-in always uses a fake Supabase Auth with a test-only signing key, so pytest never calls the real project), and `pnpm lint` plus `pnpm build` in `web/`.
+Checks: `pnpm test` in `contracts/`, `uv run --env-file ../.env pytest` in `api/` (needs the database cluster and a running chain; it uses the separate `proofskill_test` database, or whatever `TEST_DATABASE_URL` names, and empties that database before every test, so never point it at a database whose data matters; it deploys its own registry to `contracts/deployments/pytest.json`, and reverts the chain after each test; TC-08 calls the real Gemini API and is skipped without `GEMINI_API_KEY`, the other AI tests, including B-08's judge and fallback tests, use a fake Gemini endpoint; sign-in always uses a fake Supabase Auth with a test-only signing key, so pytest never calls the real project), and `pnpm lint` plus `pnpm build` in `web/`.
 
 - **Contracts.** Hardhat tests cover issue, revoke, read, the other-issuer revert (TC-14), and issuer deactivation (TC-16).
 - **API.** pytest, one test per automatable TC (TC-01 to TC-16). Run them against the local Hardhat node and PostgreSQL.
 - **Web.** Production build of the Next.js app, plus manual checks in a browser of the three flows: issue, share, verify with skill fit.
 - **Evidence.** `cd api; uv run --env-file ../.env python -m scripts.evidence` (needs the database cluster, a running chain, and `GEMINI_API_KEY`; it starts its own API on port 8100 and restarts it without the key for TC-10) runs TC-01 to TC-16 and rewrites `docs/evidence/` in the D3 format: scenario, steps or input, expected result, actual result, status, evidence. `docs/evidence/README.md` summarizes the results and T-01 to T-05. With `--env-file ../.env.testnet --deployed https://proofskill-api.vercel.app` it runs the same scenarios against the deployed stack and writes `docs/evidence/deployed/` instead (B-07): nothing is reset, TC-10 pauses until the flag files `ai-off` and `ai-on` exist after redeploying the API without and with `GEMINI_API_KEY`, and TC-16 deactivates ISS-002 for good, so a repeat run needs another issuer for TC-16. `skill/run-test-scenario/SKILL.md` (local) describes the same format for manual runs.
+
+- **AI matching evaluation (B-08).** `cd api; uv run --env-file ../.env python -m scripts.eval_matching` scores embedding only and each candidate judge on the locked gold set `api/evals/matching_gold.json`, chooses on its dev split, reports its test split, and writes `docs/evidence/matching-eval/`; Gemini answers are cached in the untracked `api/evals/.cache/`. Never edit the gold set or the prompt to fix a test-split error. After changing the judge, its prompt, the catalog, or the sample positions, rebuild `api/app/matching_cache.json` with `uv run --env-file ../.env python -m scripts.build_matching_cache`.
 
 ## Git Rules
 

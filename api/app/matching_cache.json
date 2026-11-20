@@ -1,0 +1,263 @@
+{
+  "description": "Judged API-07 results for the synthetic sample positions, served only when Gemini does not answer and always labeled as cached. Built by api/scripts/build_matching_cache.py; keys are ams.cache_key(skills, description).",
+  "entries": {
+    "01636d353533c1888ebc32ba21f378c9b3a0d37476d444f7eca919fd70c12b9c": {
+      "skills": [
+        {
+          "label": "SQL",
+          "aliases": [
+            "basis data relasional",
+            "query sql"
+          ]
+        }
+      ],
+      "description": "Membangun antarmuka web dengan React dan JavaScript, menulis HTML dan CSS yang rapi, dan bekerja dengan desainer UI.",
+      "matchedSkills": [],
+      "missingRequirements": [
+        {
+          "requirement": "Membangun antarmuka web dengan React",
+          "note": "No verified skill is close enough."
+        },
+        {
+          "requirement": "JavaScript",
+          "note": "The skill SQL does not cover JavaScript development."
+        },
+        {
+          "requirement": "menulis HTML",
+          "note": "The skill SQL does not cover HTML writing."
+        },
+        {
+          "requirement": "CSS yang rapi",
+          "note": "The skill SQL does not cover CSS styling."
+        },
+        {
+          "requirement": "bekerja dengan desainer UI",
+          "note": "The skill SQL does not cover collaboration with UI designers."
+        }
+      ],
+      "modelVersion": "gemini-embedding-001 (Gemini API, RETRIEVAL_QUERY/RETRIEVAL_DOCUMENT) + gemini-3.1-flash-lite judge",
+      "computedAt": "2026-11-20T12:48:39Z"
+    },
+    "203f7bf5dffbe9b1f5aff70c693a581570af610c75b73a1292cd6ad6f3a52d8a": {
+      "skills": [
+        {
+          "label": "OWASP Top 10",
+          "aliases": [
+            "kerentanan aplikasi web",
+            "web application vulnerabilities"
+          ]
+        },
+        {
+          "label": "Web Security Testing",
+          "aliases": [
+            "pengujian keamanan",
+            "penetration testing dasar"
+          ]
+        },
+        {
+          "label": "Secure Coding",
+          "aliases": [
+            "pemrograman aman",
+            "validasi input"
+          ]
+        }
+      ],
+      "description": "Menganalisis kerentanan aplikasi web, memahami OWASP Top 10, melakukan pengujian keamanan dasar, dan memantau log dengan SIEM.",
+      "matchedSkills": [
+        {
+          "skill": "OWASP Top 10",
+          "requirement": "Menganalisis kerentanan aplikasi web",
+          "similarity": 0.85,
+          "reason": "The skill OWASP Top 10 covers web application vulnerabilities analysis."
+        },
+        {
+          "skill": "OWASP Top 10",
+          "requirement": "memahami OWASP Top 10",
+          "similarity": 0.78,
+          "reason": "The skill OWASP Top 10 directly matches the requirement."
+        },
+        {
+          "skill": "Web Security Testing",
+          "requirement": "melakukan pengujian keamanan dasar",
+          "similarity": 0.85,
+          "reason": "Web Security Testing includes basic penetration testing."
+        }
+      ],
+      "missingRequirements": [
+        {
+          "requirement": "memantau log dengan SIEM",
+          "note": "No skill covers SIEM log monitoring."
+        }
+      ],
+      "modelVersion": "gemini-embedding-001 (Gemini API, RETRIEVAL_QUERY/RETRIEVAL_DOCUMENT) + gemini-3.1-flash-lite judge",
+      "computedAt": "2026-11-20T12:48:02Z"
+    },
+    "3983fc3a9fe36b085634dc3e48700f256b8912ea3f35c11e7579c4dcf529453d": {
+      "skills": [
+        {
+          "label": "OWASP Top 10",
+          "aliases": [
+            "kerentanan aplikasi web",
+            "web application vulnerabilities"
+          ]
+        },
+        {
+          "label": "Web Security Testing",
+          "aliases": [
+            "pengujian keamanan",
+            "penetration testing dasar"
+          ]
+        },
+        {
+          "label": "Secure Coding",
+          "aliases": [
+            "pemrograman aman",
+            "validasi input"
+          ]
+        }
+      ],
+      "description": "Membangun antarmuka web dengan React dan JavaScript, menulis HTML dan CSS yang rapi, dan bekerja dengan desainer UI.",
+      "matchedSkills": [],
+      "missingRequirements": [
+        {
+          "requirement": "Membangun antarmuka web dengan React",
+          "note": "The provided skills do not include React development capabilities."
+        },
+        {
+          "requirement": "JavaScript",
+          "note": "The provided skills do not include JavaScript programming."
+        },
+        {
+          "requirement": "menulis HTML",
+          "note": "The provided skills do not include HTML development."
+        },
+        {
+          "requirement": "CSS yang rapi",
+          "note": "The provided skills do not include CSS styling."
+        },
+        {
+          "requirement": "bekerja dengan desainer UI",
+          "note": "The provided skills do not include UI design collaboration."
+        }
+      ],
+      "modelVersion": "gemini-embedding-001 (Gemini API, RETRIEVAL_QUERY/RETRIEVAL_DOCUMENT) + gemini-3.1-flash-lite judge",
+      "computedAt": "2026-11-20T12:48:18Z"
+    },
+    "40b179462be69870a7cd9f9001a308e0dcbef94c4526906289283e2d6bc52efd": {
+      "skills": [
+        {
+          "label": "SQL",
+          "aliases": [
+            "basis data relasional",
+            "query sql"
+          ]
+        }
+      ],
+      "description": "Menganalisis kerentanan aplikasi web, memahami OWASP Top 10, melakukan pengujian keamanan dasar, dan memantau log dengan SIEM.",
+      "matchedSkills": [],
+      "missingRequirements": [
+        {
+          "requirement": "Menganalisis kerentanan aplikasi web",
+          "note": "SQL is a database query language and does not cover web application vulnerability analysis."
+        },
+        {
+          "requirement": "memahami OWASP Top 10",
+          "note": "SQL is a database query language and does not cover OWASP Top 10 security standards."
+        },
+        {
+          "requirement": "melakukan pengujian keamanan dasar",
+          "note": "SQL is a database query language and does not cover general security testing."
+        },
+        {
+          "requirement": "memantau log dengan SIEM",
+          "note": "No verified skill is close enough."
+        }
+      ],
+      "modelVersion": "gemini-embedding-001 (Gemini API, RETRIEVAL_QUERY/RETRIEVAL_DOCUMENT) + gemini-3.1-flash-lite judge",
+      "computedAt": "2026-11-20T12:48:25Z"
+    },
+    "41212ef6f97a4b381dca7419785a2c090cd246bd959ba079f4bf47e1d5770416": {
+      "skills": [
+        {
+          "label": "SQL",
+          "aliases": [
+            "basis data relasional",
+            "query sql"
+          ]
+        }
+      ],
+      "description": "Mengolah data dengan SQL dan Python, membuat dashboard visualisasi data, dan menyajikan temuan kepada tim bisnis.",
+      "matchedSkills": [
+        {
+          "skill": "SQL",
+          "requirement": "Mengolah data dengan SQL",
+          "similarity": 0.75,
+          "reason": "The skill SQL directly covers the requirement to process data using SQL."
+        }
+      ],
+      "missingRequirements": [
+        {
+          "requirement": "Python",
+          "note": "The skill SQL does not cover the requirement for Python programming."
+        },
+        {
+          "requirement": "membuat dashboard visualisasi data",
+          "note": "The skill SQL does not cover the requirement for creating data visualization dashboards."
+        },
+        {
+          "requirement": "menyajikan temuan kepada tim bisnis",
+          "note": "The skill SQL does not cover the requirement for presenting findings to business teams."
+        }
+      ],
+      "modelVersion": "gemini-embedding-001 (Gemini API, RETRIEVAL_QUERY/RETRIEVAL_DOCUMENT) + gemini-3.1-flash-lite judge",
+      "computedAt": "2026-11-20T12:48:32Z"
+    },
+    "eba7c39fdabc109ee3967fea56b77f8d8e5b99b0af1fca0c847a51bfb4a6deb9": {
+      "skills": [
+        {
+          "label": "OWASP Top 10",
+          "aliases": [
+            "kerentanan aplikasi web",
+            "web application vulnerabilities"
+          ]
+        },
+        {
+          "label": "Web Security Testing",
+          "aliases": [
+            "pengujian keamanan",
+            "penetration testing dasar"
+          ]
+        },
+        {
+          "label": "Secure Coding",
+          "aliases": [
+            "pemrograman aman",
+            "validasi input"
+          ]
+        }
+      ],
+      "description": "Mengolah data dengan SQL dan Python, membuat dashboard visualisasi data, dan menyajikan temuan kepada tim bisnis.",
+      "matchedSkills": [],
+      "missingRequirements": [
+        {
+          "requirement": "Mengolah data dengan SQL",
+          "note": "None of the provided skills cover SQL data processing."
+        },
+        {
+          "requirement": "Python",
+          "note": "None of the provided skills cover Python programming."
+        },
+        {
+          "requirement": "membuat dashboard visualisasi data",
+          "note": "None of the provided skills cover data visualization dashboard creation."
+        },
+        {
+          "requirement": "menyajikan temuan kepada tim bisnis",
+          "note": "None of the provided skills cover presenting findings to business teams."
+        }
+      ],
+      "modelVersion": "gemini-embedding-001 (Gemini API, RETRIEVAL_QUERY/RETRIEVAL_DOCUMENT) + gemini-3.1-flash-lite judge",
+      "computedAt": "2026-11-20T12:48:09Z"
+    }
+  }
+}

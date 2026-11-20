@@ -524,10 +524,10 @@ def main() -> None:
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=REPO, capture_output=True, text=True).stdout.strip()
     environment = (f"{datetime.now(UTC):%Y-%m-%d %H:%M} UTC, commit {commit}, local Hardhat node + PostgreSQL 17 "
-                   f"(database proofskill_evidence), API on port {API_PORT}, AI matching by Gemini {ams.GEMINI_MODEL}, sign-in through Supabase Auth")
+                   f"(database proofskill_evidence), API on port {API_PORT}, AI matching by Gemini {ams.GEMINI_MODEL} with the {ams.JUDGE_MODEL} judge, sign-in through Supabase Auth")
     if DEPLOYED:
         environment = (f"{datetime.now(UTC):%Y-%m-%d %H:%M} UTC, commit {commit}, deployed stack: API {DEPLOYED} (Vercel, sin1), "
-                       f"Supabase Postgres and Auth, Base Sepolia registry {rgs._deployment()['address']}, AI matching by Gemini {ams.GEMINI_MODEL}")
+                       f"Supabase Postgres and Auth, Base Sepolia registry {rgs._deployment()['address']}, AI matching by Gemini {ams.GEMINI_MODEL} with the {ams.JUDGE_MODEL} judge")
     stack = DeployedStack() if DEPLOYED else Stack()
     try:
         stack.prepare()

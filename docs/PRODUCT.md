@@ -10,7 +10,7 @@ web
 
 Locked by the team on 2026-11-19 (D2 report, Tabel 10.3): Next.js for the web app with three portals, FastAPI for the REST API under `/api/v1`, PostgreSQL for off-chain data, Hardhat with the Solidity contract `ProofSkillRegistry` as the local chain, and the multilingual sentence-embedding model `paraphrase-multilingual-MiniLM-L12-v2` running locally for skill matching.
 
-Re-planned on 2026-11-19 for a public deployment, with the same API contract: Next.js and FastAPI on Vercel, Supabase for Postgres and Auth, the registry on the Base Sepolia testnet, and Gemini embeddings in place of the local model. OpenCV, YOLO, MediaPipe, RunPod, and LangChain are reserved for future features; none is used today.
+Re-planned on 2026-11-19 for a public deployment, with the same API contract: Next.js and FastAPI on Vercel, Supabase for Postgres and Auth, the registry on the Base Sepolia testnet, and Gemini embeddings plus a Gemini language-model judge (B-08) in place of the local model. OpenCV, YOLO, MediaPipe, RunPod, and LangChain are reserved for future features; none is used today.
 
 ## Users
 
