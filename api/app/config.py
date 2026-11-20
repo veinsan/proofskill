@@ -9,7 +9,16 @@ _REPO = Path(__file__).resolve().parents[2]
 DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://proofskill@127.0.0.1:5433/proofskill")
 # Folder holding libpq.dll on Windows (same variable as scripts/db.ps1).
 PG_BIN = os.environ.get("PG_BIN", r"C:\Program Files\PostgreSQL\17\bin")
-CHAIN_RPC_URL =os.environ.get("CHAIN_RPC_URL", "http://127.0.0.1:8545")
+CHAIN_RPC_URL = os.environ.get("CHAIN_RPC_URL", "http://127.0.0.1:8545")
+# B-03, OD-12 custodial default: testnet keys RGS signs with, from the untracked .env.testnet or a
+# Render secret, never committed. ISSUER_KEY_ISS_001 is ISS-001's key. Unset locally, where the
+# Hardhat node's unlocked test accounts send the transactions.
+REGISTRY_OWNER_KEY = os.environ.get("REGISTRY_OWNER_KEY", "")
+ISSUER_KEYS = {
+    name.removeprefix("ISSUER_KEY_").replace("_", "-"): key
+    for name, key in os.environ.items()
+    if name.startswith("ISSUER_KEY_") and key
+}
 # shortcut: without JWT_SECRET each API process signs with a random key, so tokens die on
 # restart. Set JWT_SECRET (never committed) if tokens must survive restarts.
 JWT_SECRET = os.environ.get("JWT_SECRET") or secrets.token_urlsafe(32)

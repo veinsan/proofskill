@@ -1,0 +1,280 @@
+{
+  "network": "baseSepolia",
+  "chainId": 84532,
+  "address": "0xFB11769EBD22fe1Ac40391227e6526ccf077D136",
+  "owner": "0x2107E9f455a9A3a5F8F5d2D9bbCfCB7B2487decA",
+  "abi": [
+    {
+      "type": "constructor",
+      "stateMutability": "undefined",
+      "payable": false,
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "AlreadyRevoked",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "CredentialExists",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "CredentialNotFound",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "InvalidIssuer",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "IssuerAlreadyRegistered",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "IssuerNotActive",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "IssuerNotRegistered",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "NotOriginalIssuer",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "NotOwner",
+      "inputs": []
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "CredentialIssued",
+      "inputs": [
+        {
+          "type": "string",
+          "name": "credentialId",
+          "indexed": false
+        },
+        {
+          "type": "bytes32",
+          "name": "commitment",
+          "indexed": false
+        },
+        {
+          "type": "string",
+          "name": "issuerId",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "CredentialRevoked",
+      "inputs": [
+        {
+          "type": "string",
+          "name": "credentialId",
+          "indexed": false
+        },
+        {
+          "type": "string",
+          "name": "issuerId",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "IssuerDeactivated",
+      "inputs": [
+        {
+          "type": "string",
+          "name": "issuerId",
+          "indexed": false
+        },
+        {
+          "type": "address",
+          "name": "account",
+          "indexed": true
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "IssuerRegistered",
+      "inputs": [
+        {
+          "type": "string",
+          "name": "issuerId",
+          "indexed": false
+        },
+        {
+          "type": "address",
+          "name": "account",
+          "indexed": true
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "deactivateIssuer",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "string",
+          "name": "issuerId"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "getRecord",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "string",
+          "name": "credentialId"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bytes32",
+          "name": "commitment"
+        },
+        {
+          "type": "string",
+          "name": "issuerId"
+        },
+        {
+          "type": "uint8",
+          "name": "status"
+        },
+        {
+          "type": "uint64",
+          "name": "timestamp"
+        },
+        {
+          "type": "bool",
+          "name": "issuerActive"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "issueCredential",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "string",
+          "name": "credentialId"
+        },
+        {
+          "type": "bytes32",
+          "name": "commitment"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "issuerAccountOf",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "string",
+          "name": ""
+        }
+      ],
+      "outputs": [
+        {
+          "type": "address",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "owner",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "registerIssuer",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "string",
+          "name": "issuerId"
+        },
+        {
+          "type": "address",
+          "name": "account"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "revokeCredential",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "string",
+          "name": "credentialId"
+        }
+      ],
+      "outputs": []
+    }
+  ],
+  "functions": {
+    "deactivateIssuer(string)": "0x716fa51a",
+    "getRecord(string)": "0x11dd8845",
+    "issueCredential(string,bytes32)": "0x09cac301",
+    "issuerAccountOf(string)": "0xf9b77cc7",
+    "owner()": "0x8da5cb5b",
+    "registerIssuer(string,address)": "0x1ec756a6",
+    "revokeCredential(string)": "0x5e9a2d28"
+  },
+  "errors": {
+    "0x905e7107": "AlreadyRevoked",
+    "0xaa3ea2ac": "CredentialExists",
+    "0xb7199d4c": "CredentialNotFound",
+    "0xbdbfe216": "InvalidIssuer",
+    "0x3c2dd129": "IssuerAlreadyRegistered",
+    "0x3d885c88": "IssuerNotActive",
+    "0xec3b3a37": "IssuerNotRegistered",
+    "0xc7c8beea": "NotOriginalIssuer",
+    "0x30cd7471": "NotOwner"
+  }
+}

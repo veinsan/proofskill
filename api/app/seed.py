@@ -16,7 +16,8 @@ from app import db, ias, rgs
 # Synthetic test credential shared by every local demo account. Never reuse it elsewhere.
 DEMO_PASSWORD = "proofskill-demo"
 
-# (issuer_id, name, unit_type, chain_account). The accounts are public Hardhat test accounts #1 and #2.
+# (issuer_id, name, unit_type, chain_account). The accounts are public Hardhat test accounts #1 and #2;
+# on the testnet each issuer's account comes from its key instead (B-03, OD-12).
 ISSUERS = [
     ("ISS-001", "Unit Pelatihan Contoh", "Unit pelatihan kampus", "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"),
     ("ISS-002", "Himpunan Mahasiswa Contoh", "Himpunan mahasiswa", "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"),
@@ -77,6 +78,7 @@ POSITIONS = [
 def seed(conn: psycopg.Connection[DictRow]) -> None:
     """Inserts the seed rows. Rows that already exist are left as they are."""
     for issuer_id, name, unit_type, account in ISSUERS:
+        account = rgs.account_for_issuer(issuer_id) or account  # testnet key when set (B-03)
         conn.execute(
             "INSERT INTO issuers (issuer_id, name, unit_type, chain_account) VALUES (%s, %s, %s, %s)"
             " ON CONFLICT (issuer_id) DO NOTHING",

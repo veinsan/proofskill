@@ -5,12 +5,14 @@
   "scripts": {
     "chain": "hardhat node",
     "test": "hardhat test",
-    "deploy:local": "hardhat run scripts/deploy.ts --network localhost"
+    "deploy:local": "hardhat run scripts/deploy.ts --network localhost",
+    "deploy:base-sepolia": "hardhat run scripts/deploy.ts --network baseSepolia"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "4.2.2",
     "@nomicfoundation/hardhat-ethers-chai-matchers": "3.0.13",
     "@nomicfoundation/hardhat-mocha": "4.0.1",
+    "@nomicfoundation/hardhat-verify": "3.1.5",
     "@types/chai": "5.2.3",
     "@types/mocha": "10.0.10",
     "@types/node": "26.6.6",

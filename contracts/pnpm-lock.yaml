@@ -17,6 +17,9 @@ importers:
       '@nomicfoundation/hardhat-mocha':
         specifier: 4.0.1
         version: 4.0.1(hardhat@3.22.0)(mocha@12.0.3)
+      '@nomicfoundation/hardhat-verify':
+        specifier: 3.1.5
+        version: 3.1.5(hardhat@3.22.0)
       '@types/chai':
         specifier: 5.2.3
         version: 5.2.3
@@ -43,6 +46,10 @@ packages:
 
   '@adraffy/ens-normalize@1.11.1':
     resolution: {integrity: sha512-nhCBV3quEgesuf7c7KYfperqSS14T8bYuvJ8PcLJp6znkZpFc0AuW4qBtr8eKVyPPe/8RSr7sglCWPU5eaxwKQ==}
+
+  '@cto.af/wtf8@1.0.1':
+    resolution: {integrity: sha512-kl6pH/D6SOCqArCVBcx7E45urbzBAPNr4xkMMaRAjrFSeI3y/s2+x78x5H0/UNr6F4GCgdxooTutPCNRymVzMg==}
+    engines: {node: '>=22'}
 
   '@esbuild/aix-ppc64@0.28.2':
     resolution: {integrity: sha512-XExcO+dvLKvVtNTibSTBej1NCAbaGhWn9Ww1ZPx80qsahhPFe/8jgWP0IchNe0F3HwkU7n8ejhH8bjonqht8mQ==}
@@ -309,6 +316,11 @@ packages:
   '@nomicfoundation/hardhat-vendored@3.0.4':
     resolution: {integrity: sha512-RO8Otj1FvRvxJmXzkxh1vTwK/+cqSVPYLqY6RrWkmzHEEcxnAwAFsBYdW7xyTEyW/pVbSSNd2gs3aoGdGZaoNA==}
 
+  '@nomicfoundation/hardhat-verify@3.1.5':
+    resolution: {integrity: sha512-3f/nRR8cVrdiqv6VcD1p0o4Fm8UAHMF2N5t9NSf0FMXC8RSKU+iHGD6+HF6pVtGvzZ7ysHFKzm8/rS7nYHKeKw==}
+    peerDependencies:
+      hardhat: ^3.12.0
+
   '@nomicfoundation/hardhat-zod-utils@3.0.9':
     resolution: {integrity: sha512-KSlTWx6mvOGr06aVs3RKoNE+UVdkEsLqMNpak5Ag+6ZqklBs+SOPJeLjjyuXcneBkf7Rwpa8qQdTSKDJx3Dt+Q==}
     peerDependencies:
@@ -418,6 +430,10 @@ packages:
 
   browser-stdout@1.3.1:
     resolution: {integrity: sha512-qhAVI1+Av2X7qelOfAIYwXONood6XlZE/fXaBSmW/T5SzLAmCgzi+eiWE7fUvbHaeNBQH13UftjpXxsfLkMpgw==}
+
+  cbor2@2.4.2:
+    resolution: {integrity: sha512-fuz4FXnURAEvtFA8rS+3R85eSZAKZRL4vI9AU6eokOE1TghPsp7WZSh+VvB/3ltKaWZreWtjR/kahn/ogmsgsQ==}
+    engines: {node: '>=22'}
 
   chai-as-promised@8.0.2:
     resolution: {integrity: sha512-1GadL+sEJVLzDjcawPM4kjfnL+p/9vrxiEUonowKOAzvVg0PixJUdtuDzdkDeQhK3zfOE76GqGkZIQ7/Adcrqw==}
@@ -642,6 +658,8 @@ snapshots:
 
   '@adraffy/ens-normalize@1.11.1': {}
 
+  '@cto.af/wtf8@1.0.1': {}
+
   '@esbuild/aix-ppc64@0.28.2':
     optional: true
 
@@ -824,6 +842,15 @@ snapshots:
 
   '@nomicfoundation/hardhat-vendored@3.0.4': {}
 
+  '@nomicfoundation/hardhat-verify@3.1.5(hardhat@3.22.0)':
+    dependencies:
+      '@nomicfoundation/hardhat-errors': 3.1.5
+      '@nomicfoundation/hardhat-utils': 5.1.2
+      '@nomicfoundation/hardhat-zod-utils': 3.0.9(zod@3.25.76)
+      cbor2: 2.4.2
+      hardhat: 3.22.0
+      zod: 3.25.76
+
   '@nomicfoundation/hardhat-zod-utils@3.0.9(zod@3.25.76)':
     dependencies:
       '@nomicfoundation/hardhat-errors': 3.1.5
@@ -924,6 +951,10 @@ snapshots:
       balanced-match: 4.0.4
 
   browser-stdout@1.3.1: {}
+
+  cbor2@2.4.2:
+    dependencies:
+      '@cto.af/wtf8': 1.0.1
 
   chai-as-promised@8.0.2(chai@6.3.0):
     dependencies:
