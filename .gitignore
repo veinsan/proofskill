@@ -4,3 +4,4 @@ skill/
 .env
 .env.testnet
 .env.vercel
+api/evals/.cache/

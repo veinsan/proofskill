@@ -3,6 +3,8 @@ FR-08, FR-09, NFR-03, NFR-06, design rule 1.3). The logic tests use a word-overl
 a fake Gemini endpoint; TC-08 calls the real Gemini API (B-04) when GEMINI_API_KEY is set."""
 
 import json
+import logging
+import re
 import zlib
 from typing import Any
 
@@ -32,20 +34,54 @@ def fake_embed(requirements: list[str], skill_texts: list[str]) -> tuple[dict[st
     return {t: word_vector(t) for t in requirements}, {t: word_vector(t) for t in skill_texts}, "fake-word-overlap"
 
 
+def overlap_verdicts(requirements: list[dict[str, Any]], skills: list[dict[str, Any]]) -> list[dict[str, str]]:
+    """Fake judge: a candidate skill covers a requirement when they share a word."""
+    verdicts = []
+    for r in requirements:
+        words = set(r["text"].lower().split())
+        pick = next((s for s in skills if s["id"] in r["candidates"] and words & set(" ".join([s["name"], *s["aliases"]]).lower().split())), None)
+        reason = f"Shares a word with {pick['name']}." if pick else ams.NOT_CLOSE
+        verdicts.append({"requirement": r["id"], "reason": reason, "skill": pick["id"] if pick else "NONE"})
+    return verdicts
+
+
+def fake_judge(
+    requirements: list[str], skills: list[dict[str, Any]], candidates: list[list[int]], model: str = ams.JUDGE_MODEL, timeout: float = 30.0
+) -> list[ams.Verdict]:
+    payload_skills = [{"id": f"S{j + 1}", "name": s["label"], "aliases": list(s["aliases"])} for j, s in enumerate(skills)]
+    payload = [{"id": f"R{i + 1}", "text": r, "candidates": [f"S{j + 1}" for j in candidates[i]]} for i, r in enumerate(requirements)]
+    return [
+        ams.Verdict(None if v["skill"] == "NONE" else int(v["skill"][1:]) - 1, v["reason"])
+        for v in overlap_verdicts(payload, payload_skills)
+    ]
+
+
 class FakeGemini:
-    """Stands in for httpx.post to batchEmbedContents and records every request AMS sends."""
+    """Stands in for httpx.post to batchEmbedContents and the judge's generateContent, and records
+    every request AMS sends."""
 
     def __init__(self, status: int = 200) -> None:
         self.status = status
+        self.judge_status = 200
+        self.judge_text: str | None = None  # a raw judge answer, to test malformed replies
+        self.judge_down: set[str] = set()  # judge models that answer 503
         self.calls: list[dict[str, Any]] = []
+        self.judge_calls: list[dict[str, Any]] = []
         self.real_post = httpx.post  # RGS shares the httpx module for JSON-RPC
 
     def __call__(self, url: str, **kwargs: Any) -> httpx.Response:
+        json_body, headers = kwargs.get("json"), kwargs.get("headers")
+        if url.startswith(ams.GEMINI_API) and url.endswith(":generateContent"):
+            self.judge_calls.append({"url": url, "json": json_body, "headers": headers})
+            payload = json.loads(json_body["contents"][0]["parts"][0]["text"])
+            text = self.judge_text if self.judge_text is not None else json.dumps({"verdicts": overlap_verdicts(payload["requirements"], payload["skills"])})
+            status = 503 if url.split("/")[-1].split(":")[0] in self.judge_down else self.judge_status
+            body = {"candidates": [{"content": {"parts": [{"text": text}]}}]} if status == 200 else {"error": {}}
+            return httpx.Response(status, json=body, request=httpx.Request("POST", url))
         if url != ams.GEMINI_URL:
             return self.real_post(url, **kwargs)
-        json, headers = kwargs["json"], kwargs["headers"]
-        self.calls.append({"url": url, "json": json, "headers": headers})
-        texts = [r["content"]["parts"][0]["text"] for r in json["requests"]]
+        self.calls.append({"url": url, "json": json_body, "headers": headers})
+        texts = [r["content"]["parts"][0]["text"] for r in json_body["requests"]]
         body = {"embeddings": [{"values": word_vector(t).tolist()} for t in texts]} if self.status == 200 else {"error": {}}
         return httpx.Response(self.status, json=body, request=httpx.Request("POST", url))
 
@@ -59,12 +95,18 @@ def gemini(monkeypatch: pytest.MonkeyPatch) -> FakeGemini:
     monkeypatch.setattr(ams.httpx, "post", fake)
     monkeypatch.setattr(config, "GEMINI_API_KEY", "test-key")
     monkeypatch.setattr(ams, "_skill_vectors", {})
+    monkeypatch.setattr(ams, "_cache", {})  # no cached result unless a test adds one
+    monkeypatch.setattr(ams, "CANDIDATE_FLOOR", None)  # word-overlap vectors are not on Gemini's scale
     return fake
 
 
 @pytest.fixture
 def fake_ai(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(ams, "embed", fake_embed)
+    monkeypatch.setattr(ams, "judge", fake_judge)
+    monkeypatch.setattr(config, "GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(ams, "_cache", {})
+    monkeypatch.setattr(ams, "CANDIDATE_FLOOR", None)
 
 
 def valid_verification(client: TestClient, scope: list[str] | None = None, username: str = "verifier.a") -> str:
@@ -117,8 +159,13 @@ def test_api07_returns_a_labeled_recommendation_and_stores_it(client: TestClient
     assert {m["skill"] for m in body["matchedSkills"]} <= {"OWASP Top 10", "Web Security Testing", "Secure Coding"}
     assert {"requirement": "memantau log dengan SIEM", "note": "No verified skill is close enough."} in body["missingRequirements"]
     assert "The hiring decision stays with you." in body["limitations"][-1]
+    assert body["limitations"] == ams.LIMITATIONS
     stored = conn.execute("SELECT verification_id, position_title, model_version FROM matchings").fetchone()
-    assert stored == {"verification_id": verification_id, "position_title": SECURITY["title"], "model_version": "fake-word-overlap"}
+    assert stored == {
+        "verification_id": verification_id,
+        "position_title": SECURITY["title"],
+        "model_version": f"fake-word-overlap + {ams.JUDGE_MODEL} judge",
+    }
     audit = conn.execute("SELECT object_id FROM audit_events WHERE operation = 'matchSkills'").fetchone()
     assert audit == {"object_id": "MAT-0001"}
 
@@ -180,9 +227,14 @@ def test_b04_only_skill_and_requirement_text_leaves_the_api(client: TestClient, 
     requirements = set(ams.split_requirements(SECURITY["description"]))
     assert set(gemini.texts("RETRIEVAL_QUERY")) == requirements
     assert set(gemini.texts("RETRIEVAL_DOCUMENT")) == skill_texts
-    sent = json.dumps([c["json"] for c in gemini.calls])
-    assert all(value not in sent for value in ["Peserta Contoh A", "HLD-2026-0007", "CRD-0001", "verifier.a", ISSUE_REQUEST["program"]["title"]])  # type: ignore[index]
-    assert all(c["headers"] == {"x-goog-api-key": "test-key"} and "key=" not in c["url"] for c in gemini.calls)
+    assert len(gemini.judge_calls) == 1  # one judge call per matching (B-08)
+    sent = json.dumps([c["json"] for c in gemini.calls + gemini.judge_calls], ensure_ascii=False)
+    identity = ["Peserta Contoh A", "HLD-2026-0007", "CRD-0001", "verifier.a", SECURITY["title"], ISSUE_REQUEST["program"]["title"]]  # type: ignore[index]
+    assert all(value not in sent for value in identity)
+    judged = json.loads(gemini.judge_calls[0]["json"]["contents"][0]["parts"][0]["text"])
+    assert {s["name"] for s in judged["skills"]} == {label for skill_id, label, _ in seed.SKILLS if skill_id in shared}  # type: ignore[operator]
+    assert [r["text"] for r in judged["requirements"]] == ams.split_requirements(SECURITY["description"])
+    assert all(c["headers"] == {"x-goog-api-key": "test-key"} and "key=" not in c["url"] for c in gemini.calls + gemini.judge_calls)
 
     # Skill vectors are cached; the next matching sends only its requirements.
     gemini.calls.clear()
@@ -213,22 +265,46 @@ def test_tc10_ai_switched_off_returns_503_and_verification_keeps_working(
     assert conn.execute("SELECT count(*) AS n FROM matchings").fetchone() == {"n": 1}
 
 
+# Ways the Gemini service fails to answer, as opposed to a judge answer that breaks the schema (a bug).
+GEMINI_OUTAGE = {"HTTPStatusError", "ReadTimeout", "ConnectTimeout", "ConnectError", "ReadError", "RemoteProtocolError", "WriteTimeout", "PoolTimeout"}
+
+
+def live_match(client: TestClient, verification_id: str, position: dict[str, str], caplog: pytest.LogCaptureFixture) -> dict[str, Any]:
+    """API-07 against the real Gemini API. Skips (never passes) when the free tier did not answer and
+    AMS served a labeled degraded result; fails when a judge answered but broke the schema."""
+    caplog.clear()
+    with caplog.at_level(logging.WARNING, logger="app.ams"):
+        response = match(client, verification_id, position)
+    if response.status_code == 503:
+        pytest.skip("Gemini embeddings did not answer (503 AI_UNAVAILABLE)")
+    body: dict[str, Any] = response.json()
+    if body["modelVersion"].endswith(" judge"):
+        return body
+    reasons = re.findall(r"did not answer \((\w+)\)", caplog.text)
+    if not set(reasons) <= GEMINI_OUTAGE:
+        pytest.fail(f"a judge answered but its answer was rejected: {reasons}")
+    pytest.skip(f"Gemini did not answer ({', '.join(reasons) or 'embeddings'}); AMS served {body['modelVersion']!r}")
+
+
 @pytest.mark.skipif(not config.GEMINI_API_KEY, reason="needs GEMINI_API_KEY (real Gemini call)")
-def test_tc08_matching_after_a_valid_verification_with_gemini(client: TestClient) -> None:
+def test_tc08_matching_after_a_valid_verification_with_gemini(client: TestClient, caplog: pytest.LogCaptureFixture) -> None:
     verification_id = valid_verification(client)
-    body = match(client, verification_id).json()
-    pairs = {(m["requirement"], m["skill"]) for m in body["matchedSkills"]}
-    assert pairs == {
-        ("Menganalisis kerentanan aplikasi web", "OWASP Top 10"),
-        ("memahami OWASP Top 10", "OWASP Top 10"),
-        ("melakukan pengujian keamanan dasar", "Web Security Testing"),
-    }
+    body = live_match(client, verification_id, SECURITY, caplog)
+    pairs = {m["requirement"]: m["skill"] for m in body["matchedSkills"]}
+    # The gold set (api/evals/matching_gold.json, G001-G004) accepts either skill for the first one.
+    assert set(pairs) == {"Menganalisis kerentanan aplikasi web", "memahami OWASP Top 10", "melakukan pengujian keamanan dasar"}
+    assert pairs["Menganalisis kerentanan aplikasi web"] in {"OWASP Top 10", "Web Security Testing"}
+    assert pairs["memahami OWASP Top 10"] == "OWASP Top 10"
+    assert pairs["melakukan pengujian keamanan dasar"] == "Web Security Testing"
     assert [m["requirement"] for m in body["missingRequirements"]] == ["memantau log dengan SIEM"]
-    assert all(ams.THRESHOLD <= m["similarity"] <= 1 for m in body["matchedSkills"])
+    assert all(0 < m["similarity"] <= 1 and m["reason"] for m in body["matchedSkills"])
     assert body["label"] == "REKOMENDASI" and "score" not in str(body).lower()
-    assert body["modelVersion"].startswith("gemini-embedding-001")
+    # On the free tier the backup judge sometimes answers instead (B-08); both passed the gold set's dev split.
+    judge_model = body["modelVersion"].removeprefix(f"{ams.MODEL_VERSION} + ").removesuffix(" judge")
+    assert judge_model in {ams.JUDGE_MODEL, ams.JUDGE_BACKUP}, body["modelVersion"]
+    assert body["limitations"] == ams.limitations_judged(judge_model)
 
     # AI differentiator: the same security credential against a frontend position covers nothing.
-    unrelated = match(client, verification_id, FRONTEND).json()
+    unrelated = live_match(client, verification_id, FRONTEND, caplog)
     assert unrelated["matchedSkills"] == []
     assert len(unrelated["missingRequirements"]) == len(ams.split_requirements(FRONTEND["description"]))

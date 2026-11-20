@@ -137,7 +137,7 @@ export function SkillFitPanel({ verification, token }: { verification: Verificat
         <section ref={resultRef} aria-label="Recommendation" aria-live="polite">
           <div className="rek">
             <span className="tag tag--seal">{result.label}</span>
-            <span className="tag tag--line">AI embedding model</span>
+            <span className="tag tag--line">AI Gemini models</span>
             <span className="small muted">A recommendation, not a decision. No total score.</span>
           </div>
           {result.matchedSkills.map((match) => (

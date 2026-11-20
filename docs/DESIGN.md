@@ -189,7 +189,7 @@ Pill-shaped, at least 46px tall. **Primary:** action pink with ink text and a pi
 16px radius, at least 48px tall, near-white fill. Focus turns the border royal with a 4px royal halo. Errors use a 2px ink border, a ring icon, a plain sentence, and the API code verbatim; there is no red. Checkbox options are full-width rows that turn Royal 50 when checked. The issue form offers the seeded holder references as one-click chips.
 
 ### Tags and status
-- REKOMENDASI is a seal-pink mono tag, always beside "AI embedding model" and the sentence "A recommendation, not a decision. No total score."
+- REKOMENDASI is a seal-pink mono tag, always beside "AI Gemini models" and the sentence "A recommendation, not a decision. No total score."
 - Status in lists is a pill: `active` in Royal 50 with a filled dot, `revoked` outlined with a ring.
 - Skill chips are Royal 50 pills with the SK- ID in mono.
 

@@ -1,0 +1,953 @@
+{
+  "version": 1,
+  "description": "Locked gold set for API-07 skill matching (B-08). Each item is one requirement, as split by OD-7, against the verified skills of one profile. `expected` lists every skill that clearly covers the requirement; an empty list means the requirement must be reported as not covered. Pairs whose answer is debatable were left out. Requirements of the three seed positions are all in the dev split, because B-04 tuned the 0.72 threshold on them; the other requirements are split per tag: sorted by the SHA-256 of their text, then assigned test, dev, test, and so on, so one text never appears in both splits. The split was fixed before any model was run. Labels were drafted by the coding agent and must be reviewed by the team.",
+  "profiles": {
+    "SEC": [
+      "SK-011",
+      "SK-014",
+      "SK-021",
+      "SK-033"
+    ],
+    "SEC3": [
+      "SK-014",
+      "SK-021",
+      "SK-033"
+    ],
+    "DATA": [
+      "SK-040",
+      "SK-041",
+      "SK-042",
+      "SK-043"
+    ],
+    "SQL1": [
+      "SK-041"
+    ],
+    "FE": [
+      "SK-050",
+      "SK-051",
+      "SK-052",
+      "SK-060"
+    ],
+    "UX": [
+      "SK-060",
+      "SK-061",
+      "SK-070"
+    ],
+    "SOFT": [
+      "SK-070",
+      "SK-071"
+    ]
+  },
+  "items": [
+    {
+      "id": "G001",
+      "split": "dev",
+      "profile": "SEC3",
+      "requirement": "Menganalisis kerentanan aplikasi web",
+      "expected": [
+        "SK-014",
+        "SK-021"
+      ],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G002",
+      "split": "dev",
+      "profile": "SEC3",
+      "requirement": "memahami OWASP Top 10",
+      "expected": [
+        "SK-014"
+      ],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G003",
+      "split": "dev",
+      "profile": "SEC3",
+      "requirement": "melakukan pengujian keamanan dasar",
+      "expected": [
+        "SK-021"
+      ],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G004",
+      "split": "dev",
+      "profile": "SEC3",
+      "requirement": "memantau log dengan SIEM",
+      "expected": [],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G005",
+      "split": "dev",
+      "profile": "SEC3",
+      "requirement": "Mengolah data dengan SQL",
+      "expected": [],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G006",
+      "split": "dev",
+      "profile": "SEC3",
+      "requirement": "Python",
+      "expected": [],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G007",
+      "split": "dev",
+      "profile": "SEC3",
+      "requirement": "membuat dashboard visualisasi data",
+      "expected": [],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G008",
+      "split": "dev",
+      "profile": "SEC3",
+      "requirement": "menyajikan temuan kepada tim bisnis",
+      "expected": [],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G009",
+      "split": "dev",
+      "profile": "SEC3",
+      "requirement": "Membangun antarmuka web dengan React",
+      "expected": [],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G010",
+      "split": "dev",
+      "profile": "SEC3",
+      "requirement": "JavaScript",
+      "expected": [],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G011",
+      "split": "dev",
+      "profile": "SEC3",
+      "requirement": "menulis HTML",
+      "expected": [],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G012",
+      "split": "dev",
+      "profile": "SEC3",
+      "requirement": "CSS yang rapi",
+      "expected": [],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G013",
+      "split": "dev",
+      "profile": "SEC3",
+      "requirement": "bekerja dengan desainer UI",
+      "expected": [],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G014",
+      "split": "dev",
+      "profile": "DATA",
+      "requirement": "Mengolah data dengan SQL",
+      "expected": [
+        "SK-041"
+      ],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G015",
+      "split": "dev",
+      "profile": "DATA",
+      "requirement": "Python",
+      "expected": [
+        "SK-040"
+      ],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G016",
+      "split": "dev",
+      "profile": "DATA",
+      "requirement": "membuat dashboard visualisasi data",
+      "expected": [
+        "SK-042"
+      ],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G017",
+      "split": "dev",
+      "profile": "FE",
+      "requirement": "Membangun antarmuka web dengan React",
+      "expected": [
+        "SK-052"
+      ],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G018",
+      "split": "dev",
+      "profile": "FE",
+      "requirement": "JavaScript",
+      "expected": [
+        "SK-051"
+      ],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G019",
+      "split": "dev",
+      "profile": "FE",
+      "requirement": "menulis HTML",
+      "expected": [
+        "SK-050"
+      ],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G020",
+      "split": "dev",
+      "profile": "FE",
+      "requirement": "CSS yang rapi",
+      "expected": [
+        "SK-050"
+      ],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G021",
+      "split": "dev",
+      "profile": "SQL1",
+      "requirement": "Mengolah data dengan SQL",
+      "expected": [
+        "SK-041"
+      ],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G022",
+      "split": "dev",
+      "profile": "SQL1",
+      "requirement": "Python",
+      "expected": [],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G023",
+      "split": "dev",
+      "profile": "SQL1",
+      "requirement": "membuat dashboard visualisasi data",
+      "expected": [],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G024",
+      "split": "dev",
+      "profile": "SQL1",
+      "requirement": "menyajikan temuan kepada tim bisnis",
+      "expected": [],
+      "tag": "seed-position"
+    },
+    {
+      "id": "G025",
+      "split": "test",
+      "profile": "SEC",
+      "requirement": "mengonfigurasi firewall jaringan kantor",
+      "expected": [
+        "SK-011"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G026",
+      "split": "test",
+      "profile": "SEC",
+      "requirement": "understanding of network security",
+      "expected": [
+        "SK-011"
+      ],
+      "tag": "crosslingual"
+    },
+    {
+      "id": "G027",
+      "split": "test",
+      "profile": "SEC",
+      "requirement": "mengamankan jaringan nirkabel",
+      "expected": [
+        "SK-011"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G028",
+      "split": "dev",
+      "profile": "SEC",
+      "requirement": "menulis kode yang aman dari SQL injection",
+      "expected": [
+        "SK-033",
+        "SK-014"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G029",
+      "split": "dev",
+      "profile": "SEC",
+      "requirement": "melakukan penetration testing pada aplikasi web",
+      "expected": [
+        "SK-021"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G030",
+      "split": "dev",
+      "profile": "SEC",
+      "requirement": "validasi input pada formulir aplikasi",
+      "expected": [
+        "SK-033"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G031",
+      "split": "test",
+      "profile": "SEC",
+      "requirement": "familiar with secure software development practices",
+      "expected": [
+        "SK-033"
+      ],
+      "tag": "crosslingual"
+    },
+    {
+      "id": "G032",
+      "split": "test",
+      "profile": "SEC",
+      "requirement": "mengenali serangan XSS atau CSRF",
+      "expected": [
+        "SK-014",
+        "SK-021"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G033",
+      "split": "test",
+      "profile": "SEC",
+      "requirement": "melakukan code review dari sisi keamanan",
+      "expected": [
+        "SK-033"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G034",
+      "split": "dev",
+      "profile": "SEC",
+      "requirement": "web application vulnerability assessment",
+      "expected": [
+        "SK-014",
+        "SK-021"
+      ],
+      "tag": "crosslingual"
+    },
+    {
+      "id": "G035",
+      "split": "dev",
+      "profile": "SEC",
+      "requirement": "menangani insiden keamanan",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G036",
+      "split": "test",
+      "profile": "SEC",
+      "requirement": "forensik digital",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G037",
+      "split": "dev",
+      "profile": "SEC",
+      "requirement": "mengelola identitas serta akses pengguna (IAM)",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G038",
+      "split": "test",
+      "profile": "SEC",
+      "requirement": "pengalaman cloud security di AWS",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G039",
+      "split": "dev",
+      "profile": "SEC",
+      "requirement": "menyusun kebijakan keamanan informasi ISO 27001",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G040",
+      "split": "test",
+      "profile": "SEC",
+      "requirement": "reverse engineering malware",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G041",
+      "split": "dev",
+      "profile": "SEC",
+      "requirement": "membuat dashboard visualisasi data",
+      "expected": [],
+      "tag": "other-domain"
+    },
+    {
+      "id": "G042",
+      "split": "test",
+      "profile": "SEC",
+      "requirement": "menguasai React",
+      "expected": [],
+      "tag": "other-domain"
+    },
+    {
+      "id": "G043",
+      "split": "test",
+      "profile": "SEC",
+      "requirement": "tidak wajib menguasai firewall",
+      "expected": [],
+      "tag": "negation"
+    },
+    {
+      "id": "G044",
+      "split": "dev",
+      "profile": "SEC",
+      "requirement": "pengalaman pentest tidak diperlukan",
+      "expected": [],
+      "tag": "negation"
+    },
+    {
+      "id": "G045",
+      "split": "test",
+      "profile": "SEC",
+      "requirement": "berkomunikasi dengan baik",
+      "expected": [],
+      "tag": "generic"
+    },
+    {
+      "id": "G046",
+      "split": "test",
+      "profile": "SEC3",
+      "requirement": "mengonfigurasi firewall",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G047",
+      "split": "dev",
+      "profile": "DATA",
+      "requirement": "menulis query untuk basis data relasional",
+      "expected": [
+        "SK-041"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G048",
+      "split": "dev",
+      "profile": "DATA",
+      "requirement": "melakukan uji hipotesis statistik",
+      "expected": [
+        "SK-043"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G049",
+      "split": "test",
+      "profile": "DATA",
+      "requirement": "analisis statistik deskriptif",
+      "expected": [
+        "SK-043"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G050",
+      "split": "test",
+      "profile": "DATA",
+      "requirement": "data cleaning using pandas",
+      "expected": [
+        "SK-040"
+      ],
+      "tag": "crosslingual"
+    },
+    {
+      "id": "G051",
+      "split": "test",
+      "profile": "DATA",
+      "requirement": "writing SQL joins with aggregations",
+      "expected": [
+        "SK-041"
+      ],
+      "tag": "crosslingual"
+    },
+    {
+      "id": "G052",
+      "split": "dev",
+      "profile": "DATA",
+      "requirement": "otomatisasi laporan dengan skrip Python",
+      "expected": [
+        "SK-040"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G053",
+      "split": "test",
+      "profile": "DATA",
+      "requirement": "memahami distribusi probabilitas",
+      "expected": [
+        "SK-043"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G054",
+      "split": "dev",
+      "profile": "DATA",
+      "requirement": "membuat dashboard di Power BI",
+      "expected": [
+        "SK-042"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G055",
+      "split": "dev",
+      "profile": "DATA",
+      "requirement": "pemrograman Java",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G056",
+      "split": "dev",
+      "profile": "DATA",
+      "requirement": "membangun model machine learning",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G057",
+      "split": "dev",
+      "profile": "DATA",
+      "requirement": "menguasai bahasa pemrograman R",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G058",
+      "split": "test",
+      "profile": "DATA",
+      "requirement": "deep learning dengan TensorFlow",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G059",
+      "split": "test",
+      "profile": "DATA",
+      "requirement": "big data processing with Spark",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G060",
+      "split": "test",
+      "profile": "DATA",
+      "requirement": "Excel tingkat lanjut",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G061",
+      "split": "dev",
+      "profile": "DATA",
+      "requirement": "tidak perlu pengalaman SQL",
+      "expected": [],
+      "tag": "negation"
+    },
+    {
+      "id": "G062",
+      "split": "test",
+      "profile": "DATA",
+      "requirement": "konfigurasi firewall",
+      "expected": [],
+      "tag": "other-domain"
+    },
+    {
+      "id": "G063",
+      "split": "dev",
+      "profile": "DATA",
+      "requirement": "bekerja dalam tim lintas fungsi",
+      "expected": [],
+      "tag": "generic"
+    },
+    {
+      "id": "G064",
+      "split": "dev",
+      "profile": "FE",
+      "requirement": "membuat layout responsif dengan CSS Flexbox",
+      "expected": [
+        "SK-050"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G065",
+      "split": "dev",
+      "profile": "FE",
+      "requirement": "mengembangkan komponen antarmuka yang dapat digunakan ulang",
+      "expected": [
+        "SK-052"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G066",
+      "split": "test",
+      "profile": "FE",
+      "requirement": "mendesain mockup di Figma",
+      "expected": [
+        "SK-060"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G067",
+      "split": "dev",
+      "profile": "FE",
+      "requirement": "manipulasi DOM dengan JavaScript murni",
+      "expected": [
+        "SK-051"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G068",
+      "split": "dev",
+      "profile": "FE",
+      "requirement": "frontend state management with React hooks",
+      "expected": [
+        "SK-052"
+      ],
+      "tag": "crosslingual"
+    },
+    {
+      "id": "G069",
+      "split": "dev",
+      "profile": "FE",
+      "requirement": "accessible semantic HTML markup",
+      "expected": [
+        "SK-050"
+      ],
+      "tag": "crosslingual"
+    },
+    {
+      "id": "G070",
+      "split": "dev",
+      "profile": "FE",
+      "requirement": "user interface design",
+      "expected": [
+        "SK-060"
+      ],
+      "tag": "crosslingual"
+    },
+    {
+      "id": "G071",
+      "split": "dev",
+      "profile": "FE",
+      "requirement": "membuat aplikasi mobile dengan Flutter",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G072",
+      "split": "dev",
+      "profile": "FE",
+      "requirement": "menguasai Vue.js",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G073",
+      "split": "dev",
+      "profile": "FE",
+      "requirement": "membangun REST API dengan Django",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G074",
+      "split": "dev",
+      "profile": "FE",
+      "requirement": "mengelola server Linux",
+      "expected": [],
+      "tag": "other-domain"
+    },
+    {
+      "id": "G075",
+      "split": "test",
+      "profile": "FE",
+      "requirement": "tidak diwajibkan menguasai React",
+      "expected": [],
+      "tag": "negation"
+    },
+    {
+      "id": "G076",
+      "split": "test",
+      "profile": "FE",
+      "requirement": "analisis statistik",
+      "expected": [],
+      "tag": "other-domain"
+    },
+    {
+      "id": "G077",
+      "split": "test",
+      "profile": "UX",
+      "requirement": "melakukan user testing dengan pengguna",
+      "expected": [
+        "SK-061"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G078",
+      "split": "test",
+      "profile": "UX",
+      "requirement": "merancang antarmuka aplikasi",
+      "expected": [
+        "SK-060"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G079",
+      "split": "dev",
+      "profile": "UX",
+      "requirement": "merencanakan timeline proyek",
+      "expected": [
+        "SK-070"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G080",
+      "split": "test",
+      "profile": "UX",
+      "requirement": "menguji kegunaan prototipe",
+      "expected": [
+        "SK-061"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G081",
+      "split": "test",
+      "profile": "UX",
+      "requirement": "membuat prototipe antarmuka",
+      "expected": [
+        "SK-060"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G082",
+      "split": "test",
+      "profile": "UX",
+      "requirement": "mengelola anggaran proyek",
+      "expected": [
+        "SK-070"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G083",
+      "split": "dev",
+      "profile": "UX",
+      "requirement": "usability evaluation of mobile apps",
+      "expected": [
+        "SK-061"
+      ],
+      "tag": "crosslingual"
+    },
+    {
+      "id": "G084",
+      "split": "dev",
+      "profile": "UX",
+      "requirement": "menulis kode backend",
+      "expected": [],
+      "tag": "other-domain"
+    },
+    {
+      "id": "G085",
+      "split": "test",
+      "profile": "UX",
+      "requirement": "menggambar ilustrasi digital",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G086",
+      "split": "test",
+      "profile": "UX",
+      "requirement": "copywriting untuk pemasaran",
+      "expected": [],
+      "tag": "other-domain"
+    },
+    {
+      "id": "G087",
+      "split": "dev",
+      "profile": "SOFT",
+      "requirement": "menyajikan temuan kepada tim bisnis",
+      "expected": [
+        "SK-071"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G088",
+      "split": "test",
+      "profile": "SOFT",
+      "requirement": "presentasi di depan klien",
+      "expected": [
+        "SK-071"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G089",
+      "split": "test",
+      "profile": "SOFT",
+      "requirement": "mengoordinasikan proyek lintas tim",
+      "expected": [
+        "SK-070"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G090",
+      "split": "dev",
+      "profile": "SOFT",
+      "requirement": "perencanaan proyek",
+      "expected": [
+        "SK-070"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G091",
+      "split": "test",
+      "profile": "SOFT",
+      "requirement": "public speaking",
+      "expected": [
+        "SK-071"
+      ],
+      "tag": "crosslingual"
+    },
+    {
+      "id": "G092",
+      "split": "dev",
+      "profile": "SOFT",
+      "requirement": "berbicara di depan umum",
+      "expected": [
+        "SK-071"
+      ],
+      "tag": "paraphrase"
+    },
+    {
+      "id": "G093",
+      "split": "test",
+      "profile": "SOFT",
+      "requirement": "menulis laporan teknis",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G094",
+      "split": "test",
+      "profile": "SOFT",
+      "requirement": "negosiasi kontrak dengan vendor",
+      "expected": [],
+      "tag": "near-miss"
+    },
+    {
+      "id": "G095",
+      "split": "dev",
+      "profile": "SOFT",
+      "requirement": "pemrograman Python",
+      "expected": [],
+      "tag": "other-domain"
+    },
+    {
+      "id": "G096",
+      "split": "test",
+      "profile": "SOFT",
+      "requirement": "tidak perlu pengalaman memimpin proyek",
+      "expected": [],
+      "tag": "negation"
+    },
+    {
+      "id": "G097",
+      "split": "test",
+      "profile": "DATA",
+      "requirement": "pengalaman Python tidak wajib",
+      "expected": [],
+      "tag": "negation"
+    },
+    {
+      "id": "G098",
+      "split": "dev",
+      "profile": "FE",
+      "requirement": "JavaScript tidak menjadi syarat",
+      "expected": [],
+      "tag": "negation"
+    },
+    {
+      "id": "G099",
+      "split": "dev",
+      "profile": "SEC",
+      "requirement": "no prior penetration testing experience required",
+      "expected": [],
+      "tag": "negation"
+    },
+    {
+      "id": "G100",
+      "split": "dev",
+      "profile": "UX",
+      "requirement": "tidak harus berpengalaman di desain antarmuka",
+      "expected": [],
+      "tag": "negation"
+    },
+    {
+      "id": "G101",
+      "split": "test",
+      "profile": "SOFT",
+      "requirement": "tidak perlu terbiasa presentasi",
+      "expected": [],
+      "tag": "negation"
+    }
+  ]
+}
