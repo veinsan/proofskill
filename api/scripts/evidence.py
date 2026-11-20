@@ -14,7 +14,6 @@ Run from api/: uv run --env-file ../.env python -m scripts.evidence
 import json
 import os
 import re
-import secrets
 import shutil
 import statistics
 import subprocess
@@ -84,7 +83,6 @@ class Stack:
             **os.environ,
             "DATABASE_URL": DATABASE_URL,
             "REGISTRY_DEPLOYMENT": str(DEPLOYMENT),
-            "JWT_SECRET": secrets.token_urlsafe(32),
         }
 
     # --- setup ---------------------------------------------------------------------------
@@ -110,10 +108,10 @@ class Stack:
             seed.register_issuers_on_chain(conn)
         self.start_api()
         for username, *_ in seed.ACCOUNTS:
-            self.tokens[username] = self.call("POST", "/auth/token", body={"username": username, "password": seed.DEMO_PASSWORD})[1]["accessToken"]
+            self.tokens[username] = self.call("POST", "/auth/token", body={"username": username, "password": config.SEED_PASSWORD})[1]["accessToken"]
 
     def start_api(self, gemini_key: str | None = None) -> None:
-        """Starts the API; JWT_SECRET is fixed, so tokens survive a restart (TC-10)."""
+        """Starts the API. Supabase tokens stay valid across the TC-10 restart."""
         env = self.env if gemini_key is None else {**self.env, "GEMINI_API_KEY": gemini_key}
         self.api = subprocess.Popen(
             [sys.executable, "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", str(API_PORT)],
@@ -446,14 +444,15 @@ def write(records: list[Record], goals: dict[str, str], environment: str) -> Non
 
 def main() -> None:
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]  # Windows consoles default to cp1252
-    if not config.GEMINI_API_KEY:
-        raise SystemExit("Set GEMINI_API_KEY (for example in ../.env and run with uv run --env-file ../.env).")
+    missing = [name for name in ("GEMINI_API_KEY", "SUPABASE_URL", "SUPABASE_ANON_KEY", "SEED_PASSWORD") if not getattr(config, name)]
+    if missing:
+        raise SystemExit(f"Set {', '.join(missing)} (in ../.env, run with uv run --env-file ../.env); sign-in uses Supabase Auth (B-02).")
     for old in EVIDENCE.glob("TC-*"):
         shutil.rmtree(old) if old.is_dir() else old.unlink()
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=REPO, capture_output=True, text=True).stdout.strip()
     environment = (f"{datetime.now(UTC):%Y-%m-%d %H:%M} UTC, commit {commit}, local Hardhat node + PostgreSQL 17 "
-                   f"(database proofskill_evidence), API on port {API_PORT}, AI matching by Gemini {ams.GEMINI_MODEL}")
+                   f"(database proofskill_evidence), API on port {API_PORT}, AI matching by Gemini {ams.GEMINI_MODEL}, sign-in through Supabase Auth")
     stack = Stack()
     try:
         stack.prepare()

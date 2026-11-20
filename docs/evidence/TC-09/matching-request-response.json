@@ -17,9 +17,9 @@
       "error": {
         "code": "VERIFICATION_NOT_VALID",
         "message": "Skill fit needs a VALID verification, not TAMPERED.",
-        "requestId": "req_5ed32964a030724b"
+        "requestId": "req_78fd9a875604c394"
       }
     }
   },
-  "elapsedMs": 53.5
+  "elapsedMs": 55.6
 }

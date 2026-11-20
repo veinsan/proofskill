@@ -6,7 +6,7 @@ from app import db, rgs, seed
 
 
 def test_migrations_apply_once_to_an_empty_database(conn: db.psycopg.Connection[db.DictRow]) -> None:
-    assert db.migrate(conn) == ["001_init.sql", "002_enable_rls.sql"]
+    assert db.migrate(conn) == ["001_init.sql", "002_enable_rls.sql", "003_drop_password_hash.sql"]
     assert db.migrate(conn) == []
 
     columns = {row["column_name"] for row in conn.execute("SELECT column_name FROM information_schema.columns")}
@@ -41,10 +41,10 @@ def test_seed_loads_synthetic_rows_and_can_run_again(conn: db.psycopg.Connection
     count = {t: conn.execute(f"SELECT count(*) AS n FROM {t}").fetchone()["n"] for t in ("issuers", "accounts", "skills")}  # type: ignore[index, arg-type]
     assert count == {"issuers": 2, "accounts": 8, "skills": 15}
 
-    accounts = conn.execute("SELECT role, holder_ref, password_hash FROM accounts").fetchall()
+    accounts = conn.execute("SELECT * FROM accounts").fetchall()
     assert {a["role"] for a in accounts} == {"platform_admin", "issuer_admin", "holder", "verifier"}
     assert {a["holder_ref"] for a in accounts if a["holder_ref"]} == {"HLD-2026-0007", "HLD-2026-0008"}
-    assert all(a["password_hash"].startswith("scrypt$") for a in accounts)
+    assert all("password_hash" not in a for a in accounts)  # B-02: passwords live in Supabase Auth
 
 
 def test_database_issuers_match_registry_issuers(conn: db.psycopg.Connection[db.DictRow], chain: None) -> None:

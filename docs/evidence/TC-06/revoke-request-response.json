@@ -13,9 +13,9 @@
       "credentialId": "CRD-0001",
       "status": "revoked",
       "reason": "Data kelulusan keliru",
-      "revokedAt": "2026-11-19T15:53:21.172665Z",
-      "txHash": "0x90676f17560b72d014099177f6e7a6e3a42806627c81c086426b24aa7818ec66"
+      "revokedAt": "2026-11-20T04:24:59.644634Z",
+      "txHash": "0x30211862a481503761f54fb033710f7856daeff5427c194857b2b0c03f8d5f3d"
     }
   },
-  "elapsedMs": 88.6
+  "elapsedMs": 110.7
 }
