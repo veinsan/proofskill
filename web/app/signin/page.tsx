@@ -9,6 +9,15 @@ import { TopBar } from "@/components/portal-shell";
 import { DEMO_GROUPS } from "@/lib/demo";
 import { HOME_BY_ROLE, type Session, useSession } from "@/lib/session";
 
+// Resolve like the browser does, so "/\evil.com" or a tab inside "//" cannot redirect off site.
+function isSameOrigin(path: string): boolean {
+  try {
+    return path.startsWith("/") && new URL(path, window.location.origin).origin === window.location.origin;
+  } catch {
+    return false;
+  }
+}
+
 function SignIn() {
   const router = useRouter();
   const params = useSearchParams();
@@ -17,7 +26,7 @@ function SignIn() {
 
   function go(signedIn: Session) {
     const home = HOME_BY_ROLE[signedIn.role];
-    router.push(next && next.startsWith("/") && !next.startsWith("//") ? next : home);
+    router.push(next && isSameOrigin(next) ? next : home);
   }
 
   return (
