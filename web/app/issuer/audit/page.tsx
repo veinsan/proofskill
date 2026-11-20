@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Notice } from "@/components/notice";
-import { PortalShell } from "@/components/portal-shell";
+import { PageHead, PortalShell } from "@/components/portal-shell";
 import { api, type AuditEvent, type Page } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import type { Session } from "@/lib/session";
@@ -23,16 +23,16 @@ function AuditLog({ session }: { session: Session }) {
 
   return (
     <>
-      <div className="page-head">
-        <div>
-          <h1 className="title">Audit log</h1>
-          <p className="small muted prose">
-            Operations on your organizer&apos;s credentials: time, actor role, operation, object, and outcome. No payload is ever
-            stored here.
-          </p>
-        </div>
-      </div>
-      <form className="row" style={{ marginBottom: "var(--s-xl)", alignItems: "end" }} onSubmit={(e) => e.preventDefault()}>
+      <PageHead
+        title="Audit log"
+        art="audit"
+        lede="Operations on your organizer's credentials: time, actor role, operation, object, and outcome. No payload is ever stored here."
+      />
+      <form
+        className="panel"
+        style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "end", marginBottom: "var(--s-xl)", padding: "var(--s-lg) var(--s-xl)" }}
+        onSubmit={(e) => e.preventDefault()}
+      >
         <label className="field" style={{ minWidth: 220 }}>
           <span className="label">Operation</span>
           <select className="select" value={operation} onChange={(e) => setOperation(e.target.value)}>
@@ -57,7 +57,8 @@ function AuditLog({ session }: { session: Session }) {
       {result.state === "error" ? <Notice error={result.error} title="The audit log could not load." /> : null}
       {result.state === "ok" && result.data.items.length === 0 ? (
         <div className="empty">
-          <p className="title">No events in this window</p>
+          <img src="/art/audit.webp" alt="" width={132} height={136} />
+          <h2 className="title">No events in this window</h2>
           <p className="muted prose">Issuing, sharing, verifying, matching, and revoking each add a row here.</p>
         </div>
       ) : null}

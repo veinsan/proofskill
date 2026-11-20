@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, type FormEvent, useState } from "react";
+import { type CSSProperties, type FormEvent, useEffect, useRef, useState } from "react";
 import { api, type ApiError, type MatchingResult, type VerificationResult } from "@/lib/api";
 import { FieldError, Notice } from "./notice";
 
@@ -30,6 +30,12 @@ export function SkillFitPanel({ verification, token }: { verification: Verificat
   const [result, setResult] = useState<MatchingResult | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
+  const resultRef = useRef<HTMLElement>(null);
+
+  // A new recommendation lands below the form; bring it into view so the click visibly did something.
+  useEffect(() => {
+    if (result) resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [result]);
 
   if (verification.result !== "VALID") {
     return (
@@ -63,9 +69,12 @@ export function SkillFitPanel({ verification, token }: { verification: Verificat
   const textError = error?.code === "INVALID_POSITION_TEXT";
   return (
     <aside className="panel" aria-labelledby="fit-title">
-      <h2 className="title" id="fit-title">
-        Skill fit for a position
-      </h2>
+      <div className="panel__head">
+        <h2 className="title" id="fit-title">
+          Skill fit for a position
+        </h2>
+        <p className="small muted">Compare the verified skills with your opening. A recommendation, never a score.</p>
+      </div>
       <form className="stack" onSubmit={submit} noValidate>
         <label className="field">
           <span className="label">Sample position, synthetic</span>
@@ -125,10 +134,10 @@ export function SkillFitPanel({ verification, token }: { verification: Verificat
       </form>
 
       {result ? (
-        <section aria-label="Recommendation" aria-live="polite">
+        <section ref={resultRef} aria-label="Recommendation" aria-live="polite">
           <div className="rek">
-            <span className="tag">{result.label}</span>
-            <span className="tag">AI · embedding model</span>
+            <span className="tag tag--seal">{result.label}</span>
+            <span className="tag tag--line">AI embedding model</span>
             <span className="small muted">A recommendation, not a decision. No total score.</span>
           </div>
           {result.matchedSkills.map((match) => (

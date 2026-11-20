@@ -68,14 +68,14 @@ export function SkillChips({ skills }: { skills: SkillRef[] }) {
   );
 }
 
-// Approximate advance widths (em) of Archivo 800 at width 125 for the enum letters, with 10% slack.
+// Approximate advance widths (em) of Plus Jakarta Sans 800 capitals for the enum letters, with slack.
 const NARROW = new Set(["I", "1", ":"]);
 const ROUND = new Set(["O", "Q", "D", "C", "G"]);
 const WIDE = new Set(["M", "W"]);
 function ems(word: string): number {
   let total = 0;
   for (const ch of word) total += NARROW.has(ch) ? 0.35 : ch === "_" ? 0.6 : WIDE.has(ch) ? 1.05 : ROUND.has(ch) ? 0.9 : 0.8;
-  return total * 1.1;
+  return total * 0.98;
 }
 
 /** A verbatim enum word sized to fit the stub: it may break after "_", and the widest part sets the size. */
