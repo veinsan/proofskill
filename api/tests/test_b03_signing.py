@@ -5,6 +5,8 @@ config (CLAUDE.md). A wrong signature recovers another sender, which the contrac
 """
 
 import json
+import threading
+import time
 from typing import Any
 
 import pytest
@@ -78,3 +80,32 @@ def test_b03_registry_owner_key_signs_issuer_registration(client: TestClient, si
     assert any(method == "eth_sendRawTransaction" for method, _, _ in signing)
     assert rgs._rpc("eth_getTransactionReceipt", [tx_hash])["from"].lower() == rgs.address_of(OWNER_KEY)
     assert rgs.issuer_account("ISS-003") == "0x90f79bf6eb2c4f870365e785982e1f101e93b906"
+
+
+def test_b05_nonce_lock_serializes_one_account_across_connections(registry: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Vercel runs requests concurrently in and across instances; the Postgres advisory lock must
+    keep two signed sends from the same account apart until the first is mined."""
+    monkeypatch.setattr(config, "REGISTRY_OWNER_KEY", OWNER_KEY)
+    monkeypatch.setattr(config, "ISSUER_KEYS", {"ISS-001": ISS001_KEY, "ISS-002": ISS002_KEY})
+    spans: dict[str, list[tuple[str, float, float]]] = {}
+
+    def slow_send(key: str, sender: str, data: str) -> str:
+        start = time.monotonic()
+        time.sleep(0.6)
+        spans.setdefault(sender, []).append((data, start, time.monotonic()))
+        return "0xfeed"
+
+    monkeypatch.setattr(rgs, "_send_signed", slow_send)
+    monkeypatch.setattr(rgs, "_wait_mined", lambda tx_hash: time.sleep(0.2))
+    iss001, iss002 = seed.ISSUERS[0][3], seed.ISSUERS[1][3]
+    jobs = [("CRD-A", iss001), ("CRD-B", iss001), ("CRD-C", iss002)]
+    threads = [threading.Thread(target=rgs.revoke_credential, args=job) for job in jobs]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    (_, a_start, a_end), (_, b_start, b_end) = sorted(spans[iss001], key=lambda span: span[1])
+    assert b_start >= a_end + 0.15  # the second waited for the first send and its receipt
+    (_, c_start, c_end), = spans[iss002]
+    assert c_start < a_end and a_start < c_end  # another account is not held up

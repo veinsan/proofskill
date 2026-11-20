@@ -24,3 +24,8 @@ package = false
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+
+# B-05: the API runs as a Vercel Python function (project Root Directory: api/). Region and
+# other settings are in vercel.json; secrets are Vercel environment variables, never in git.
+[tool.vercel]
+entrypoint = "app.main:app"

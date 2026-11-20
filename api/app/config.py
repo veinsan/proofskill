@@ -10,7 +10,7 @@ DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://proofskill@127.0.0.1
 PG_BIN = os.environ.get("PG_BIN", r"C:\Program Files\PostgreSQL\17\bin")
 CHAIN_RPC_URL = os.environ.get("CHAIN_RPC_URL", "http://127.0.0.1:8545")
 # B-03, OD-12 custodial default: testnet keys RGS signs with, from the untracked .env.testnet or a
-# Render secret, never committed. ISSUER_KEY_ISS_001 is ISS-001's key. Unset locally, where the
+# Vercel environment variable, never committed. ISSUER_KEY_ISS_001 is ISS-001's key. Unset locally, where the
 # Hardhat node's unlocked test accounts send the transactions.
 REGISTRY_OWNER_KEY = os.environ.get("REGISTRY_OWNER_KEY", "")
 ISSUER_KEYS = {

@@ -99,6 +99,13 @@ def test_b02_tokens_that_are_not_valid_proofskill_tokens_get_401(client: TestCli
     assert_error(response, 401, "UNAUTHENTICATED")
 
 
+def test_b05_token_from_a_slightly_faster_clock_is_accepted(client: TestClient) -> None:
+    """Supabase's clock may run ahead of the API host's; a fresh token must not read as not-yet-valid."""
+    token = supabase_token("platform.admin", skew=5)
+    response = client.post("/api/v1/issuers", json=REGISTRATION, headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 201, response.text
+
+
 def test_b02_guard_verifies_with_the_projects_jwks(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     jwk = {**jwt.algorithms.ECAlgorithm.to_jwk(SIGNING_KEY.public_key(), as_dict=True), "kid": "test-key", "alg": "ES256", "use": "sig"}
     fetched: list[str] = []
