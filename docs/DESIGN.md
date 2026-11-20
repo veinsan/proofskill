@@ -160,8 +160,8 @@ One orchestrated moment per page, then stillness.
 - **Hero:** the two headline lines ("Proof," and "not promises.", never wrapped) rise in turn, the certificate settles in from a slight tilt without blur and then floats as a live 3D object (three.js: a slow rise and fall with a gentle sway that leans toward the pointer; still under reduced motion, paused off screen), and the glass readouts arrive last. The WebP holds its place until the first 3D frame and stays when WebGL is unavailable.
 - **Verdict:** the verdict word lands with one stamp (scale 1.18 → 1 with blur), then the three checks rise in order. This is the only flourish in the portals.
 - **Results:** similarity bars grow from the left, and a new share link or skill-fit result scrolls itself into view.
-- **Scroll:** landing sections reveal with a scroll-driven `animation-timeline: view()` where the browser supports it, and simply show otherwise.
-- `prefers-reduced-motion` turns every animation and smooth scroll off.
+- **Scroll:** every page scrolls through Lenis (lerp 0.09), so a wheel notch eases over about half a second instead of jumping; anchor links land 96px below the top, clear of the top bar. `.reveal` blocks rise 36px and settle from 98.5% scale over about a second as they enter the viewport, once, with siblings 90ms apart (at most 360ms). Elements with `data-parallax` drift against the scroll at their own speed: positive speeds lag (the hero certificate 0.1, step and ledger art 0.08–0.1, the portal page-head art 0.12, the sign-in certificate 0.06), negative ones run ahead (the hero's glass readouts −0.06 to −0.16), and anything in the first screen starts exactly where the layout puts it. The fixed backdrop shapes slide up slightly as the page scrolls (capped). All of it lives in `web/components/smooth-scroll.tsx`.
+- `prefers-reduced-motion` turns every animation, the parallax, and smooth scroll off; reveal blocks are then simply visible.
 
 ## 3D art
 
@@ -215,4 +215,4 @@ Pill-shaped, at least 46px tall. **Primary:** action pink with ink text and a pi
 - Don't show AI output without REKOMENDASI, its limitations, and the not-a-decision line.
 - Don't put text directly on heavy blur; give it a white or navy-tinted surface.
 - Don't add gradient colour washes; use solid royal, light blue paper, and the 3D art.
-- Don't add motion that plays on its own beyond the page's show-up sequence, the 3D certificate's float, and the verdict stamp.
+- Don't add motion that plays on its own beyond the page's show-up sequence, the 3D certificate's float, and the verdict stamp. Scroll-linked motion (reveal, parallax) moves only while the reader scrolls.

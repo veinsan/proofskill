@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Red_Hat_Mono } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
+import { SmoothScroll } from "@/components/smooth-scroll";
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta" });
 const redHatMono = Red_Hat_Mono({ subsets: ["latin"], variable: "--font-red-hat-mono" });
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <img className="backdrop__b" src="/art/arch.webp" alt="" width={400} height={266} />
           <img className="backdrop__c" src="/art/tiles.webp" alt="" width={240} height={209} />
         </div>
+        <SmoothScroll />
         {/* Every portal page reads the URL and the per-tab session on the client, so it streams in. */}
         <Suspense fallback={null}>{children}</Suspense>
       </body>
