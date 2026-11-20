@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { type FormEvent, useState } from "react";
-import { DemoAccounts } from "@/components/demo-accounts";
+import { DemoSignIn } from "@/components/demo-accounts";
 import { Notice } from "@/components/notice";
 import { Pass, type PassCell, SkillChips, VerificationStub } from "@/components/pass";
 import { Canopy, TopBar } from "@/components/portal-shell";
@@ -107,11 +107,11 @@ function VerifierSignIn({ shareToken, session }: { shareToken: string; session: 
           {session ? (
             <p className="small muted">You are signed in as {session.username}, which is not a verifier account.</p>
           ) : (
-            <p className="small muted">Pick a demo verifier. One click signs you in and runs the check.</p>
+            <p className="small muted">Pick a demo verifier. One press signs you in and runs the check.</p>
           )}
         </div>
         {/* Only verifier accounts are listed, so a one-click sign-in always lands on the check. */}
-        <DemoAccounts groups={VERIFIERS} onSignedIn={() => undefined} onOff={() => setWithPassword(true)} />
+        <DemoSignIn groups={VERIFIERS} action="Sign in and verify" onSignedIn={() => undefined} onOff={() => setWithPassword(true)} />
         <details className="password-signin" open={withPassword} onToggle={(e) => setWithPassword(e.currentTarget.open)}>
           <summary>Sign in with a password</summary>
           <form className="stack" onSubmit={submit} noValidate>
@@ -124,7 +124,7 @@ function VerifierSignIn({ shareToken, session }: { shareToken: string; session: 
               <input className="input" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </label>
             {error ? <Notice error={error} /> : null}
-            <button className="btn btn--primary btn--block" type="submit" disabled={busy || !username || !password}>
+            <button className="btn btn--secondary btn--block" type="submit" disabled={busy || !username || !password}>
               {busy ? "Signing in" : "Sign in and verify"}
             </button>
           </form>

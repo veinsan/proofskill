@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, Suspense, useEffect, useRef, useState } from "react";
 import { Certificate3D } from "@/components/certificate-3d";
-import { DemoAccounts } from "@/components/demo-accounts";
+import { DemoSignIn } from "@/components/demo-accounts";
 import { FieldError, Notice } from "@/components/notice";
 import { TopBar } from "@/components/portal-shell";
 import type { ApiError } from "@/lib/api";
@@ -25,10 +25,10 @@ function SignIn() {
   const [withPassword, setWithPassword] = useState(asked !== null && !askedDemo);
   const passwordRef = useRef<HTMLInputElement>(null);
 
-  // A demo account picked on the landing page arrives as ?u=…; another username opens the password form.
+  // A demo account picked on the landing page arrives as ?u=… and is preselected; another username
+  // opens the password form.
   useEffect(() => {
-    if (asked && askedDemo) document.querySelector<HTMLButtonElement>('.account-card[aria-current="true"]')?.focus();
-    else if (asked) passwordRef.current?.focus();
+    if (asked && !askedDemo) passwordRef.current?.focus();
   }, [asked, askedDemo]);
 
   function go(signedIn: Session) {
@@ -72,9 +72,9 @@ function SignIn() {
           <section className="panel signin__form" aria-labelledby="signin-title">
             <div className="panel__head">
               <h2 className="title" id="signin-title">
-                Sign in
+                Continue to the demo
               </h2>
-              <p className="small muted">Pick a demo account. One click signs you in, no password needed.</p>
+              <p className="small muted">Choose a role. Every account here is synthetic, so no password is needed.</p>
             </div>
 
             {session && session.role !== "platform_admin" ? (
@@ -92,7 +92,7 @@ function SignIn() {
               </p>
             ) : null}
 
-            <DemoAccounts groups={DEMO_GROUPS} highlight={askedDemo ? asked : null} onSignedIn={go} onOff={() => setWithPassword(true)} />
+            <DemoSignIn groups={DEMO_GROUPS} initial={askedDemo ? asked : null} onSignedIn={go} onOff={() => setWithPassword(true)} />
 
             <details className="password-signin" open={withPassword} onToggle={(e) => setWithPassword(e.currentTarget.open)}>
               <summary>Sign in with a password</summary>
@@ -129,7 +129,7 @@ function SignIn() {
                 ) : error ? (
                   <Notice error={error} />
                 ) : null}
-                <button className="btn btn--primary btn--block" type="submit" disabled={busy || !username || !password}>
+                <button className="btn btn--secondary btn--block" type="submit" disabled={busy || !username || !password}>
                   {busy ? "Signing in" : "Sign in"}
                 </button>
               </form>

@@ -1,35 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ApiError } from "@/lib/api";
-import { type DEMO_GROUPS, initials } from "@/lib/demo";
+import type { DemoGroup } from "@/lib/demo";
 import { type Session, signInDemo } from "@/lib/session";
-import { ArrowRightIcon } from "./icons";
 import { Notice } from "./notice";
 
-type Group = (typeof DEMO_GROUPS)[number];
-
-/** Demo accounts as cards; one click signs in (app/api/demo-signin). `onOff` fires when the server
- * has no demo password, so the page can show its password form instead. */
-export function DemoAccounts({
+/** Demo sign-in, as simple as SafeTrip's: pick a role, keep or change the account, press one button
+ * (app/api/demo-signin holds the password). With one group (a share link's verifiers) the role
+ * picker is left out. `onOff` fires when the server has no demo password, so the page can show its
+ * password form instead. */
+export function DemoSignIn({
   groups,
-  highlight,
+  initial,
+  action,
   onSignedIn,
   onOff,
 }: {
-  groups: readonly Group[];
-  highlight?: string | null;
+  groups: readonly DemoGroup[];
+  initial?: string | null;
+  action?: string;
   onSignedIn: (session: Session) => void;
   onOff?: () => void;
 }) {
-  const [busy, setBusy] = useState<string | null>(null);
+  const start = Math.max(
+    groups.findIndex((group) => group.accounts.some((account) => account.username === initial)),
+    0,
+  );
+  const [roleIndex, setRoleIndex] = useState(start);
+  const [username, setUsername] = useState<string>(
+    groups[start].accounts.find((a) => a.username === initial)?.username ?? groups[start].accounts[0].username,
+  );
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
+  const group = groups[roleIndex];
+  const account = group.accounts.find((a) => a.username === username) ?? group.accounts[0];
 
-  async function pick(username: string) {
-    setBusy(username);
+  function choose(index: number) {
+    setRoleIndex(index);
+    setUsername(groups[index].accounts[0].username);
     setError(null);
-    const result = await signInDemo(username);
-    setBusy(null);
+  }
+
+  // Quick pick from the keyboard, like SafeTrip: Alt+I issuer, Alt+H holder, Alt+V verifier.
+  useEffect(() => {
+    if (groups.length < 2) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (!event.altKey || event.ctrlKey || event.metaKey) return;
+      const index = groups.findIndex((g) => g.key === event.code);
+      if (index < 0) return;
+      event.preventDefault();
+      setRoleIndex(index);
+      setUsername(groups[index].accounts[0].username);
+      setError(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [groups]);
+
+  async function enter() {
+    setBusy(true);
+    setError(null);
+    const result = await signInDemo(account.username);
+    setBusy(false);
     if (result.ok) {
       onSignedIn(result.data);
       return;
@@ -39,58 +72,49 @@ export function DemoAccounts({
   }
 
   return (
-    <div className="accounts" role="group" aria-label="Demo accounts">
-      {groups.map((group) => (
-        <div key={group.role} className="accounts__group">
-          <div className="accounts__role">
-            <img src={`/art/${group.art}.webp`} alt="" width={32} height={32} />
-            <span className="label">{group.role}</span>
-          </div>
-          <div className="accounts__cards">
-            {group.accounts.map((account) => (
-              <button
-                key={account.username}
-                type="button"
-                className="account-card"
-                aria-current={highlight === account.username || undefined}
-                aria-busy={busy === account.username || undefined}
-                disabled={busy !== null}
-                onClick={() => pick(account.username)}
-              >
-                <span className="account-card__avatar" aria-hidden="true">
-                  {initials(account.name)}
-                </span>
-                <span className="account-card__text">
-                  <strong>{account.name}</strong>
-                  <Detail text={account.detail} />
-                  <span className="mono">{account.username}</span>
-                </span>
-                <span className="account-card__go" aria-hidden="true">
-                  {busy === account.username ? <span className="account-card__spinner" /> : <ArrowRightIcon size={18} />}
-                </span>
+    <div className="demo-signin">
+      {groups.length > 1 ? (
+        <fieldset className="role-picker">
+          <legend className="label">Role</legend>
+          <div className="role-picker__options">
+            {groups.map((g, index) => (
+              <button key={g.role} type="button" className="role-option" aria-pressed={index === roleIndex} onClick={() => choose(index)}>
+                <img src={`/art/${g.art}.webp`} alt="" width={36} height={36} />
+                <span className="role-option__name">{g.short}</span>
+                <span className="role-option__blurb">{g.blurb}</span>
               </button>
             ))}
           </div>
-        </div>
-      ))}
-      {error ? <Notice error={error} title="Could not sign in." /> : null}
-    </div>
-  );
-}
+        </fieldset>
+      ) : null}
 
-/** "Admin, Unit Pelatihan Contoh · ISS-001": the trailing ID never breaks at its hyphen. */
-function Detail({ text }: { text: string }) {
-  const cut = text.lastIndexOf(" · ");
-  const id = cut >= 0 ? text.slice(cut + 3) : "";
-  return (
-    <span className="account-card__detail">
-      {id && /\d/.test(id) ? (
-        <>
-          {text.slice(0, cut)} · <span className="account-card__id">{id}</span>
-        </>
-      ) : (
-        text
-      )}
-    </span>
+      <label className="field">
+        <span className="label">Account</span>
+        <select className="select" value={account.username} onChange={(e) => setUsername(e.target.value)}>
+          {group.accounts.map((a) => (
+            <option key={a.username} value={a.username}>
+              {a.name} ({a.username})
+            </option>
+          ))}
+        </select>
+        <span className="small muted">{account.detail}</span>
+      </label>
+
+      <button className="btn btn--primary btn--block" type="button" onClick={enter} disabled={busy}>
+        {busy ? "Signing in" : (action ?? `Enter ${group.portal}`)}
+      </button>
+      {error ? <Notice error={error} title="Could not sign in." /> : null}
+
+      {groups.length > 1 ? (
+        <p className="quick-pick small muted">
+          Quick pick:{" "}
+          {groups.map((g) => (
+            <kbd key={g.role}>
+              Alt+{g.key.slice(3)} · {g.short}
+            </kbd>
+          ))}
+        </p>
+      ) : null}
+    </div>
   );
 }
