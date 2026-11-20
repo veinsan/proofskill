@@ -1,7 +1,6 @@
 """Runtime settings read from the environment. Defaults match .env.example."""
 
 import os
-import secrets
 from pathlib import Path
 
 _REPO = Path(__file__).resolve().parents[2]
@@ -19,9 +18,13 @@ ISSUER_KEYS = {
     for name, key in os.environ.items()
     if name.startswith("ISSUER_KEY_") and key
 }
-# shortcut: without JWT_SECRET each API process signs with a random key, so tokens die on
-# restart. Set JWT_SECRET (never committed) if tokens must survive restarts.
-JWT_SECRET = os.environ.get("JWT_SECRET") or secrets.token_urlsafe(32)
+# B-02: Supabase Auth holds the accounts. The URL and the publishable (anon) key are needed for
+# API-00 sign-in and the JWKS that verifies tokens, locally as well. The service-role key and the
+# accounts' password are used only by the seed to create the users; neither is ever committed.
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
+SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "")
+SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+SEED_PASSWORD = os.environ.get("SEED_PASSWORD", "")
 # Gemini API key for AMS embeddings (B-04). Never committed. Unset switches the AI off (TC-10).
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 # Origin of the web app; share links point to its verifier route /v/<shareToken> (report 9.3).

@@ -8,13 +8,11 @@ Run from api/: uv run python -m app.seed [--reset]
 
 import argparse
 
+import httpx
 import psycopg
 from psycopg.rows import DictRow
 
-from app import db, ias, rgs
-
-# Synthetic test credential shared by every local demo account. Never reuse it elsewhere.
-DEMO_PASSWORD = "proofskill-demo"
+from app import config, db, ias, rgs
 
 # (issuer_id, name, unit_type, chain_account). The accounts are public Hardhat test accounts #1 and #2;
 # on the testnet each issuer's account comes from its key instead (B-03, OD-12).
@@ -86,9 +84,9 @@ def seed(conn: psycopg.Connection[DictRow]) -> None:
         )
     for username, role, issuer_id, holder_ref in ACCOUNTS:
         conn.execute(
-            "INSERT INTO accounts (username, password_hash, role, issuer_id, holder_ref)"
-            " VALUES (%s, %s, %s, %s, %s) ON CONFLICT (username) DO NOTHING",
-            (username, ias.hash_password(DEMO_PASSWORD), role, issuer_id, holder_ref),
+            "INSERT INTO accounts (username, role, issuer_id, holder_ref)"
+            " VALUES (%s, %s, %s, %s) ON CONFLICT (username) DO NOTHING",
+            (username, role, issuer_id, holder_ref),
         )
     for skill_id, label, aliases in SKILLS:
         conn.execute(
@@ -108,6 +106,32 @@ def register_issuers_on_chain(conn: psycopg.Connection[DictRow]) -> None:
             raise SystemExit(f"{row['issuer_id']} is bound to {current} on-chain, not {row['chain_account']}")
 
 
+def sync_auth_users() -> int:
+    """B-02: creates or updates every seed account as a Supabase Auth user, with SEED_PASSWORD and
+    app_metadata {role, issuerId, holderRef, username}. Needs SUPABASE_SERVICE_ROLE_KEY."""
+    if len(config.SEED_PASSWORD) < 12:
+        raise SystemExit("Set SEED_PASSWORD (12+ characters, kept out of git) before creating Supabase users.")
+    key = config.SUPABASE_SERVICE_ROLE_KEY
+    headers = {"apikey": key, **({"Authorization": f"Bearer {key}"} if key.startswith("eyJ") else {})}
+    admin = f"{config.SUPABASE_URL}/auth/v1/admin/users"
+    listing = httpx.get(admin, params={"per_page": 1000}, headers=headers, timeout=30)
+    listing.raise_for_status()
+    existing = {user["email"]: user["id"] for user in listing.json()["users"]}
+    for username, role, issuer_id, holder_ref in ACCOUNTS:
+        email = ias.auth_email(username)
+        body = {
+            "password": config.SEED_PASSWORD,
+            "email_confirm": True,
+            "app_metadata": {"role": role, "issuerId": issuer_id, "holderRef": holder_ref, "username": username},
+        }
+        if email in existing:
+            response = httpx.put(f"{admin}/{existing[email]}", json=body, headers=headers, timeout=30)
+        else:
+            response = httpx.post(admin, json={**body, "email": email}, headers=headers, timeout=30)
+        response.raise_for_status()
+    return len(ACCOUNTS)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reset", action="store_true", help="drop all tables first")
@@ -119,6 +143,8 @@ def main() -> None:
         seed(conn)
         register_issuers_on_chain(conn)
     print(f"Migrations applied: {applied or 'none'}. Seed loaded; issuers registered on-chain.")
+    if config.SUPABASE_SERVICE_ROLE_KEY:
+        print(f"Supabase Auth users created or updated: {sync_auth_users()}.")
 
 
 if __name__ == "__main__":

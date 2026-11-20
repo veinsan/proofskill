@@ -89,10 +89,10 @@ def test_api09_registry_down_returns_503_and_the_status_does_not_change(
 ) -> None:
     issue(client)
     headers = login(client, "admin.iss001")
-    monkeypatch.setattr(config, "CHAIN_RPC_URL", "http://127.0.0.1:1")
-    response = client.post("/api/v1/credentials/CRD-0001/revocations", json=REASON, headers=headers)
-    assert_error(response, 503, "REGISTRY_UNAVAILABLE")
-    monkeypatch.undo()
+    with monkeypatch.context() as down:  # undo only this patch, not the autouse fake Supabase
+        down.setattr(config, "CHAIN_RPC_URL", "http://127.0.0.1:1")
+        response = client.post("/api/v1/credentials/CRD-0001/revocations", json=REASON, headers=headers)
+        assert_error(response, 503, "REGISTRY_UNAVAILABLE")
     assert conn.execute("SELECT status, revocation_reason FROM credentials").fetchone() == {"status": "active", "revocation_reason": None}
     assert rgs.get_record("CRD-0001").status == "active"
 

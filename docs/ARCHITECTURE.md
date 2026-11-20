@@ -113,7 +113,7 @@ CIS, CSS, VRS, and AMS call `AAS.recordAudit`. AMS always reads skills through `
 
 - **Base URL and format:** `/api/v1`, JSON in UTF-8, times in ISO 8601 UTC.
 - **ID prefixes:** `CRD-`, `ISS-`, `SHL-`, `VER-`, and `MAT-`, plus holder references `HLD-` and skills `SK-`.
-- **Auth:** `Authorization: Bearer <accessToken>`. The token carries the role. Verifier accounts are free. In the prototype, accounts come from seed data, and one person may hold several accounts to play different roles.
+- **Auth:** `Authorization: Bearer <accessToken>`. The token carries the role. Verifier accounts are free. In the prototype, accounts come from seed data, and one person may hold several accounts to play different roles. Since B-02 the token is a Supabase Auth access token (ES256, verified against the project's JWKS, audience `authenticated`), and the role, `issuerId`, `holderRef`, and `username` come from its `app_metadata`; a token without a ProofSkill role gets 401 `UNAUTHENTICATED`.
 - **HTTP methods:** POST creates a resource or runs an action, GET reads, and DELETE removes a share link.
 - **Verification results:** a credential that fails verification still returns 200 with a `result` field, because the verification itself ran. HTTP error codes are reserved for request or access problems.
 - **Error body:** `{"error": {"code": "...", "message": "...", "requestId": "..."}}`.

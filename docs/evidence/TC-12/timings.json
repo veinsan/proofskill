@@ -3,54 +3,54 @@
     {
       "status": 200,
       "result": "VALID",
-      "seconds": 0.0735
+      "seconds": 0.0759
     },
     {
       "status": 200,
       "result": "VALID",
-      "seconds": 0.0645
+      "seconds": 0.0625
     },
     {
       "status": 200,
       "result": "VALID",
-      "seconds": 0.0689
+      "seconds": 0.0459
     },
     {
       "status": 200,
       "result": "VALID",
-      "seconds": 0.0809
+      "seconds": 0.0935
     },
     {
       "status": 200,
       "result": "VALID",
-      "seconds": 0.0686
+      "seconds": 0.0702
     },
     {
       "status": 200,
       "result": "VALID",
-      "seconds": 0.0812
+      "seconds": 0.0774
     },
     {
       "status": 200,
       "result": "VALID",
-      "seconds": 0.0674
+      "seconds": 0.0669
     },
     {
       "status": 200,
       "result": "VALID",
-      "seconds": 0.083
+      "seconds": 0.0716
     },
     {
       "status": 200,
       "result": "VALID",
-      "seconds": 0.0605
+      "seconds": 0.0849
     },
     {
       "status": 200,
       "result": "VALID",
-      "seconds": 0.055
+      "seconds": 0.0638
     }
   ],
-  "medianSeconds": 0.06875,
-  "maxSeconds": 0.083
+  "medianSeconds": 0.07089999999999999,
+  "maxSeconds": 0.0935
 }

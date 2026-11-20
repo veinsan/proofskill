@@ -17,9 +17,9 @@
       "error": {
         "code": "VERIFICATION_NOT_OWNED",
         "message": "This verification was run by another verifier.",
-        "requestId": "req_ae154d2d76ed1d5b"
+        "requestId": "req_36730767168e8ae9"
       }
     }
   },
-  "elapsedMs": 59.8
+  "elapsedMs": 35.3
 }

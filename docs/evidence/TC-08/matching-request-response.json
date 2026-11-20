@@ -51,5 +51,5 @@
       "modelVersion": "gemini-embedding-001 (Gemini API, RETRIEVAL_QUERY/RETRIEVAL_DOCUMENT)"
     }
   },
-  "elapsedMs": 2130.1
+  "elapsedMs": 1131.1
 }

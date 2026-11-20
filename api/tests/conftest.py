@@ -1,14 +1,21 @@
+import hashlib
 import os
 import shutil
 import subprocess
+import time
+import uuid
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
+import httpx
+import jwt
 import pytest
+from cryptography.hazmat.primitives.asymmetric import ec
 from fastapi.testclient import TestClient
 
 from app import db  # first: app/__init__.py puts libpq on PATH before psycopg loads
-from app import config, rgs, seed
+from app import config, ias, rgs, seed
 from app.main import app
 
 TEST_DATABASE_URL = os.environ.get(
@@ -111,7 +118,64 @@ def share(client: TestClient, credential_id: str, scope: list[str] | None = None
 
 
 def login(client: TestClient, username: str) -> dict[str, str]:
-    """Authorization header for a seeded account."""
-    response = client.post("/api/v1/auth/token", json={"username": username, "password": seed.DEMO_PASSWORD})
+    """Authorization header for a seeded account, through API-00 and the fake Supabase Auth."""
+    response = client.post("/api/v1/auth/token", json={"username": username, "password": TEST_PASSWORD})
     assert response.status_code == 200, response.text
     return {"Authorization": f"Bearer {response.json()['accessToken']}"}
+
+
+# --- Fake Supabase Auth (B-02) ------------------------------------------------------------
+# Tests never call the real project: a key made here stands in for the project's ES256 signing
+# key, and httpx.post to /auth/v1/token is answered locally with a token shaped like Supabase's.
+
+TEST_PASSWORD = "test-password-not-real"
+SUPABASE_TEST_URL = "https://supabase.test"
+# Fixed, test-only key: pytest loads this file both as `conftest` and as `tests.conftest`.
+SIGNING_KEY = ec.derive_private_key(int.from_bytes(hashlib.sha256(b"proofskill-test-signing-key").digest()), ec.SECP256R1())
+
+
+def supabase_token(username: str, key: Any = SIGNING_KEY, expires_in: int = 3600, **app_metadata: object) -> str:
+    """An access token as Supabase Auth issues it for a seed account; app_metadata overrides allowed."""
+    _, role, issuer_id, holder_ref = next(a for a in seed.ACCOUNTS if a[0] == username)
+    now = int(time.time())
+    claims = {
+        "sub": str(uuid.uuid5(uuid.NAMESPACE_DNS, username)),
+        "aud": "authenticated",
+        "iss": f"{SUPABASE_TEST_URL}/auth/v1",
+        "role": "authenticated",  # Supabase's Postgres role, not the ProofSkill role
+        "email": ias.auth_email(username),
+        "iat": now,
+        "exp": now + expires_in,
+        "app_metadata": {"role": role, "issuerId": issuer_id, "holderRef": holder_ref, "username": username, **app_metadata},
+    }
+    return jwt.encode(claims, key, algorithm="ES256", headers={"kid": "test-key"})
+
+
+class FakeSupabaseAuth:
+    """Stands in for httpx.post to Supabase's password grant; other URLs pass through (RGS)."""
+
+    def __init__(self) -> None:
+        self.real_post = httpx.post
+
+    def __call__(self, url: str, **kwargs: Any) -> httpx.Response:
+        if url != f"{SUPABASE_TEST_URL}/auth/v1/token":
+            return self.real_post(url, **kwargs)
+        assert kwargs["params"] == {"grant_type": "password"} and kwargs["headers"] == {"apikey": "test-anon-key"}
+        username = kwargs["json"]["email"].removesuffix(f"@{ias.EMAIL_DOMAIN}")
+        request = httpx.Request("POST", url)
+        if kwargs["json"]["password"] != TEST_PASSWORD or username not in {a[0] for a in seed.ACCOUNTS}:
+            return httpx.Response(400, json={"code": 400, "error_code": "invalid_credentials"}, request=request)
+        token = supabase_token(username)
+        user = {"email": kwargs["json"]["email"], "app_metadata": jwt.decode(token, options={"verify_signature": False})["app_metadata"]}
+        return httpx.Response(200, json={"access_token": token, "token_type": "bearer", "expires_in": 3600, "user": user}, request=request)
+
+
+@pytest.fixture(autouse=True)
+def supabase_auth() -> Iterator[None]:
+    # Its own MonkeyPatch, so a test's `monkeypatch` is still undone before `chain` reverts the node.
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(config, "SUPABASE_URL", SUPABASE_TEST_URL)
+        patch.setattr(config, "SUPABASE_ANON_KEY", "test-anon-key")
+        patch.setattr(ias, "_signing_key", lambda token: SIGNING_KEY.public_key())
+        patch.setattr(httpx, "post", FakeSupabaseAuth())
+        yield
