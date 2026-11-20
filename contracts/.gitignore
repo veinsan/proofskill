@@ -2,4 +2,6 @@ node_modules/
 artifacts/
 cache/
 types/
-deployments/
+# Local deployments differ per machine; the B-03 testnet one is public and read by the API on Render.
+deployments/*
+!deployments/baseSepolia.json

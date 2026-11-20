@@ -1,5 +1,6 @@
-// Deploys ProofSkillRegistry to the local Hardhat node and records its address for the API (RGS).
-// The deployer (Hardhat test account #0) becomes the platform admin that registers issuers.
+// Deploys ProofSkillRegistry and records its address for the API (RGS): to the local Hardhat node
+// (`pnpm deploy:local`) or to the Base Sepolia testnet (`pnpm deploy:base-sepolia`, B-03). The deployer
+// (Hardhat test account #0 locally, REGISTRY_OWNER_KEY on the testnet) becomes the platform admin.
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { network } from "hardhat";

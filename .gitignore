@@ -2,3 +2,4 @@
 skill/
 .pgdata/
 .env
+.env.testnet

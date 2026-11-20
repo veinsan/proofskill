@@ -26,10 +26,10 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinne
 | Tool | Version or role |
 | --- | --- |
 | Next.js with TypeScript | Next.js 16.4.6, React 19.3.0, TypeScript 5.9.3 (strict), ESLint 9, qrcode 1.5.4 (share-link QR, approved 2026-11-19). Web app with three portals in `web/`. It proxies `/api/v1` to FastAPI (`API_ORIGIN`), so the API needs no CORS |
-| FastAPI | FastAPI 0.165.0 on Python 3.13.17, Uvicorn 0.54.0, Pydantic 2.14.3, pytest 9.2.0, psycopg 3.3.9, httpx 0.28.1, PyJWT 2.15.1, numpy 2.5.5. REST API under `/api/v1` in `api/`, one module per SoaML service |
-| Windows Application Control | Blocks some unsigned native wheels on this machine (`psycopg-binary`, `regex`, `bitarray`). So psycopg runs its pure-Python driver with `libpq.dll` from `PG_BIN`, and RGS calls JSON-RPC through httpx with a minimal ABI codec instead of web3.py. Check new Python dependencies with an import before adopting them |
+| FastAPI | FastAPI 0.165.0 on Python 3.13.17, Uvicorn 0.54.0, Pydantic 2.14.3, pytest 9.2.0, psycopg 3.3.9, httpx 0.28.1, PyJWT 2.15.1, numpy 2.5.5, coincurve 21.0.0 (transaction signing, approved 2026-11-20). REST API under `/api/v1` in `api/`, one module per SoaML service |
+| Windows Application Control | Blocks some unsigned native wheels on this machine (`psycopg-binary`, `regex`, `bitarray`, `pycryptodome`, and the `pydantic-core` build that `eth-account` pulls in). So psycopg runs its pure-Python driver with `libpq.dll` from `PG_BIN`, RGS calls JSON-RPC through httpx with a minimal ABI codec instead of web3.py, and RGS signs testnet transactions with coincurve plus its own pure-Python keccak-256 and RLP instead of eth-account. Check new Python dependencies with an import before adopting them |
 | PostgreSQL | 17.11 (installed at `C:\Program Files\PostgreSQL\17`). Off-chain data, run as a project-local cluster by `scripts/db.ps1`: data in `.pgdata/`, port 5433, 127.0.0.1 only, trust auth |
-| Hardhat with Solidity | Hardhat 3.22.0, ethers 6.17.0, Mocha 12.0.3, Chai 6.3.0, Solidity 0.8.28. Local chain and the `ProofSkillRegistry` contract in `contracts/` |
+| Hardhat with Solidity | Hardhat 3.22.0, ethers 6.17.0, Mocha 12.0.3, Chai 6.3.0, Solidity 0.8.28, hardhat-verify 3.1.5 (Basescan verification, approved 2026-11-20). Local chain, the `baseSepolia` network, and the `ProofSkillRegistry` contract in `contracts/` |
 | Gemini embeddings | `gemini-embedding-001` through the Gemini REST API (`batchEmbedContents`, called with httpx; no SDK). Requirements are embedded as `RETRIEVAL_QUERY` and skills as `RETRIEVAL_DOCUMENT`, threshold 0.72 (B-04). Needs `GEMINI_API_KEY`; replaced the local MiniLM model and its ONNX process on 2026-11-19 |
 | JWT Bearer tokens | Roles `issuer_admin`, `holder`, `verifier`, plus `platform_admin` for API-01 (OD-1) |
 
@@ -40,7 +40,7 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinne
 | Vercel | Hosts `web/`. `API_ORIGIN` points at the Render API |
 | Render | Hosts `api/` (free tier, sleeps when idle) |
 | Supabase | Postgres for off-chain data (Row Level Security on, no policies) and Auth for accounts; API-00 proxies Supabase sign-in |
-| Base Sepolia testnet | Hosts `ProofSkillRegistry`. The API signs with one key per issuer, kept as a Render secret (OD-12) |
+| Base Sepolia testnet | Hosts `ProofSkillRegistry` at `0xFB11769EBD22fe1Ac40391227e6526ccf077D136` (B-03, `contracts/deployments/baseSepolia.json`). RGS signs with one key per issuer plus the registry owner's key, kept in the untracked `.env.testnet` and later as Render secrets (OD-12) |
 | Gemini embeddings (free tier) | Used by AMS since B-04 (done); the key becomes a Render secret in B-05 |
 | Reserved: OpenCV / YOLO / MediaPipe, RunPod, LangChain | Not used by any current feature. Add one only after the PRD scopes a feature that needs it |
 | Node v26.13.0 | Node package manager: pnpm 12.18.0 (decided at A-01) |
@@ -60,7 +60,7 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinne
 `contracts/`, `api/`, `web/`, and `scripts/` exist since A-01. The rest of the tree fills in as later steps land.
 
 ```text
-contracts/        # Hardhat: ProofSkillRegistry.sol (registerIssuer, issueCredential, revokeCredential, getRecord, deactivateIssuer), tests, deploy script
+contracts/        # Hardhat: ProofSkillRegistry.sol (registerIssuer, issueCredential, revokeCredential, getRecord, deactivateIssuer), tests, deploy script; deployments/baseSepolia.json is the only tracked deployment
 api/              # FastAPI app
   app/            # modules per SoaML service: ias, cis, css, aas, vrs, rgs (blockchain adapter), scs, ams; plus config, db, seed
   migrations/     # plain SQL, applied in name order by app/db.py
@@ -122,7 +122,7 @@ Tick an item only after its completion criteria in ARCHITECTURE.md pass.
 - **Verification never depends on AI.** If the AI is down, only API-07 returns 503.
 - **Contract changes go through the user.** Do not change endpoints, payloads, status codes, error codes, or enums without the user's approval. If a change is approved, list the report and deck sections that must change with it.
 - **Do not invent codes.** Use only the error codes in ARCHITECTURE.md (OD-1 named the formerly unnamed ones), and never settle an open decision (OD-9 is still open) on your own.
-- **No real secrets in git.** Keep secrets and private keys out of commits: issuer and deployer keys, the Supabase service-role key, and the Gemini API key live only in Render, Vercel, or a local untracked `.env`. Only the public Hardhat test accounts may appear in local config.
+- **No real secrets in git.** Keep secrets and private keys out of commits: issuer and deployer keys, the Etherscan key, the Supabase service-role key, and the Gemini API key live only in Render, Vercel, or the local untracked `.env` and `.env.testnet`. Only the public Hardhat test accounts may appear in local config and tests.
 - **No real data, no mainnet.** Use synthetic data only (assumption A6) until a privacy review allows real participant data. Never deploy to or send transactions on a blockchain mainnet; the deployment uses the Base Sepolia testnet.
 - **Pink only on the action.** Do not use Signal Pink anywhere except the single primary action.
 
@@ -135,6 +135,7 @@ The defaults match `.env.example`, so set an environment variable only to overri
 | Database | `powershell -ExecutionPolicy Bypass -File scripts/db.ps1 start` (also `stop`, `status`) | `postgresql://proofskill@127.0.0.1:5433/proofskill` |
 | Chain | `cd contracts; pnpm install; pnpm chain`, then `pnpm deploy:local` in a second terminal | `http://127.0.0.1:8545`, contract address in `contracts/deployments/localhost.json` |
 | Seed | `cd api; uv sync; uv run python -m app.seed --reset` (needs the database, the chain, and a deploy). It migrates, loads the synthetic seed, and registers ISS-001 and ISS-002 on-chain. Accounts and the shared demo password are in `api/app/seed.py` | — |
+| Testnet (B-03) | `.env.testnet` (untracked) holds `CHAIN_RPC_URL`, `REGISTRY_DEPLOYMENT`, a separate `DATABASE_URL` (`proofskill_testnet`), `REGISTRY_OWNER_KEY`, `ISSUER_KEY_ISS_001`, `ISSUER_KEY_ISS_002`, and `ETHERSCAN_API_KEY`. Deploy: `cd contracts; pnpm deploy:base-sepolia`; verify: `pnpm hardhat verify --network baseSepolia <address>`. Run any API command against the testnet by adding `--env-file ../.env.testnet` after `--env-file ../.env` (the later file wins), for example `uv run --env-file ../.env --env-file ../.env.testnet python -m app.seed --reset` | `https://sepolia.basescan.org/address/0xFB11769EBD22fe1Ac40391227e6526ccf077D136` |
 | API | `cd api; uv run --env-file ../.env fastapi dev app/main.py`. Without `GEMINI_API_KEY`, everything works except API-07, which returns 503 `AI_UNAVAILABLE` (TC-10) | `http://127.0.0.1:8000/api/v1/docs` |
 | Web | `cd web; pnpm install; pnpm dev` (needs the API on port 8000). Sign in at `/` with a seeded account; the portal follows the role, and each browser tab keeps its own session | `http://localhost:3000` |
 
