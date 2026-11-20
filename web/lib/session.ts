@@ -78,5 +78,5 @@ export const HOME_BY_ROLE: Record<Role, string> = {
   issuer_admin: "/issuer",
   holder: "/holder",
   verifier: "/verifier",
-  platform_admin: "/",
+  platform_admin: "/signin", // no portal: the sign-in page explains API-01 instead
 };

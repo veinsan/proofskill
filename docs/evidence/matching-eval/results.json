@@ -10,6 +10,7 @@
   "embeddingModel": "gemini-embedding-001 (Gemini API, RETRIEVAL_QUERY/RETRIEVAL_DOCUMENT)",
   "product": {
     "judgeModel": "gemini-3.1-flash-lite",
+    "judgeBackup": "gemini-3.5-flash-lite",
     "candidateFloor": 0.6,
     "threshold": 0.71
   },

@@ -3,6 +3,8 @@ FR-08, FR-09, NFR-03, NFR-06, design rule 1.3). The logic tests use a word-overl
 a fake Gemini endpoint; TC-08 calls the real Gemini API (B-04) when GEMINI_API_KEY is set."""
 
 import json
+import logging
+import re
 import zlib
 from typing import Any
 
@@ -43,7 +45,9 @@ def overlap_verdicts(requirements: list[dict[str, Any]], skills: list[dict[str, 
     return verdicts
 
 
-def fake_judge(requirements: list[str], skills: list[dict[str, Any]], candidates: list[list[int]], model: str = ams.JUDGE_MODEL) -> list[ams.Verdict]:
+def fake_judge(
+    requirements: list[str], skills: list[dict[str, Any]], candidates: list[list[int]], model: str = ams.JUDGE_MODEL, timeout: float = 30.0
+) -> list[ams.Verdict]:
     payload_skills = [{"id": f"S{j + 1}", "name": s["label"], "aliases": list(s["aliases"])} for j, s in enumerate(skills)]
     payload = [{"id": f"R{i + 1}", "text": r, "candidates": [f"S{j + 1}" for j in candidates[i]]} for i, r in enumerate(requirements)]
     return [
@@ -60,6 +64,7 @@ class FakeGemini:
         self.status = status
         self.judge_status = 200
         self.judge_text: str | None = None  # a raw judge answer, to test malformed replies
+        self.judge_down: set[str] = set()  # judge models that answer 503
         self.calls: list[dict[str, Any]] = []
         self.judge_calls: list[dict[str, Any]] = []
         self.real_post = httpx.post  # RGS shares the httpx module for JSON-RPC
@@ -70,8 +75,9 @@ class FakeGemini:
             self.judge_calls.append({"url": url, "json": json_body, "headers": headers})
             payload = json.loads(json_body["contents"][0]["parts"][0]["text"])
             text = self.judge_text if self.judge_text is not None else json.dumps({"verdicts": overlap_verdicts(payload["requirements"], payload["skills"])})
-            body = {"candidates": [{"content": {"parts": [{"text": text}]}}]} if self.judge_status == 200 else {"error": {}}
-            return httpx.Response(self.judge_status, json=body, request=httpx.Request("POST", url))
+            status = 503 if url.split("/")[-1].split(":")[0] in self.judge_down else self.judge_status
+            body = {"candidates": [{"content": {"parts": [{"text": text}]}}]} if status == 200 else {"error": {}}
+            return httpx.Response(status, json=body, request=httpx.Request("POST", url))
         if url != ams.GEMINI_URL:
             return self.real_post(url, **kwargs)
         self.calls.append({"url": url, "json": json_body, "headers": headers})
@@ -259,10 +265,31 @@ def test_tc10_ai_switched_off_returns_503_and_verification_keeps_working(
     assert conn.execute("SELECT count(*) AS n FROM matchings").fetchone() == {"n": 1}
 
 
+# Ways the Gemini service fails to answer, as opposed to a judge answer that breaks the schema (a bug).
+GEMINI_OUTAGE = {"HTTPStatusError", "ReadTimeout", "ConnectTimeout", "ConnectError", "ReadError", "RemoteProtocolError", "WriteTimeout", "PoolTimeout"}
+
+
+def live_match(client: TestClient, verification_id: str, position: dict[str, str], caplog: pytest.LogCaptureFixture) -> dict[str, Any]:
+    """API-07 against the real Gemini API. Skips (never passes) when the free tier did not answer and
+    AMS served a labeled degraded result; fails when a judge answered but broke the schema."""
+    caplog.clear()
+    with caplog.at_level(logging.WARNING, logger="app.ams"):
+        response = match(client, verification_id, position)
+    if response.status_code == 503:
+        pytest.skip("Gemini embeddings did not answer (503 AI_UNAVAILABLE)")
+    body: dict[str, Any] = response.json()
+    if body["modelVersion"].endswith(" judge"):
+        return body
+    reasons = re.findall(r"did not answer \((\w+)\)", caplog.text)
+    if not set(reasons) <= GEMINI_OUTAGE:
+        pytest.fail(f"a judge answered but its answer was rejected: {reasons}")
+    pytest.skip(f"Gemini did not answer ({', '.join(reasons) or 'embeddings'}); AMS served {body['modelVersion']!r}")
+
+
 @pytest.mark.skipif(not config.GEMINI_API_KEY, reason="needs GEMINI_API_KEY (real Gemini call)")
-def test_tc08_matching_after_a_valid_verification_with_gemini(client: TestClient) -> None:
+def test_tc08_matching_after_a_valid_verification_with_gemini(client: TestClient, caplog: pytest.LogCaptureFixture) -> None:
     verification_id = valid_verification(client)
-    body = match(client, verification_id).json()
+    body = live_match(client, verification_id, SECURITY, caplog)
     pairs = {m["requirement"]: m["skill"] for m in body["matchedSkills"]}
     # The gold set (api/evals/matching_gold.json, G001-G004) accepts either skill for the first one.
     assert set(pairs) == {"Menganalisis kerentanan aplikasi web", "memahami OWASP Top 10", "melakukan pengujian keamanan dasar"}
@@ -272,10 +299,12 @@ def test_tc08_matching_after_a_valid_verification_with_gemini(client: TestClient
     assert [m["requirement"] for m in body["missingRequirements"]] == ["memantau log dengan SIEM"]
     assert all(0 < m["similarity"] <= 1 and m["reason"] for m in body["matchedSkills"])
     assert body["label"] == "REKOMENDASI" and "score" not in str(body).lower()
-    assert body["modelVersion"] == f"{ams.MODEL_VERSION} + {ams.JUDGE_MODEL} judge"
-    assert body["limitations"] == ams.LIMITATIONS
+    # On the free tier the backup judge sometimes answers instead (B-08); both passed the gold set's dev split.
+    judge_model = body["modelVersion"].removeprefix(f"{ams.MODEL_VERSION} + ").removesuffix(" judge")
+    assert judge_model in {ams.JUDGE_MODEL, ams.JUDGE_BACKUP}, body["modelVersion"]
+    assert body["limitations"] == ams.limitations_judged(judge_model)
 
     # AI differentiator: the same security credential against a frontend position covers nothing.
-    unrelated = match(client, verification_id, FRONTEND).json()
+    unrelated = live_match(client, verification_id, FRONTEND, caplog)
     assert unrelated["matchedSkills"] == []
     assert len(unrelated["missingRequirements"]) == len(ams.split_requirements(FRONTEND["description"]))

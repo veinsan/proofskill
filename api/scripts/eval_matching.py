@@ -245,7 +245,7 @@ def run(models: list[str], floors: list[float | None], repeats: int) -> dict[str
         "commit": subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=API_DIR).stdout.strip(),
         "gold": {"version": gold["version"], "items": len(items), **{s: sum(1 for i in items if i["split"] == s) for s in ("dev", "test")}},
         "embeddingModel": ams.MODEL_VERSION,
-        "product": {"judgeModel": ams.JUDGE_MODEL, "candidateFloor": ams.CANDIDATE_FLOOR, "threshold": ams.THRESHOLD},
+        "product": product_setting(),
         "chosenJudge": chosen,
         "repeats": repeat_runs,
         "tunedThreshold": tuned_t,
@@ -255,6 +255,10 @@ def run(models: list[str], floors: list[float | None], repeats: int) -> dict[str
         "reasons": reasons,
         "items": items,
     }
+
+
+def product_setting() -> dict[str, Any]:
+    return {"judgeModel": ams.JUDGE_MODEL, "judgeBackup": ams.JUDGE_BACKUP, "candidateFloor": ams.CANDIDATE_FLOOR, "threshold": ams.THRESHOLD}
 
 
 def _pct(x: float) -> str:
@@ -334,7 +338,16 @@ def write(result: dict[str, Any]) -> None:
             "",
             f"`app/ams.py` ships `JUDGE_MODEL = \"{product['judgeModel']}\"` and `CANDIDATE_FLOOR = {product['candidateFloor']}`, "
             + ("the variant chosen above." if same else f"**which differs from the chosen variant ({chosen}); update it.**"),
-            f"The embedding-only fallback, used when the judge does not answer, ships `THRESHOLD = {product['threshold']}`; "
+        ]
+        floor = "none" if product["candidateFloor"] is None else f"{product['candidateFloor']:.2f}"
+        backup = variants.get(f"judge {product['judgeBackup']}, floor {floor}", {})
+        if "dev" in backup:
+            lines.append(
+                f"When it does not answer, AMS asks the backup judge `{product['judgeBackup']}` (dev F1 {_pct(backup['dev']['f1'])}, "
+                f"test F1 {_pct(backup['test']['f1'])}, test precision {_pct(backup['test']['precision'])}); `modelVersion` names the model that judged."
+            )
+        lines += [
+            f"The embedding-only fallback, used when neither judge answers, ships `THRESHOLD = {product['threshold']}`; "
             f"the best dev threshold was {result['tunedThreshold']:.3f}"
             + ("." if abs(product["threshold"] - result["tunedThreshold"]) < 1e-9 else "; **update it.**"),
         ]
@@ -356,7 +369,14 @@ def main() -> None:
     parser.add_argument("--models", default="gemini-3.1-flash-lite,gemini-3.5-flash-lite")
     parser.add_argument("--floors", default="none,0.60")
     parser.add_argument("--repeats", type=int, default=2, help="extra uncached runs of the chosen judge")
+    parser.add_argument("--rewrite", action="store_true", help="only re-render README.md from results.json with the current product setting")
     args = parser.parse_args()
+    if args.rewrite:
+        result = json.loads((OUT / "results.json").read_text(encoding="utf-8"))
+        result["product"] = product_setting()
+        write(result)
+        print(f"re-rendered {OUT / 'README.md'}")
+        return
     if not config.GEMINI_API_KEY:
         raise SystemExit("GEMINI_API_KEY is not set (pass --env-file ../.env)")
     floors = [None if f == "none" else float(f) for f in args.floors.split(",")]

@@ -1,91 +1,92 @@
 ---
-version: alpha
+version: beta
 name: ProofSkill
-description: Verifiable training credentials, checked at the gate. Each credential is a pass; verification is the gate check.
+description: Verifiable training credentials. Liquid glass over solid royal blue and generated 3D shapes; each credential is a pass, and verification is the gate check.
 colors:
-  navy: "#0F1B3D"
+  ink: "#0E1A3B"
+  ink-2: "#3B4566"
+  ink-3: "#5F6887"
+  royal: "#2453D6"
+  royal-600: "#1C43B8"
+  royal-900: "#10266B"
+  royal-50: "#EEF2FD"
+  seal: "#F7A8C4"
+  action: "#FF7AAE"
+  action-hover: "#FF93BD"
+  paper: "#E9EFFC"
   white: "#FFFFFF"
-  hot-pink: "#FF3D8B"
-  hot-pink-hover: "#FF5C9E"
-  ink-muted: "#575F77"
-  control-edge: "#878D9E"
-  rule: "#D9DBE0"
-  tint: "#F3F4F5"
+  line: "rgba(14, 26, 59, 0.10)"
+  line-strong: "rgba(14, 26, 59, 0.18)"
+  glass: "rgba(255, 255, 255, 0.62)"
+  glass-strong: "rgba(255, 255, 255, 0.82)"
+  glass-edge: "rgba(255, 255, 255, 0.80)"
+  glass-dark: "rgba(255, 255, 255, 0.14)"
 typography:
+  display:
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
+    fontSize: "clamp(2.5rem, 6vw, 5.5rem)"
+    fontWeight: 800
+    lineHeight: 0.9
+    letterSpacing: "-0.05em"
+  section:
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
+    fontSize: "clamp(2.25rem, 5vw, 4rem)"
+    fontWeight: 800
+    lineHeight: 0.95
+    letterSpacing: "-0.045em"
+  page-title:
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
+    fontSize: "clamp(1.75rem, 3vw, 2.375rem)"
+    fontWeight: 800
+    lineHeight: 1.1
+    letterSpacing: "-0.025em"
   verdict:
-    fontFamily: "Archivo, system-ui, sans-serif"
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
     fontSize: "4rem"
     fontWeight: 800
     lineHeight: 1
-    fontVariation: "'wdth' 125"
   code-display:
-    fontFamily: "Archivo, system-ui, sans-serif"
-    fontSize: "2.875rem"
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
+    fontSize: "2.75rem"
     fontWeight: 800
     lineHeight: 1
-    letterSpacing: "-0.01em"
-    fontVariation: "'wdth' 120"
-  status-word:
-    fontFamily: "Archivo, system-ui, sans-serif"
-    fontSize: "2.875rem"
-    fontWeight: 800
-    lineHeight: 1
-    fontVariation: "'wdth' 120"
-  brand:
-    fontFamily: "Archivo, system-ui, sans-serif"
-    fontSize: "1.375rem"
-    fontWeight: 800
-    lineHeight: 1
-    fontVariation: "'wdth' 115"
+    letterSpacing: "-0.02em"
   title:
-    fontFamily: "Archivo, system-ui, sans-serif"
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
     fontSize: "1.375rem"
     fontWeight: 700
-    lineHeight: 1.3
-    fontVariation: "'wdth' 108"
-  value:
-    fontFamily: "Archivo, system-ui, sans-serif"
-    fontSize: "1rem"
-    fontWeight: 500
-    lineHeight: 1.4
+    lineHeight: 1.25
   body:
-    fontFamily: "Archivo, system-ui, sans-serif"
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
     fontSize: "0.9375rem"
     fontWeight: 400
-    lineHeight: 1.45
+    lineHeight: 1.5
   small:
-    fontFamily: "Archivo, system-ui, sans-serif"
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
     fontSize: "0.8125rem"
     fontWeight: 400
-    lineHeight: 1.45
+    lineHeight: 1.5
   label:
-    fontFamily: "Archivo, system-ui, sans-serif"
-    fontSize: "0.71875rem"
-    fontWeight: 600
-    lineHeight: 1.2
-    letterSpacing: "0.14em"
-    fontVariation: "'wdth' 72"
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
+    fontSize: "0.8125rem"
+    fontWeight: 500
+    lineHeight: 1.3
   button:
-    fontFamily: "Archivo, system-ui, sans-serif"
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
     fontSize: "0.9375rem"
-    fontWeight: 700
+    fontWeight: 650
     lineHeight: 1.2
   mono:
     fontFamily: "'Red Hat Mono', ui-monospace, monospace"
     fontSize: "0.8125rem"
     fontWeight: 500
-    lineHeight: 1.4
     fontFeature: "'tnum'"
-  mono-tag:
-    fontFamily: "'Red Hat Mono', ui-monospace, monospace"
-    fontSize: "0.6875rem"
-    fontWeight: 500
-    lineHeight: 1.3
-    letterSpacing: "0.06em"
 rounded:
-  sm: "4px"
-  md: "8px"
-  lg: "16px"
+  sm: "10px"
+  md: "16px"
+  lg: "24px"
+  xl: "36px"
+  hero: "44px"
   pill: "9999px"
 spacing:
   xs: "4px"
@@ -94,342 +95,124 @@ spacing:
   lg: "16px"
   xl: "24px"
   2xl: "32px"
-  3xl: "40px"
-components:
-  top-bar:
-    backgroundColor: "{colors.navy}"
-    textColor: "{colors.white}"
-    height: "64px"
-    padding: "0 40px"
-  top-nav-item:
-    textColor: "{colors.white}"
-    typography: "{typography.small}"
-    padding: "0 14px"
-  top-nav-item-active:
-    textColor: "{colors.white}"
-    typography: "{typography.small}"
-    padding: "0 14px"
-  synthetic-pill:
-    textColor: "{colors.white}"
-    typography: "{typography.mono-tag}"
-    rounded: "{rounded.pill}"
-    padding: "3px 10px"
-  button-primary:
-    backgroundColor: "{colors.hot-pink}"
-    textColor: "{colors.navy}"
-    typography: "{typography.button}"
-    rounded: "{rounded.md}"
-    padding: "12px 20px"
-    height: "44px"
-  button-primary-hover:
-    backgroundColor: "{colors.hot-pink-hover}"
-    textColor: "{colors.navy}"
-  button-primary-disabled:
-    backgroundColor: "{colors.tint}"
-    textColor: "{colors.ink-muted}"
-  button-secondary:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.navy}"
-    typography: "{typography.button}"
-    rounded: "{rounded.md}"
-    padding: "12px 20px"
-    height: "44px"
-  button-secondary-hover:
-    backgroundColor: "{colors.tint}"
-    textColor: "{colors.navy}"
-  button-quiet:
-    textColor: "{colors.navy}"
-    typography: "{typography.small}"
-    padding: "6px 10px"
-    height: "32px"
-  input:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.navy}"
-    typography: "{typography.body}"
-    rounded: "{rounded.md}"
-    padding: "9px 12px"
-    height: "40px"
-  panel:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.navy}"
-    rounded: "{rounded.lg}"
-    padding: "{spacing.xl}"
-  notice:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.navy}"
-    typography: "{typography.small}"
-    rounded: "{rounded.md}"
-    padding: "{spacing.md}"
-  confirm:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.navy}"
-    rounded: "{rounded.md}"
-    padding: "{spacing.md}"
-  pass:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.navy}"
-    rounded: "{rounded.lg}"
-  pass-stub:
-    backgroundColor: "{colors.navy}"
-    textColor: "{colors.white}"
-    padding: "{spacing.xl}"
-    width: "292px"
-  pass-stub-not-cleared:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.navy}"
-    padding: "{spacing.xl}"
-    width: "292px"
-  field-cell:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.navy}"
-    typography: "{typography.value}"
-    padding: "14px 18px"
-  field-label:
-    textColor: "{colors.ink-muted}"
-    typography: "{typography.label}"
-  tag:
-    textColor: "{colors.navy}"
-    typography: "{typography.mono-tag}"
-    rounded: "{rounded.sm}"
-    padding: "2px 8px"
-  skill-chip:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.navy}"
-    typography: "{typography.body}"
-    rounded: "{rounded.sm}"
-    padding: "4px 10px"
-  state:
-    textColor: "{colors.navy}"
-    typography: "{typography.mono-tag}"
-  table-cell:
-    textColor: "{colors.navy}"
-    typography: "{typography.body}"
-    padding: "{spacing.md}"
-  table-row-hover:
-    backgroundColor: "{colors.tint}"
-  similarity-track:
-    backgroundColor: "{colors.tint}"
-    rounded: "{rounded.sm}"
-    height: "6px"
-  similarity-fill:
-    backgroundColor: "{colors.navy}"
-    rounded: "{rounded.sm}"
-    height: "6px"
-  missing-requirement:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.navy}"
-    typography: "{typography.body}"
-    rounded: "{rounded.md}"
-    padding: "10px 12px"
-  url-box:
-    backgroundColor: "{colors.tint}"
-    textColor: "{colors.navy}"
-    typography: "{typography.mono}"
-    rounded: "{rounded.sm}"
-    padding: "8px 10px"
-  qr:
-    backgroundColor: "{colors.white}"
-    rounded: "{rounded.sm}"
-    padding: "6px"
-    size: "132px"
+  3xl: "48px"
+effects:
+  blur: "blur(22px) saturate(170%)"
+  lift: "inset 0 1px 0 rgba(255,255,255,.9), 0 24px 48px -28px rgba(16,38,107,.35), 0 2px 6px rgba(16,38,107,.06)"
+  ease-out: "cubic-bezier(0.16, 1, 0.3, 1)"
 ---
 
 # Design System: ProofSkill
 
+`web/app/globals.css` implements this file. When a token changes, change both.
+
 ## Overview
 
-**Creative North Star: "The Gate Pass"**
+**North star: "Proof, not promises."** ProofSkill turns a certificate into something a stranger can check in seconds. The interface should feel the way that check feels: calm, clear, and safe. It takes its palette and 3D language from the team's deck (royal blue, a soft pink seal, cream paper, clay-like 3D objects) and sets them in liquid glass: frosted white surfaces that float over soft colour fields, with one strong royal-blue panel per page where the story starts.
 
-Every shared credential is a pass, and verification is the gate check that clears it or stops it. The interface borrows the discipline of a boarding pass checked at a gate. It has a field grid of tracked capital labels over clear values, codes set in a mono face, and a perforated stub that carries the verdict. It never borrows travel imagery: no planes, no airport words. The world contributes only type, palette, density, and one signature move (the stub). Navigation, inputs, buttons, and tables stay standard web controls.
-
-This is a working tool for people in an office on a laptop in daylight, so the ground is light and the density is moderate. A verifier should understand the verdict, the three checks, and what the holder chose to share within seconds, then press one button to read a skill-fit recommendation. Hot pink exists only on that button. Everything else is navy and white.
-
-The same pass appears in all three portals: the issuer's credential page, the holder's credential page, and the verifier's result. Only the stub's content changes: the issuer and holder see the registry status, the verifier sees the verdict and its three checks. A credential therefore looks like the same object wherever it is seen.
-
-**Key Characteristics:**
-- White ground, navy structure, and a single hot-pink action. The color split follows the user's 60/30/10 rule.
-- Field grid with drawn hairline cell rules. Alignment itself reads as precision.
-- A perforated stub with notched ends holds the verdict and the three checks: integrity, issuer, and status. Solid navy when cleared, white with a hatched band when not.
-- Plain-English sentences next to verbatim API enums (VALID, REVOKED, TAMPERED, ISSUER_UNAUTHORIZED, ACTIVE, REKOMENDASI).
-- Flat surfaces with no shadows or gradients. Browser surfaces (selection, caret, scrollbar, focus) are themed in the same two inks.
+- **Glass for what floats, white for what you read.** Navigation, panels, passes, and hero readouts are frosted glass with a bright top edge. Reading surfaces (inputs, the confirmation region, share results) are near-solid white, so text never sits on busy blur.
+- **One bold place per page.** On the landing page it is the royal-blue hero with the huge "Proof, not promises." and the 3D certificate. In the portals it is the pass's stub. Everything around it stays quiet.
+- **Safety is shown, not claimed.** The landing page says exactly what goes on the registry and what never does. The verifier sees three separate checks with reasons, not a badge.
 
 ## Colors
 
-The palette has two inks on paper and one signal reserved for pressing.
+- **Ink** (#0E1A3B): all body text, the dark skill-fit band, check rings, and the hatching on a not-cleared stub. **Ink 2** (#3B4566) is secondary text, and **Ink 3** (#5F6887, 4.9:1 on white) is labels, helper lines, and "Not shared".
+- **Royal** (#2453D6) is the brand: the hero and sign-in panels, the cleared stub, the avatar, active status, links, and focus rings. **Royal 600 / 900** shade it, and **Royal 50** (#EEF2FD) tints chips, selected options, and good-news notices.
+- **Seal** (#F7A8C4) is the deck's pink seal. It marks the REKOMENDASI tag and warms the blue panels as a soft radial glow. It never marks an action.
+- **Action** (#FF7AAE, hover #FF93BD) is the one button to press, always with Ink text (7.3:1). White text on it is not allowed.
+- **Paper** (#E9EFFC) is a light blue page ground. Generated 3D shapes (`shapes`, `arch`, `tiles`) sit fixed behind it so the glass has colour to refract.
 
-### Primary
-- **Gate Navy** (#0F1B3D): structure and voice. Used for the top bar, the cleared stub, all body and value text, pass outlines, table header rules, similarity fills, the QR modules, text selection, the caret, and focus rings. It covers roughly 30% of any screen.
+### Named rule
+**The Solid Colour Rule.** Colour comes from solid fills and the 3D art, not gradient washes. Royal panels are flat royal with a faint ledger grid; the only gradients left are that grid's lines and the loading shimmer.
 
-### Secondary
-- **Signal Pink** (#FF3D8B): the one action to press, and nothing else. It appears on the primary button only, at most once per work area, about 10% of the screen at most. Button text on it is Gate Navy (5.06:1). White text on Signal Pink fails contrast (3.34:1) and is not allowed.
-- **Signal Pink Hover** (#FF5C9E): the primary button's hover state. It is lighter, not darker, so navy text keeps 5.85:1.
+### Named rules
+**The One Press Rule.** Action pink appears on the single control that moves the task forward in each work area: Sign in, Issue credential, Create share link, Check skill fit, or Revoke credential (only inside its confirmation region). A disabled action keeps the colour at 45% opacity and loses its glow.
 
-### Neutral
-- **Paper White** (#FFFFFF): the ground and every card, pass, panel, and not-cleared stub. It covers roughly 60% of any screen.
-- **Muted Ink** (#575F77): secondary text, field labels, helper lines, placeholders, and "Withheld" or "Not shared" values. It is 70% navy in white, at 6.35:1 on white.
-- **Control Edge** (#878D9E): borders of inputs and other controls a user must find, and the scrollbar thumb. It is 50% navy in white, at 3.32:1 on white.
-- **Rule** (#D9DBE0): decorative hairlines between field cells, table rows, and list rows, and the panel border. It is 16% navy in white and never marks a control boundary.
-- **Tint** (#F3F4F5): quiet surfaces: similarity tracks, the share URL box, table row hover, the secondary button hover, the scrollbar track, loading skeletons, and the disabled button. It is 5% navy in white.
-
-On navy, secondary text is Paper White at reduced opacity rather than a new color: nav items and Sign out at 72%, the portal name at 80%, stub labels at 75%, the cleared stub's perforation at 55%, the Synthetic data pill outline at 45%, and check-row rules at 25%.
-
-### Named Rules
-**The 60/30/10 Rule.** Paper White carries about 60% of every screen, Gate Navy about 30%, and Signal Pink 10% at most, only on the button the user should press. Measure it on every screen before it ships.
-
-**The One Press Rule.** Signal Pink marks the single action that moves the task forward: "Sign in", "Issue credential", "Create share link", "Check skill fit", or "Revoke credential" (the last only inside its confirmation region). It never colors links, status, icons, focus rings, charts, or decoration. A disabled or unavailable action loses the pink entirely.
-
-**The Diluted Navy Rule.** Every neutral is Gate Navy diluted in white (5%, 16%, 50%, or 70%), and every secondary tone on navy is white at an opacity. No other gray and no other hue enters the palette.
-
-**The Two-Ink State Rule.** Verification and request states use words, icons, and fill, not new hues. A cleared credential gets a solid navy stub and filled dots. A credential that is not cleared gets a white stub with a band of 45° navy hatching (22% opacity) behind its verdict or status word, and hollow rings on the failed checks. Red, green, and amber are not part of this system.
+**The No Traffic Light Rule.** States are words, icons, and fill, never red, green, or amber. A cleared credential gets a royal stub with filled dots. A credential that is not cleared gets a white stub with ink hatching behind its verdict word and hollow rings on the failed checks.
 
 ## Typography
 
-**Display, Body, and Label Font:** Archivo (variable width and weight, loaded with its `wdth` axis, with system-ui as fallback)
-**Mono Font:** Red Hat Mono (with ui-monospace as fallback)
+**Plus Jakarta Sans** (chosen 2026-11-20 for a modern, clean voice; designed in Jakarta) carries everything human. Display lines are set heavy (800) and tight (-0.035 to -0.045em). **Red Hat Mono** is only for machine values: IDs, hashes, tokens, timestamps, and check states.
 
-**Character:** Archivo's width axis does the work a boarding pass needs. Labels are condensed and tracked, while codes and the verdict are set wide and heavy. Red Hat Mono keeps machine values (IDs, hashes, tokens, timestamps) calm and compact, with tabular figures.
-
-### Hierarchy
-- **Verdict** (800, up to 4rem, width 125, line-height 1): only the verification result word in the verifier's stub. It scales to the stub's width: the stub is a size container and the word is set at the smaller of 4rem and the stub width divided by the word's estimated width in em (per-letter estimate with 10% slack). An enum may break only after "_".
-- **Code display** (800, up to 2.875rem, width 120, line-height 1, -0.01em): the pass's code pair, issuer code to credential code (ISS-001 → CRD-0001). It shrinks with its column (at most 15% of the column width) and never wraps. The sign-in lead line uses the same face at 2.875rem.
-- **Status word** (800, up to 2.875rem, width 120, line-height 1): ACTIVE or REVOKED in the registry stub on issuer and holder views. It scales and breaks like the verdict.
-- **Brand** (800, 1.375rem, width 115): the ProofSkill wordmark in the top bar.
-- **Title** (700, 1.375rem, width 108, line-height 1.3, balanced wrapping): work-area and panel titles such as "Revoke this credential".
-- **Value** (500, 1rem, line-height 1.4): field values on the pass and in detail views.
-- **Body** (400, 0.9375rem, line-height 1.45): sentences, inputs, and table rows. Keep lines at 75ch or less.
-- **Small** (400, 0.8125rem, line-height 1.45): helper text, limitations, check reasons, notices, and navigation items.
-- **Label** (600, 0.71875rem, width 72, letter-spacing 0.14em, uppercase): every field label, every table header, the portal name, and the single stub label.
-- **Mono** (500, 0.8125rem, tabular figures): IDs (CRD-, ISS-, SHL-, VER-, MAT-, HLD-, SK-), hashes, share URLs, and timestamps.
-- **Mono tag** (500 to 600, 0.6875rem, letter-spacing 0.06em, uppercase): tags (REKOMENDASI, AI · GEMINI MODELS), check states (PASS, FAIL, ACTIVE, REVOKED), table status words, and the Synthetic data pill.
-
-### Named Rules
-**The Label-Over-Value Rule.** Every field is a tracked capital label above its value, never "Label: value" on one line. Values align on a shared baseline.
-
-**The Mono-for-Machines Rule.** Anything a machine issued (IDs, hashes, tokens, UTC timestamps) is set in Red Hat Mono. Human words are never set in mono. Long hashes are truncated in the middle (`0x0b9e242b…9ce3`), with the full value available to copy.
-
-**The No-Eyebrow Rule.** No tag or label sits above a heading. Technology markers ride inside the content they mark: the stub's single label names the blockchain registry, and the AI · GEMINI MODELS tag sits in the REKOMENDASI row of the model's output, never above a panel title.
+- Display headlines may use a two-tone line: the second line at 55% white on blue, or 32% ink on paper ("Three steps. Zero admin emails."). That is the only typographic accent; single words are never highlighted.
+- Labels are sentence case at 0.8125rem, weight 500, in Ink 3. No all-caps tracked eyebrows.
+- Body lines stay under about 64 characters.
 
 ## Layout
 
-The signed-in shell is a navy top bar 64px tall: the ProofSkill wordmark, the portal name (Issuer portal, Holder portal, or Verifier portal), portal navigation, and on the right a Synthetic data pill, the account name, and a Sign out text button. The content area below has 40px side padding (16px on phones), 24px top padding, and 40px bottom padding. Pages open with a page head (title and one sentence, with the page's primary action aligned to the bottom right) or a breadcrumb in Small Muted Ink with the current ID in mono.
+- **Top bar:** a floating glass pill, sticky 12px from the top, max 1280px wide. Brand mark and wordmark, the portal name chip, a segmented nav (white pill on the active item), then Synthetic data and the account button (avatar, name, chevron) on the right. The account button opens a small menu with the username, the role, and a translucent pink-red Sign out pill; Sign out always asks once in a modal dialog (Cancel / Sign out) before it signs out and returns to `/`. Signed-out pages show a pink Sign in instead, except on `/signin` and on a share link's page, which has its own inline sign-in. Below 1024px the nav moves to a second row; below 768px section anchors and the account name hide (the avatar stays, since it is the way to sign out) so the bar stays one row.
+- **Landing (`/`):** hero panel (44px radius, ledger grid, 3D certificate with floating glass readouts) → "How it works" as three numbered steps with 3D art (a real sequence: Issue, Share, Verify) → the dark skill-fit band → "Safe by design" (on the registry vs. never on the registry, then four rules) → demo band with one chip per role → footer.
+- **Sign in (`/signin`):** blue panel with the certificate on the left, a glass form on the right. Demo accounts are grouped by role with their 3D art. Picking one fills the username and focuses the password. `?u=<username>` does the same on arrival, and `?next=` returns to the page that asked for sign-in.
+- **Portals:** a solid royal canopy (330px, grid lines, 44px bottom radius) sits behind the top bar and the page head, which turns white on it. The glass content below overlaps the canopy's edge. The page head has the role's 3D art (84px), a title, and one sentence, with the primary action on the right. The verify page shows the canopy once a verifier is signed in. Two work areas at most: a fluid main area and a 480px side panel (420px below 1280px, stacked below 1024px).
+- **Breakpoints:** 1280, 1024, and 768px. Below 768px the stub sits above the pass body so the verdict is read first on a phone.
 
-Each screen has at most two work areas side by side: a fluid main area and a 500px side panel, with a 32px gap. On the verifier result page, the pass fills the main area and the skill-fit panel is the side panel. On issuer and holder screens, the main area holds a table or the pass, and the side panel holds its actions (revoke, share links).
+## Surfaces and depth
 
-The spacing rhythm is 4px-based: 4, 8, 12, 16, 24, 32, 40. Field cells use 14px vertical and 18px horizontal padding on each side of the cell rule. Leave more space above a section heading than below it.
+- **Glass:** `glass` fill, `blur` backdrop, 1px `glass-edge` border, and `lift` shadow (a bright inset top edge plus a long, soft royal shadow). Used for the top bar, panels, the pass, tables, holder cards, steps, and empty states.
+- **Glass on blue:** `glass-dark` with a 32% white edge, used for buttons and chips on the hero and blue panels. Hero readouts are tinted toward navy so white text holds contrast even over the cream certificate.
+- **Radii have rank:** 44px hero panels, 36px passes and feature cards, 24px panels and tables, 16px inputs and notices, 10px small chips, pill for buttons and tags.
 
-Responsive behavior:
-- **1280px and up:** two work areas, a 500px side panel and a 292px stub. The reference frame is 1440 × 900.
-- **1024–1279px:** the side panel narrows to 420px and the stub to 260px.
-- **768–1023px:** one column. The side panel moves below the main area, and the stub stays on the pass's right edge.
-- **Below 768px:** the stub stacks above the pass body so the verdict is read first on a phone (where QR scans land). The dashed perforation becomes the stub's bottom border, and the notches sit at its bottom corners. Field cells become one column, the code pair stacks without its arrow, the portal name and account name hide, and the primary button in a page head or panel spans the full width.
+## Motion
 
-The pass keeps one internal structure at every width; its display words scale to their containers instead of reflowing the grid.
+One orchestrated moment per page, then stillness.
 
-## Elevation & Depth
+- **Show up:** every page's top-level blocks rise 18px from a 10px blur over 700ms on `ease-out`, staggered by 70ms. The second work area follows 160ms later.
+- **Hero:** the two headline lines ("Proof," and "not promises.", never wrapped) rise in turn, the certificate settles in from a slight tilt without blur and then drifts slowly (8s loop), and the glass readouts arrive last.
+- **Verdict:** the verdict word lands with one stamp (scale 1.18 → 1 with blur), then the three checks rise in order. This is the only flourish in the portals.
+- **Results:** similarity bars grow from the left, and a new share link or skill-fit result scrolls itself into view.
+- **Scroll:** landing sections reveal with a scroll-driven `animation-timeline: view()` where the browser supports it, and simply show otherwise.
+- `prefers-reduced-motion` turns every animation and smooth scroll off.
 
-The system is flat. Depth comes from two things only: solid navy fills (the top bar and the cleared stub) against Paper White, and rules (hairlines, the 1.5px pass outline, and the dashed perforation). No element casts a shadow, and no surface uses a gradient or blur. The secondary button draws its 1.5px navy border as an inset box-shadow so it does not change the button's size; that is a border, not elevation. Focus is shown with a 2px Gate Navy outline offset by 2px. On navy surfaces (the top bar and the cleared stub), the outline is Paper White.
+## 3D art
 
-### Named Rules
-**The Flat Gate Rule.** No shadows and no gradients. A surface is either paper or navy, and the line between them is a rule or a perforation.
-
-## Shapes
-
-- **Large radius (16px):** passes, panels, and the sign-in account grid.
-- **Medium radius (8px):** buttons, inputs, notices, the confirmation region, and dashed callouts.
-- **Small radius (4px):** tags, skill chips, similarity bars, the URL box, the QR frame, and the hatched band behind a not-cleared verdict.
-- **Pill:** only the top bar's Synthetic data pill.
-
-Pass outlines are 1.5px Gate Navy. Field-cell rules and row dividers are 1px Rule. Input borders are 1px Control Edge (2px Gate Navy when invalid). Notices carry a 2px navy border.
-
-**The perforation is the signature shape.** It is a 2px dashed line between the pass body and its stub, with a 24px circular notch (Paper White, 1.5px navy edge) cut at each end of the line.
-
-**The Line Weight Rule.** Each border style has one meaning. Dashed 1px navy means "not covered": missing-requirement callouts and empty states only. Solid 1.5px navy encloses an object or an irreversible step: the pass, the account grid, the secondary button, and the revoke confirmation region. Solid 2px navy marks something that needs attention: notices and invalid inputs.
+Thirteen clay-style objects in the deck's palette, in `web/public/art/` as transparent WebP (about 40 KB each). `certificate` comes from the deck. The rest were generated with Figma AI (file "ProofSkill web assets") and cut out of their white ground: `issuer` (stamp), `holder` (phone with QR), `verifier` (magnifier and shield), `chain` (linked cubes), `privacy` (padlock), `match` (puzzle), `empty` (tray), `audit` (clipboard), `closed` (broken link and hourglass), and three abstract background pieces, `shapes`, `arch`, and `tiles`. The art illustrates a role or a state and never carries information the text does not also give, so every image has empty alt text.
 
 ## Components
 
-### Buttons
-- **Shape:** gently rounded (8px), at least 44px tall, with 12px × 20px padding.
-- **Primary:** Signal Pink with Gate Navy text in Archivo 700. Use one per work area, only for the action that advances the task. In a form panel it spans the panel's width.
-- **Hover / Focus:** hover lightens to Signal Pink Hover. Focus adds a 2px navy outline offset by 2px. Pressing shifts the button 1px down. Transitions take 150ms ease-out, and there is no motion under `prefers-reduced-motion`.
-- **Disabled / Unavailable:** Tint background with Muted Ink text and no pink. When an action is impossible in the current state, for example skill fit on a result that is not VALID, remove the button and explain why in one sentence instead.
-- **Secondary:** Paper White with a 1.5px navy border and navy text; hover fills with Tint. Use it for Cancel, Review revocation, Copy link, and Go to sign in.
-- **Quiet:** an underlined navy text button in Small 600, 32px tall, for row-level and utility actions: Copy and Revoke on a share-link row, and Download QR. Sign out in the top bar is the same pattern in white at 72%.
-- **Irreversible actions:** "Revoke credential" starts as a secondary "Review revocation" button. It opens an inline confirmation region with a 1.5px solid navy border that restates the consequence ("The next verification of CRD-0001 will read REVOKED. This cannot be undone.") and quotes the reason the admin entered. The pink button commits only from that region, next to a secondary Cancel. Editing the reason closes the region.
-
 ### Pass (signature component)
-The pass is one object, the credential, with the same structure everywhere.
-- **Body:** Paper White inside a 1.5px navy outline with a 16px radius. At the top is the code pair (Issuer label, issuer code, issuer name → Credential label, credential code, issue detail) over a 1px Rule. Below it are ruled two-column field cells: program, completed date, link expiry, pass criteria, skills, and the scope the holder shared. Full-width cells span both columns.
-- **Stub:** sits across the perforation and carries exactly one label, then the display word, one plain-English sentence, and the chain reference in mono at the bottom. There is no chip or tag above the display word.
-- **Verification stub (verifier):** label "Blockchain registry · checked {UTC time}" (the time never breaks), the verdict, its sentence, the three check rows (Integrity, Issuer, Status: dot or ring, name, reason in Small, and the check state in mono tag), then the transaction hash and VER- ID.
-- **Registry stub (issuer and holder):** label "Blockchain registry status", the status word ACTIVE or REVOKED, a sentence (anchored and active, or revoked by whom, when, and why), then the commitment and transaction hash.
-- **Cleared stub (VALID, ACTIVE):** solid Gate Navy with white text, white-at-75% label, and filled check dots.
-- **Not-cleared stub (REVOKED, TAMPERED, ISSUER_UNAUTHORIZED):** Paper White with a band of 45° navy hatching behind the verdict or status word. A failed check shows a hollow ring instead of a filled dot. Credential fields the API withholds (TAMPERED returns no credential data) render as "Withheld" in Muted Ink, and fields outside the share scope as "Not shared", never as empty cells.
-- **Fixed cells:** a state change restyles a cell in place and never reflows the pass.
-- **Mirrored rows:** each claim on the body lines up with the check that confirms it on the stub.
+The credential is one object in all three portals: a glass body and a stub across a dashed perforation.
+- **Body:** the code pair (issuer code → credential code), then ruled two-column field cells. Fields the API withholds read "Withheld" and fields outside the share scope read "Not shared", in italic Ink 3, never as empty cells.
+- **Registry stub (issuer, holder):** "Blockchain registry status", the status word, one sentence, then commitment and transaction hash in mono.
+- **Verification stub (verifier):** "Blockchain registry · checked {UTC}", the verdict, one sentence, the three checks (Integrity, Issuer, Status) with reasons and states, then the transaction hash and VER- ID.
+- **Cleared (VALID, ACTIVE):** solid royal, white text, filled dots. **Not cleared (REVOKED, TAMPERED, ISSUER_UNAUTHORIZED):** white with hatching behind the word and rings on failed checks.
 
-**Verdict sentence patterns.** These explain without accusing the holder:
+Verdict sentences never accuse the holder:
 - **VALID:** "Issued by an authorized issuer, unchanged since issuance, and still active. You can rely on it and check skill fit."
 - **REVOKED:** "The issuer revoked this credential. Reason: {reason}. Do not rely on it for this application."
 - **TAMPERED:** "The credential data no longer matches what the issuer recorded, so its details are withheld. Ask the holder for a new link."
 - **ISSUER_UNAUTHORIZED:** "The issuer of this credential is not authorized on the registry, so it cannot be relied on."
 
-### Tags and states
-- **Tags:** transparent with a 1px outline in the current text color, Red Hat Mono uppercase, 4px radius.
-- **REKOMENDASI row:** the first line of any AI output is a row with the REKOMENDASI tag, the AI · GEMINI MODELS tag, and "A recommendation, not a decision. No total score." in Small Muted Ink, over a 1px Rule.
-- **Status in tables and lists:** the status word in mono tag next to a 10px filled dot (active) or hollow ring (revoked).
-- **Skill chips:** a 1px navy outline at 4px radius, the skill label in Body with its SK- ID in Muted Ink mono beside it.
+### Buttons
+Pill-shaped, at least 46px tall. **Primary:** action pink with ink text and a pink glow, lifting 1px on hover and scaling to 0.97 on press. **Secondary:** frosted white with a `line-strong` border. **On dark:** `glass-dark` for blue panels. **Quiet:** text-only for row actions (Copy, Revoke, Download QR). An irreversible revocation always passes through an inline confirmation region (1.5px ink border) that restates the consequence before the pink button commits.
 
-### Inputs / Fields
-- **Style:** Paper White with a 1px Control Edge border, 8px radius, at least 40px tall. Text areas grow from 76px and resize vertically. Selects share the input style. Checkboxes are 18px with a navy accent.
-- **Labels:** a tracked capital Label above every input, with a character count or helper line in Small Muted Ink below it where useful.
-- **Focus:** the border turns Gate Navy and gains a 2px navy outline offset by 2px.
-- **Error:** the border turns Gate Navy at 2px. A hollow-ring icon and a plain-English message sit under the field and quote the API's error code (for example `INVALID_POSITION_TEXT`). There is no red.
-- **Notices:** request-level errors are a 2px navy box with an 8px radius, a ring icon, a bold one-line title, and the API message with its code.
+### Inputs
+16px radius, at least 48px tall, near-white fill. Focus turns the border royal with a 4px royal halo. Errors use a 2px ink border, a ring icon, a plain sentence, and the API code verbatim; there is no red. Checkbox options are full-width rows that turn Royal 50 when checked. The issue form offers the seeded holder references as one-click chips.
 
-### Skill-fit results
-- **Matched row:** the skill label, the quoted position requirement it matched and the reason (both Small Muted Ink), a 6px similarity bar (Tint track with navy fill), and the per-pair similarity in mono. There is never a total score or a ranking.
-- **Bar motion:** each fill grows once from the left (scaleX, 600ms, ease-out) when the result arrives; under `prefers-reduced-motion` it appears at full width.
-- **Missing requirement:** a dashed 1px navy callout with an 8px radius that begins "Not covered:" and names the uncovered requirement.
-- **Footer:** the limitations as a Small Muted Ink list, then the MAT- ID and model version in mono.
+### Tags and status
+- REKOMENDASI is a seal-pink mono tag, always beside "AI Gemini models" and the sentence "A recommendation, not a decision. No total score."
+- Status in lists is a pill: `active` in Royal 50 with a filled dot, `revoked` outlined with a ring.
+- Skill chips are Royal 50 pills with the SK- ID in mono.
 
-### Share links
-- **Create:** scope checkboxes for what the holder shares, a lifetime select (1, 3, 7, or 30 days), and the pink "Create share link" button.
-- **Result:** a 132px QR code (navy modules on white, rendered in the browser so the token never leaves the page) in a 1px Rule frame with a quiet Download QR button, beside the URL in mono on a Tint box and a secondary Copy link button.
-- **List:** each existing link is a row over a 1px Rule with its scope, expiry or revocation time, and quiet Copy and Revoke buttons.
-
-### Navigation
-- **Top bar:** Gate Navy, 64px. Nav items fill the bar's height and are white at 72% in Small type; hover turns them full white.
-- **Active item:** full white with a 2px white bottom border.
-- **Below 1024px:** the nav moves to a second 44px row inside the top bar, under the wordmark, and scrolls sideways if it must. It is never hidden.
-- **Synthetic data pill:** Red Hat Mono in a 1px white-at-45% outline, always visible while the prototype runs on synthetic data.
-
-### Panels and tables
-- **Panels:** Paper White with a 1px Rule border, 16px radius, and 24px padding. A panel head stacks the title over one Small Muted Ink sentence.
-- **Tables (issuer credential list, holder credential list, audit log):** tracked capital Label headers over a 1.5px navy rule, 1px Rule row dividers, Tint on row hover, IDs and times in mono with tabular figures, and status as a word plus dot or ring. Audit rows show time, actor role, operation, object ID, and outcome only, never payload content.
-- **Empty states:** a dashed 1px navy box with 24px padding, a title, one sentence, and at most one secondary action.
-- **Loading:** Tint skeleton blocks at 4px radius in place of the content.
+### Lists, cards, empty states
+- Issuer credentials and the audit log are glass tables (IDs and times in mono).
+- Holder credentials are cards that lift 3px on hover, because a person scans a handful rather than a ledger.
+- Empty and error states are glass blocks with a 3D object, a title, one sentence, and at most one action that says what to do next.
 
 ## Do's and Don'ts
 
-### Do:
-- **Do** keep Signal Pink (#FF3D8B) on exactly one action per work area, with Gate Navy text on it.
-- **Do** pair every verdict enum with its plain-English sentence and show the three checks separately with their reasons.
-- **Do** keep the Synthetic data pill visible on every screen while demo data is in use.
-- **Do** show only the fields inside the holder's share scope, and say "Not shared" for anything outside it.
-- **Do** name the blockchain registry in the stub's single label, and put the AI · GEMINI MODELS tag in the REKOMENDASI row of model output.
-- **Do** write interface copy in English and keep API enums and error codes verbatim (VALID, REVOKED, TAMPERED, ISSUER_UNAUTHORIZED, REKOMENDASI, SHARE_LINK_EXPIRED, and so on).
-- **Do** let the verdict, status word, and codes scale to their container instead of wrapping mid-word; an enum breaks only after "_".
-- **Do** put the stub above the pass body below 768px so the verdict is read first.
-- **Do** restate an irreversible action in a 1.5px solid navy confirmation region before the pink button commits it.
+### Do
+- Keep action pink on one control per work area, with ink text.
+- Pair every verdict enum with its sentence, and show the three checks separately.
+- Keep "Synthetic data" visible while demo data is in use (in the top bar everywhere except the landing bar on phones, whose footer says it).
+- Show only fields inside the holder's scope; say "Not shared" for the rest.
+- Keep API enums and error codes verbatim in English UI copy.
+- Let the verdict, status word, and codes scale to their container; an enum breaks only after "_".
 
-### Don't:
-- **Don't** add red, green, amber, or any hue outside the eight color tokens. States are words, icons, and fill.
-- **Don't** put Signal Pink on links, focus rings, status, icons, or decoration, or keep it on a disabled action.
-- **Don't** use white text on Signal Pink (3.34:1 fails contrast).
-- **Don't** build any candidate search, browse, list, or ranking surface, and never show a total or aggregate skill score.
-- **Don't** show AI output without the REKOMENDASI tag, its limitations, and the statement that it is a recommendation, not a decision.
-- **Don't** phrase a failed verification as an accusation against the holder.
-- **Don't** place a tag, label, or chip above a heading or above the stub's display word.
-- **Don't** use dashed borders for anything except "not covered" callouts and empty states.
-- **Don't** use plane icons, airport vocabulary, or ticket illustrations. The pass is a field grid, not a picture of a ticket.
-- **Don't** add shadows, gradients, glass, or blur.
+### Don't
+- Don't use red, green, or amber for states.
+- Don't put pink on links, status, icons, or focus rings, or use white text on it.
+- Don't build candidate search, browse, ranking, or any total skill score.
+- Don't show AI output without REKOMENDASI, its limitations, and the not-a-decision line.
+- Don't put text directly on heavy blur; give it a white or navy-tinted surface.
+- Don't add gradient colour washes; use solid royal, light blue paper, and the 3D art.
+- Don't add motion that plays on its own beyond the page's show-up sequence, the hero drift, and the verdict stamp.

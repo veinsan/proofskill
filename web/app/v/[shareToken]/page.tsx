@@ -1,15 +1,18 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useRef, useState } from "react";
 import { Notice } from "@/components/notice";
 import { Pass, type PassCell, SkillChips, VerificationStub } from "@/components/pass";
-import { TopBar } from "@/components/portal-shell";
+import { Canopy, TopBar } from "@/components/portal-shell";
 import { SkillFitPanel } from "@/components/skill-fit";
 import { api, type ApiError, type ApiResult, type VerificationResult } from "@/lib/api";
+import { DEMO_GROUPS } from "@/lib/demo";
 import { formatDate, middle } from "@/lib/format";
 import { type Session, signIn, signOut, useSession } from "@/lib/session";
 import { useApi } from "@/lib/use-api";
+
+const VERIFIERS = DEMO_GROUPS.find((group) => group.role === "Verifier")?.accounts ?? [];
 
 const LINK_ERRORS: Record<string, { title: string; body: string }> = {
   SHARE_LINK_NOT_FOUND: {
@@ -65,6 +68,7 @@ function VerifierSignIn({ shareToken, session }: { shareToken: string; session: 
   const [password, setPassword] = useState("");
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -81,24 +85,46 @@ function VerifierSignIn({ shareToken, session }: { shareToken: string; session: 
 
   return (
     <div className="signin">
-      <section className="stack">
-        <h1 className="signin__lead">A holder shared a credential with you.</h1>
-        <p className="prose muted">
-          Sign in with a free verifier account to check it against the blockchain registry: integrity, issuer, and status, without
-          contacting the issuer. You will see only the fields the holder chose to share.
-        </p>
-        <p className="mono muted">Link {middle(shareToken, 7, 4)}</p>
+      <section className="signin__panel" aria-labelledby="verify-lead">
+        <div className="stack">
+          <h1 className="signin__lead" id="verify-lead">
+            A holder shared a credential with you.
+          </h1>
+          <p>
+            Sign in with a free verifier account to check it against the blockchain registry: integrity, issuer, and status, without
+            contacting the issuer. You will see only the fields the holder chose to share.
+          </p>
+          <p className="mono">Link {middle(shareToken, 7, 4)}</p>
+        </div>
+        <img className="signin__art" src="/art/verifier.webp" alt="" width={340} height={306} />
       </section>
-      <section className="panel" aria-labelledby="verifier-signin">
+      <section className="panel signin__form" aria-labelledby="verifier-signin">
         <div className="panel__head">
           <h2 className="title" id="verifier-signin">
             Sign in as a verifier
           </h2>
           {session ? (
-            <p className="small muted">
-              You are signed in as {session.username}, which is not a verifier account.
-            </p>
-          ) : null}
+            <p className="small muted">You are signed in as {session.username}, which is not a verifier account.</p>
+          ) : (
+            <p className="small muted">Pick a demo verifier, then enter the shared demo password.</p>
+          )}
+        </div>
+        <div className="accounts__chips" role="group" aria-label="Demo verifiers">
+          {VERIFIERS.map((account) => (
+            <button
+              key={account.username}
+              type="button"
+              className="account-chip"
+              aria-pressed={username === account.username}
+              onClick={() => {
+                setUsername(account.username);
+                passwordRef.current?.focus();
+              }}
+            >
+              <span className="mono">{account.username}</span>
+              <span className="small">{account.note}</span>
+            </button>
+          ))}
         </div>
         <form className="stack" onSubmit={submit} noValidate>
           <label className="field">
@@ -107,7 +133,14 @@ function VerifierSignIn({ shareToken, session }: { shareToken: string; session: 
           </label>
           <label className="field">
             <span className="label">Password</span>
-            <input className="input" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <input
+              ref={passwordRef}
+              className="input"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
           </label>
           {error ? <Notice error={error} /> : null}
           <button className="btn btn--primary btn--block" type="submit" disabled={busy || !username || !password}>
@@ -138,15 +171,16 @@ function Verification({ shareToken, session }: { shareToken: string; session: Se
   if (result.state === "loading") {
     return (
       <div className="workspace" aria-busy="true">
-        <div className="skeleton" style={{ height: 600, borderRadius: 16 }} />
-        <div className="skeleton" style={{ height: 600, borderRadius: 16 }} />
+        <div className="skeleton" style={{ height: 600 }} />
+        <div className="skeleton" style={{ height: 600 }} />
       </div>
     );
   }
   if (result.state === "error") {
     const known = LINK_ERRORS[result.error.code];
     return (
-      <div className="empty" style={{ maxWidth: 720 }}>
+      <div className="empty" style={{ maxWidth: 720, marginInline: "auto" }}>
+        <img src={`/art/${result.error.code === "REGISTRY_UNAVAILABLE" ? "chain" : "closed"}.webp`} alt="" width={132} height={99} />
         <h1 className="title">{known?.title ?? "The credential could not be checked"}</h1>
         <p className="prose">{known?.body ?? result.error.message}</p>
         <p className="mono muted">
@@ -167,8 +201,10 @@ function Verification({ shareToken, session }: { shareToken: string; session: Se
   return (
     <>
       <p className="crumb">
-        Verifications / <b className="mono">{verification.verificationId}</b> · opened from share link{" "}
-        <span className="mono">{middle(shareToken, 7, 4)}</span>
+        <span>
+          Verification <b className="mono">{verification.verificationId}</b>, opened from share link{" "}
+          <span className="mono">{middle(shareToken, 7, 4)}</span>
+        </span>
       </p>
       <div className="workspace">
         <Pass
@@ -189,14 +225,16 @@ function Verification({ shareToken, session }: { shareToken: string; session: Se
 export default function VerifyPage() {
   const { shareToken } = useParams<{ shareToken: string }>();
   const session = useSession();
+  const verifier = session?.role === "verifier";
   return (
-    <>
+    <div className={verifier ? "portal" : undefined}>
+      {verifier ? <Canopy /> : null}
       <TopBar portal="verifier" session={session} />
       <main className="page">
         {session === undefined ? <div className="skeleton" style={{ height: 320 }} aria-busy="true" /> : null}
         {session !== undefined && session?.role !== "verifier" ? <VerifierSignIn shareToken={shareToken} session={session} /> : null}
         {session?.role === "verifier" ? <Verification shareToken={shareToken} session={session} /> : null}
       </main>
-    </>
+    </div>
   );
 }

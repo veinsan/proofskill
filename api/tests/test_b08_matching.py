@@ -13,7 +13,7 @@ from app import ams, config, db, seed
 from scripts import eval_matching
 from tests.conftest import ISSUE_REQUEST
 from tests.test_a04_auth_rbac import assert_error
-from tests.test_a10_matching import FRONTEND, SECURITY, FakeGemini, gemini, match, valid_verification  # noqa: F401  (fixture)
+from tests.test_a10_matching import FRONTEND, SECURITY, FakeGemini, gemini, live_match, match, valid_verification  # noqa: F401  (fixture)
 
 Conn = db.psycopg.Connection[db.DictRow]
 SHARED = sorted(ISSUE_REQUEST["skills"])  # type: ignore[arg-type]
@@ -115,10 +115,37 @@ def test_b08_judge_cannot_pick_a_skill_that_was_not_a_candidate(monkeypatch: pyt
 # --- Labeled fallbacks -------------------------------------------------------------------
 
 
+def test_b08_backup_judge_answers_when_the_chosen_one_does_not(client: TestClient, conn: Conn, gemini: FakeGemini) -> None:
+    verification_id = valid_verification(client)
+    gemini.judge_down = {ams.JUDGE_MODEL}
+    body = match(client, verification_id).json()
+    assert [c["url"] for c in gemini.judge_calls] == [f"{ams.GEMINI_API}/{m}:generateContent" for m in (ams.JUDGE_MODEL, ams.JUDGE_BACKUP)]
+    assert gemini.judge_calls[0]["json"] == gemini.judge_calls[1]["json"]  # the same question, nothing more
+    assert body["modelVersion"] == f"{ams.MODEL_VERSION} + {ams.JUDGE_BACKUP} judge"
+    assert body["limitations"] == ams.limitations_judged(ams.JUDGE_BACKUP) and ams.JUDGE_BACKUP in body["limitations"][2]
+    assert body["matchedSkills"] and all(m["reason"].startswith("Shares a word with") for m in body["matchedSkills"])
+    stored = conn.execute("SELECT model_version FROM matchings").fetchone()
+    assert stored == {"model_version": body["modelVersion"]}
+
+
+def test_b08_judges_get_short_timeouts(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: list[tuple[str, float]] = []
+
+    def failing(requirements: Any, skills: Any, candidates: Any, model: str, timeout: float) -> list[ams.Verdict]:
+        seen.append((model, timeout))
+        raise ams.JudgeFailed("ReadTimeout")
+
+    monkeypatch.setattr(ams, "judge", failing)
+    with pytest.raises(ams.JudgeFailed):
+        ams.judged(["r"], [{"label": "A", "aliases": []}], [[(0.9, "A")]], "emb")
+    assert seen == [(ams.JUDGE_MODEL, 8.0), (ams.JUDGE_BACKUP, 15.0)]
+
+
 def test_b08_judge_down_falls_back_to_embedding_only_and_says_so(client: TestClient, conn: Conn, gemini: FakeGemini) -> None:
     verification_id = valid_verification(client)
-    gemini.judge_status = 429
+    gemini.judge_status = 429  # both judge models
     body = match(client, verification_id).json()
+    assert len(gemini.judge_calls) == 2
     assert body["label"] == "REKOMENDASI"
     assert body["modelVersion"] == f"{ams.MODEL_VERSION}; judge unavailable, embedding only"
     assert body["limitations"] == ams.LIMITATIONS_EMBEDDING_ONLY
@@ -136,6 +163,7 @@ def test_b08_judge_down_prefers_a_cached_judged_result(client: TestClient, gemin
     assert body["modelVersion"] == f"{entry['modelVersion']} · cached 2026-11-20"
     assert body["matchedSkills"] == entry["matchedSkills"]
     assert "computed earlier (2026-11-20)" in body["limitations"][-2]
+    assert body["limitations"][2] == ams.limitations_judged(ams.JUDGE_MODEL)[2]  # names the model that judged it
 
 
 def test_b08_gemini_down_serves_the_cached_result_with_its_label(client: TestClient, conn: Conn, gemini: FakeGemini, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -184,7 +212,7 @@ def test_b08_committed_cache_is_consistent_and_holds_no_identity() -> None:
         assert set(entry) == {"skills", "description", "matchedSkills", "missingRequirements", "modelVersion", "computedAt"}
         assert key == ams.cache_key(entry["skills"], entry["description"])
         assert entry["description"] in descriptions and all(s in catalog for s in entry["skills"])
-        assert f"+ {ams.JUDGE_MODEL} judge" in entry["modelVersion"], "rebuild the cache after changing the judge"
+        assert any(f"+ {m} judge" in entry["modelVersion"] for m in (ams.JUDGE_MODEL, ams.JUDGE_BACKUP)), "rebuild the cache after changing the judge"
         requirements = ams.split_requirements(entry["description"])
         covered = [m["requirement"] for m in entry["matchedSkills"]] + [m["requirement"] for m in entry["missingRequirements"]]
         assert sorted(covered) == sorted(requirements)
@@ -223,3 +251,20 @@ def test_b08_scoring_counts_a_wrong_skill_as_a_false_match_and_a_miss() -> None:
     assert m["precision"] == round(2 / 4, 4) and m["recall"] == round(2 / 4, 4) and m["f1"] == 0.5
     assert m["accuracy"] == round(3 / 6, 4)
     assert eval_matching.metrics(["TN"])["f1"] == 0.0
+
+
+def test_b08_real_tc08_skips_on_an_outage_and_fails_on_a_bad_answer(
+    client: TestClient, gemini: FakeGemini, caplog: pytest.LogCaptureFixture
+) -> None:
+    """The helper behind the real-Gemini TC-08: an outage must never count as a pass, a broken answer must fail."""
+    verification_id = valid_verification(client)
+    assert live_match(client, verification_id, SECURITY, caplog)["modelVersion"].endswith(" judge")
+    gemini.judge_status = 503
+    with pytest.raises(pytest.skip.Exception):
+        live_match(client, verification_id, SECURITY, caplog)
+    gemini.judge_status, gemini.judge_text = 200, "not json"
+    with pytest.raises(pytest.fail.Exception):
+        live_match(client, verification_id, SECURITY, caplog)
+    gemini.judge_text, gemini.status = None, 429  # embeddings down, no cached result
+    with pytest.raises(pytest.skip.Exception):
+        live_match(client, verification_id, SECURITY, caplog)

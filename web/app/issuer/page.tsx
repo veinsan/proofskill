@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Notice } from "@/components/notice";
-import { PortalShell } from "@/components/portal-shell";
+import { PageHead, PortalShell } from "@/components/portal-shell";
 import { StatusState } from "@/components/status-state";
 import { api, type CredentialSummary, type Page } from "@/lib/api";
 import { formatDate, formatDateTime } from "@/lib/format";
@@ -13,23 +13,28 @@ function IssuedCredentials({ session }: { session: Session }) {
   const { result } = useApi(() => api<Page<CredentialSummary>>("/issuers/me/credentials?limit=200", { token: session.token }), session.token);
   return (
     <>
-      <div className="page-head">
-        <div>
-          <h1 className="title">Issued credentials</h1>
-          <p className="small muted">Every credential your organizer issued, newest first. Open one to see its pass or revoke it.</p>
-        </div>
-        <Link className="btn btn--primary" href="/issuer/issue">
-          Issue credential
-        </Link>
-      </div>
+      <PageHead
+        title="Issued credentials"
+        art="issuer"
+        lede="Every credential your organizer issued, newest first. Open one to see its pass or revoke it."
+        action={
+          <Link className="btn btn--primary" href="/issuer/issue">
+            Issue credential
+          </Link>
+        }
+      />
       {result.state === "loading" ? <div className="skeleton" style={{ height: 240 }} aria-busy="true" /> : null}
       {result.state === "error" ? <Notice error={result.error} title="The list could not load." /> : null}
       {result.state === "ok" && result.data.items.length === 0 ? (
         <div className="empty">
-          <p className="title">No credentials yet</p>
+          <img src="/art/empty.webp" alt="" width={132} height={121} />
+          <h2 className="title">No credentials yet</h2>
           <p className="muted prose">
             After a participant passes, issue their credential. Its commitment is anchored on the registry and the holder is notified.
           </p>
+          <Link className="btn btn--secondary" href="/issuer/issue">
+            Issue the first credential
+          </Link>
         </div>
       ) : null}
       {result.state === "ok" && result.data.items.length > 0 ? (

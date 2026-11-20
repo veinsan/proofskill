@@ -9,10 +9,11 @@ api/evals/ (docs/evidence/matching-eval/). This module splits the position into 
 reason, and keeps the embedding similarity of each pair for reference. It sends only skill texts
 and requirement texts, never holder identity (design rule 3), and returns no total score.
 
-When Gemini does not answer, the result degrades in steps, and each step is labeled in
-`modelVersion` and the limitations: a result computed earlier for the same skills and position
-text (matching_cache.json), then embedding similarity alone, then 503 AI_UNAVAILABLE. With
-GEMINI_API_KEY unset the AI is switched off and API-07 always returns 503 (TC-10).
+When the judge does not answer, a backup judge model is asked; when Gemini still does not answer, the
+result degrades in steps, and each step is labeled in `modelVersion` and the limitations: a result
+computed earlier for the same skills and position text (matching_cache.json), then embedding
+similarity alone, then 503 AI_UNAVAILABLE. With GEMINI_API_KEY unset the AI is switched off and
+API-07 always returns 503 (TC-10).
 """
 
 import hashlib
@@ -175,10 +176,15 @@ def embed(
 
 # Chosen on the gold set's dev split (docs/evidence/matching-eval/README.md).
 JUDGE_MODEL = "gemini-3.1-flash-lite"
+# Second on the dev split, asked only when JUDGE_MODEL does not answer: on 2026-11-20 the free tier's
+# 3.1 model answered 503 or hung on about half the calls, while this one answered every call. Its
+# misses on the gold set were all "not covered", never a false match.
+JUDGE_BACKUP = "gemini-3.5-flash-lite"
+# Seconds per call: the chosen model's answers took 1.6-5.8 s, the backup's 1.6-9.3 s.
+_JUDGE_TIMEOUTS = {JUDGE_MODEL: 8.0, JUDGE_BACKUP: 15.0}
 # Skills below this embedding similarity are not offered to the judge, and a requirement with no
 # skill above it is not covered without asking; None would offer every verified skill.
 CANDIDATE_FLOOR: float | None = 0.60
-_JUDGE_TIMEOUT = 20  # seconds; the median call took about 2 s in B-08
 _MAX_REASON = 240
 JUDGE_PROMPT = """You check a job position's requirements against the verified skills of a training credential.
 For each requirement, decide whether one of its candidate skills covers it, and name that skill.
@@ -208,6 +214,7 @@ def judge(
     skills: list[dict[str, Any]],
     candidates: list[list[int]],
     model: str = JUDGE_MODEL,
+    timeout: float = 30.0,
 ) -> list[Verdict]:
     """One Gemini call that judges every requirement against its candidate skills (indices into
     `skills`). Sends only skill labels, aliases, and requirement text."""
@@ -253,7 +260,7 @@ def judge(
                 f"{GEMINI_API}/{model}:generateContent",
                 json=body,
                 headers={"x-goog-api-key": config.GEMINI_API_KEY},
-                timeout=_JUDGE_TIMEOUT,
+                timeout=timeout,
             )
             response.raise_for_status()
             parts = response.json()["candidates"][0]["content"]["parts"]
@@ -288,12 +295,21 @@ _BASE = [
     "Text similarity is not proof of ability.",
     "Only the skills the issuer recorded and the holder shared are compared.",
 ]
-_JUDGED = (
-    f"An AI language model ({JUDGE_MODEL}) decided each match from the skill and requirement text and wrote"
-    " the reason; the similarity is the embedding similarity of that pair, for reference only."
-)
+def _judged(model: str) -> str:
+    return (
+        f"An AI language model ({model}) decided each match from the skill and requirement text and wrote"
+        " the reason; the similarity is the embedding similarity of that pair, for reference only."
+    )
+
+
 _DECISION = "This is a recommendation, not a decision. The hiring decision stays with you."
-LIMITATIONS = [*_BASE, _JUDGED, _DECISION]
+
+
+def limitations_judged(model: str) -> list[str]:
+    return [*_BASE, _judged(model), _DECISION]
+
+
+LIMITATIONS = limitations_judged(JUDGE_MODEL)
 LIMITATIONS_EMBEDDING_ONLY = [
     *_BASE,
     f"The AI judge did not answer, so requirements were matched by embedding similarity alone: {THRESHOLD:.2f}"
@@ -313,8 +329,17 @@ class Recommendation(NamedTuple):
 def judged(
     requirements: list[str], skills: list[dict[str, Any]], scores: list[list[tuple[float, str]]], embedding_version: str
 ) -> Recommendation:
-    """Lets the judge decide each requirement; raises JudgeFailed."""
-    verdicts = judge(requirements, skills, candidates_for(scores, CANDIDATE_FLOOR))
+    """Lets the judge decide each requirement, asking JUDGE_BACKUP when JUDGE_MODEL does not answer;
+    raises JudgeFailed when neither does."""
+    candidates = candidates_for(scores, CANDIDATE_FLOOR)
+    for model in (JUDGE_MODEL, JUDGE_BACKUP):
+        try:
+            verdicts = judge(requirements, skills, candidates, model=model, timeout=_JUDGE_TIMEOUTS[model])
+            break
+        except JudgeFailed as exc:
+            logger.warning("AMS judge %s did not answer (%s)", model, exc)
+    else:
+        raise JudgeFailed("no judge answered")
     matched: list[MatchedSkill] = []
     missing: list[MissingRequirement] = []
     for requirement, row, verdict in zip(requirements, scores, verdicts, strict=True):
@@ -323,7 +348,7 @@ def judged(
         else:
             label = str(skills[verdict.skill]["label"])
             matched.append(MatchedSkill(skill=label, requirement=requirement, similarity=round(row[verdict.skill][0], 2), reason=verdict.reason))
-    return Recommendation(matched, missing, LIMITATIONS, f"{embedding_version} + {JUDGE_MODEL} judge")
+    return Recommendation(matched, missing, limitations_judged(model), f"{embedding_version} + {model} judge")
 
 
 CACHE_FILE = Path(__file__).with_name("matching_cache.json")
@@ -349,10 +374,17 @@ def cached(skills: list[dict[str, Any]], description: str) -> Recommendation | N
     if entry is None:
         return None
     day = str(entry["computedAt"])[:10]
+    found = re.search(r"\+ (\S+) judge", str(entry["modelVersion"]))
+    judge_model = found.group(1) if found else JUDGE_MODEL
     return Recommendation(
         [MatchedSkill.model_validate(m) for m in entry["matchedSkills"]],
         [MissingRequirement.model_validate(m) for m in entry["missingRequirements"]],
-        [*_BASE, _JUDGED, f"Gemini did not answer, so this result was computed earlier ({day}) for the same skills and position text.", _DECISION],
+        [
+            *_BASE,
+            _judged(judge_model),
+            f"Gemini did not answer, so this result was computed earlier ({day}) for the same skills and position text.",
+            _DECISION,
+        ],
         f"{entry['modelVersion']} · cached {day}",
     )
 

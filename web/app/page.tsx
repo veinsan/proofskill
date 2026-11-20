@@ -1,135 +1,244 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { type FormEvent, Suspense, useState } from "react";
-import { FieldError, Notice } from "@/components/notice";
+import Link from "next/link";
+import { CheckIcon, CrossIcon, DotIcon } from "@/components/icons";
 import { TopBar } from "@/components/portal-shell";
-import type { ApiError } from "@/lib/api";
-import { HOME_BY_ROLE, signIn, useSession } from "@/lib/session";
+import { DEMO_GROUPS } from "@/lib/demo";
+import { useSession } from "@/lib/session";
 
-// Seeded synthetic accounts (api/app/seed.py), listed so a demo can switch roles quickly.
-const DEMO_ACCOUNTS = [
-  { username: "admin.iss001", role: "Issuer admin, ISS-001" },
-  { username: "admin.iss002", role: "Issuer admin, ISS-002" },
-  { username: "holder.a", role: "Holder, HLD-2026-0007" },
-  { username: "holder.b", role: "Holder, HLD-2026-0008" },
-  { username: "verifier.a", role: "Verifier" },
-  { username: "verifier.b", role: "Verifier" },
-];
+const STEPS = [
+  {
+    art: "issuer",
+    title: "Issue",
+    body: "After a participant passes, the organizer issues the credential. Only a salted fingerprint of it, the issuer, and its status go to the blockchain registry.",
+    who: "Training organizer",
+  },
+  {
+    art: "holder",
+    title: "Share",
+    body: "The participant picks which fields a reader may see and for how long, then sends a link or QR code. It fits LinkedIn's Credential URL field.",
+    who: "Participant",
+  },
+  {
+    art: "verifier",
+    title: "Verify",
+    body: "A recruiter opens the link. ProofSkill recomputes the fingerprint and reads the registry: integrity, issuer, and status. No admin in the loop.",
+    who: "Recruiter or committee",
+  },
+] as const;
 
-function SignIn() {
-  const router = useRouter();
-  const next = useSearchParams().get("next");
+const RULES = [
+  { title: "No candidate search", body: "Credential data leaves only through a link its owner made. There is nothing to browse." },
+  { title: "The AI never sees who", body: "Skill fit reads verified skills and the position text. Never a name or an ID number." },
+  { title: "History is kept", body: "A revocation is a new transaction. The original record is never overwritten." },
+  { title: "Checks without the AI", body: "If the AI is down, verification still works. Only skill fit waits." },
+] as const;
+
+export default function Landing() {
   const session = useSession();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<ApiError | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
-    setError(null);
-    const result = await signIn(username.trim(), password);
-    setBusy(false);
-    if (!result.ok) {
-      setError(result.error);
-      return;
-    }
-    const home = HOME_BY_ROLE[result.data.role];
-    router.push(next && next.startsWith("/") && !next.startsWith("//") ? next : home);
-  }
-
-  const invalid = error?.code === "INVALID_CREDENTIALS";
   return (
     <>
-      <TopBar session={session} />
-      <main className="page">
-        <div className="signin">
-          <section className="stack">
-            <h1 className="signin__lead">Check a training credential at the gate.</h1>
-            <p className="prose muted">
-              Issuers anchor each credential on a blockchain registry on the Base Sepolia testnet. Holders share a scoped link. Verifiers confirm integrity,
-              issuer, and status without contacting an admin, then read a skill-fit recommendation for the position they are filling.
-            </p>
-            <div>
-              <h2 className="label" style={{ marginBottom: 10 }}>
-                Demo accounts, all synthetic
-              </h2>
-              <div className="accounts">
-                {DEMO_ACCOUNTS.map((account) => (
-                  <button key={account.username} type="button" onClick={() => setUsername(account.username)}>
-                    <span className="mono">{account.username}</span>
-                    <span className="small muted">{account.role}</span>
-                  </button>
-                ))}
-              </div>
-              <p className="small muted" style={{ marginTop: 10 }}>
-                Every demo account shares one password, which the ProofSkill team gives out for demos.
-              </p>
-            </div>
-          </section>
+      <TopBar session={session}>
+        <nav className="nav nav--sections" aria-label="Sections">
+          <a href="#how">How it works</a>
+          <a href="#safety">Safety</a>
+          <a href="#try">Demo</a>
+        </nav>
+      </TopBar>
 
-          <section className="panel" aria-labelledby="signin-title">
-            <div className="panel__head">
-              <h2 className="title" id="signin-title">
+      <main className="landing">
+        <section className="hero" aria-labelledby="hero-title">
+          <div className="hero__copy">
+            <span className="hero__kicker">
+              <span className="tag">Testnet</span>
+              Anchored on the Base Sepolia public testnet
+            </span>
+            <h1 id="hero-title">
+              <span>Proof,</span>
+              <span>not promises.</span>
+            </h1>
+            <p className="hero__lede">
+              Issue training certificates that a recruiter can check in seconds with a free verifier account: unchanged, from an
+              authorized organizer, and not revoked. No emails to an admin, no personal data on the chain.
+            </p>
+            <div className="hero__actions">
+              <Link className="btn btn--primary" href="/signin">
                 Sign in
-              </h2>
-              <p className="small muted">Your role decides which portal opens.</p>
+              </Link>
+              <a className="btn btn--on-dark" href="#how">
+                See how it works
+              </a>
             </div>
-            {session?.role === "platform_admin" ? (
-              <p className="small">
-                <span className="mono">platform_admin</span> has no portal. It registers issuers through API-01 in the{" "}
-                <a href="/api/v1/docs">API docs</a>.
+          </div>
+
+          <div className="hero__visual" aria-hidden="true">
+            <img className="hero__art" src="/art/certificate.webp" alt="" width={705} height={720} />
+            <div className="float float--verdict">
+              <span className="label">Verification result</span>
+              <strong>VALID</strong>
+              <ul>
+                <li>
+                  <span>Integrity</span>
+                  <span>PASS</span>
+                </li>
+                <li>
+                  <span>Issuer</span>
+                  <span>PASS</span>
+                </li>
+                <li>
+                  <span>Status</span>
+                  <span>ACTIVE</span>
+                </li>
+              </ul>
+            </div>
+            <div className="float float--time">
+              <strong>0.44 s</strong>
+              <span>median check on Base Sepolia</span>
+            </div>
+            <div className="float float--seal">
+              <span className="tag tag--seal">REKOMENDASI</span>
+              <span className="small">Skill fit, never a score</span>
+            </div>
+          </div>
+
+          <div className="hero__strip" aria-hidden="true">
+            <span>II3120 Kelompok 02, Institut Teknologi Bandung</span>
+          </div>
+        </section>
+
+        <section className="section" id="how" aria-labelledby="how-title">
+          <div className="section__head reveal">
+            <h2 id="how-title">
+              Three steps. <span>Zero admin emails.</span>
+            </h2>
+            <p>
+              A certificate today is a PDF that only its issuer can vouch for. ProofSkill turns it into a record a verifier can check on
+              their own, while the participant decides who sees what.
+            </p>
+          </div>
+          <ol className="steps">
+            {STEPS.map((step) => (
+              <li key={step.title} className="step reveal">
+                <div className="step__art">
+                  <img src={`/art/${step.art}.webp`} alt="" width={160} height={168} loading="lazy" />
+                </div>
+                <span className="step__num" aria-hidden="true" />
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+                <p className="step__who">{step.who}</p>
+              </li>
+            ))}
+          </ol>
+
+          <div className="fit reveal">
+            <div>
+              <span className="tag tag--seal">REKOMENDASI</span>
+              <h3 style={{ marginTop: 16 }}>Then, read the skills against your opening.</h3>
+              <p>
+                After a VALID check, paste the position description. You get each matched requirement with its similarity, the gaps, and
+                the limits of the model. There is no total score. A person makes the call.
               </p>
-            ) : null}
-            <form className="stack" onSubmit={submit} noValidate>
-              <label className="field">
-                <span className="label">Username</span>
-                <input
-                  className="input"
-                  name="username"
-                  autoComplete="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  aria-invalid={invalid || undefined}
-                  required
-                />
-              </label>
-              <label className="field">
-                <span className="label">Password</span>
-                <input
-                  className="input"
-                  type="password"
-                  name="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  aria-invalid={invalid || undefined}
-                  aria-describedby={invalid ? "signin-error" : undefined}
-                  required
-                />
-              </label>
-              {invalid ? (
-                <FieldError id="signin-error" message="The username or password is wrong." code="INVALID_CREDENTIALS" />
-              ) : error ? (
-                <Notice error={error} />
-              ) : null}
-              <button className="btn btn--primary btn--block" type="submit" disabled={busy || !username || !password}>
-                {busy ? "Signing in" : "Sign in"}
-              </button>
-            </form>
-          </section>
-        </div>
+            </div>
+            <div className="fit__demo" aria-label="Example skill fit">
+              <div className="fit__row">
+                <span>
+                  OWASP Top 10
+                  <i>&ldquo;menganalisis kerentanan aplikasi web&rdquo;</i>
+                </span>
+                <span className="sim">
+                  <span style={{ width: "85%" }} />
+                </span>
+                <span className="mono">0.85</span>
+              </div>
+              <div className="fit__row">
+                <span>
+                  Web Security Testing
+                  <i>&ldquo;melakukan pengujian keamanan dasar&rdquo;</i>
+                </span>
+                <span className="sim">
+                  <span style={{ width: "85%" }} />
+                </span>
+                <span className="mono">0.85</span>
+              </div>
+              <p className="fit__miss">Not covered: &ldquo;memantau log dengan SIEM&rdquo;</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="section" id="safety" aria-labelledby="safety-title">
+          <div className="section__head reveal">
+            <h2 id="safety-title">
+              Safe by design. <span>Private by default.</span>
+            </h2>
+            <p>
+              The blockchain only proves that a record exists and has not changed. Everything personal stays off it, and every action is
+              written to an audit log.
+            </p>
+          </div>
+          <div className="safety">
+            <div className="ledger reveal">
+              <div>
+                <h3>On the registry</h3>
+                <p className="small muted">Public, permanent, readable by anyone</p>
+                <ul>
+                  {["A salted SHA-256 fingerprint", "Which organizer issued it", "Active or revoked", "When it happened"].map((item) => (
+                    <li key={item}>
+                      <CheckIcon />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <img src="/art/chain.webp" alt="" width={132} height={95} loading="lazy" />
+            </div>
+            <div className="ledger ledger--off reveal">
+              <div>
+                <h3>Never on the registry</h3>
+                <p className="small muted">Kept off-chain, shared only by the participant</p>
+                <ul>
+                  {["Names and ID numbers (NIK)", "Grades and documents", "Program details and skills", "Who viewed a credential"].map((item) => (
+                    <li key={item}>
+                      <CrossIcon />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <img src="/art/privacy.webp" alt="" width={132} height={130} loading="lazy" />
+            </div>
+          </div>
+          <ul className="rules">
+            {RULES.map((rule) => (
+              <li key={rule.title} className="reveal">
+                <b>{rule.title}</b>
+                <span>{rule.body}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="try reveal" id="try" aria-labelledby="try-title">
+          <div>
+            <h2 id="try-title">Try it with a demo account.</h2>
+            <p>Pick a role. Every account and record here is synthetic, so you can issue, share, verify, and revoke freely.</p>
+            <div className="try__roles">
+              {DEMO_GROUPS.map((group) => (
+                <Link key={group.role} className="role-chip" href={`/signin?u=${group.accounts[0].username}`}>
+                  <img src={`/art/${group.art}.webp`} alt="" width={36} height={36} />
+                  {group.role}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <footer className="footer">
+          <span>ProofSkill. A prototype for II3120 Layanan Sistem dan Teknologi Informasi, Kelompok 02.</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <DotIcon size={8} /> Synthetic data only, Base Sepolia testnet
+          </span>
+        </footer>
       </main>
     </>
-  );
-}
-
-export default function Page() {
-  return (
-    <Suspense fallback={null}>
-      <SignIn />
-    </Suspense>
   );
 }

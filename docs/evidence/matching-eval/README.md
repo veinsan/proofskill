@@ -41,7 +41,8 @@ Each item is one requirement (as OD-7 splits it) against the verified skills of 
 ## Product setting
 
 `app/ams.py` ships `JUDGE_MODEL = "gemini-3.1-flash-lite"` and `CANDIDATE_FLOOR = 0.6`, the variant chosen above.
-The embedding-only fallback, used when the judge does not answer, ships `THRESHOLD = 0.71`; the best dev threshold was 0.710.
+When it does not answer, AMS asks the backup judge `gemini-3.5-flash-lite` (dev F1 98.3%, test F1 88.2%, test precision 100.0%); `modelVersion` names the model that judged.
+The embedding-only fallback, used when neither judge answers, ships `THRESHOLD = 0.71`; the best dev threshold was 0.710.
 
 ## Limits of this evaluation
 
