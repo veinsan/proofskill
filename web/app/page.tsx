@@ -5,6 +5,7 @@ import { CheckIcon, CrossIcon, DotIcon } from "@/components/icons";
 import { TopBar } from "@/components/portal-shell";
 import { DEMO_GROUPS } from "@/lib/demo";
 import { useSession } from "@/lib/session";
+import { Certificate3D } from "@/components/certificate-3d";
 
 const STEPS = [
   {
@@ -72,7 +73,7 @@ export default function Landing() {
           </div>
 
           <div className="hero__visual" aria-hidden="true">
-            <img className="hero__art" src="/art/certificate.webp" alt="" width={705} height={720} />
+            <Certificate3D className="hero__art" width={705} height={720} />
             <div className="float float--verdict">
               <span className="label">Verification result</span>
               <strong>VALID</strong>

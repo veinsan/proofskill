@@ -163,12 +163,20 @@ export async function api<T>(
   path: string,
   options: { method?: string; body?: unknown; token?: string | null } = {},
 ): Promise<ApiResult<T>> {
+  return request<T>(`/api/v1${path}`, options);
+}
+
+/** Any JSON route on this origin, with the API's result and error shapes. */
+export async function request<T>(
+  url: string,
+  options: { method?: string; body?: unknown; token?: string | null } = {},
+): Promise<ApiResult<T>> {
   const headers: Record<string, string> = {};
   if (options.body !== undefined) headers["Content-Type"] = "application/json";
   if (options.token) headers.Authorization = `Bearer ${options.token}`;
   let response: Response;
   try {
-    response = await fetch(`/api/v1${path}`, {
+    response = await fetch(url, {
       method: options.method ?? "GET",
       headers,
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
