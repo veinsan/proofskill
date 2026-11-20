@@ -3,7 +3,7 @@ import { DEMO_USERNAMES } from "@/lib/demo";
 // One-click sign-in for the listed demo accounts (approved by the team on 2026-11-20, like SafeTrip's
 // demo login). The browser sends only a username; this server adds the shared demo password from
 // DEMO_PASSWORD and calls API-00, whose answer goes back unchanged. Anyone who opens the site can
-// therefore act as these synthetic accounts. platform.admin is not listed and still needs the password.
+// therefore act as these synthetic accounts. platform.admin is not listed; it works through the API docs only.
 const apiOrigin = (process.env.API_ORIGIN ?? "http://127.0.0.1:8000").replace(/\/+$/, "");
 
 function error(status: number, code: string, message: string) {
@@ -12,7 +12,7 @@ function error(status: number, code: string, message: string) {
 
 export async function POST(request: Request): Promise<Response> {
   const password = process.env.DEMO_PASSWORD;
-  if (!password) return error(501, "", "One-click sign-in is off on this server. Use the demo password instead.");
+  if (!password) return error(501, "", "Demo sign-in is not set up on this server yet (DEMO_PASSWORD is missing).");
 
   const body: unknown = await request.json().catch(() => null);
   const username = (body as { username?: unknown } | null)?.username;

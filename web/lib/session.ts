@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { api, request, type AccessToken, type ApiResult, type Role } from "./api";
+import { request, type AccessToken, type ApiResult, type Role } from "./api";
 
 // One session per browser tab (sessionStorage), so one person can play several roles in
 // separate tabs, as the prototype allows (report API-00).
@@ -57,11 +57,8 @@ export function useSession(): Session | null | undefined {
   return useSyncExternalStore(subscribe, read, () => undefined);
 }
 
-export async function signIn(username: string, password: string): Promise<ApiResult<Session>> {
-  return start(username, await api<AccessToken>("/auth/token", { method: "POST", body: { username, password } }));
-}
-
-/** One click for a listed demo account: the web server adds the demo password (app/api/demo-signin). */
+/** Signs in a listed demo account: the web server adds the demo password and calls API-00
+ * (app/api/demo-signin). The web app has no password form. */
 export async function signInDemo(username: string): Promise<ApiResult<Session>> {
   return start(username, await request<AccessToken>("/api/demo-signin", { method: "POST", body: { username } }));
 }

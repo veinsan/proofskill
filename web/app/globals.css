@@ -1686,6 +1686,12 @@ button.skill-chip:hover {
   margin: 0;
 }
 
+.quick-pick__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .quick-pick kbd {
   padding: 3px 8px;
   border-radius: 8px;
@@ -1695,6 +1701,161 @@ button.skill-chip:hover {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--ink);
+}
+
+/* Account picker: a styled listbox with avatar, name, role line, ID tag, and login name. */
+.picker {
+  position: relative;
+  display: grid;
+  gap: 6px;
+}
+
+.picker__button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line-strong);
+  background: rgb(255 255 255 / 0.85);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.picker__button:hover {
+  background: var(--white);
+  border-color: rgb(14 26 59 / 0.28);
+}
+
+.picker__button[aria-expanded="true"] {
+  border-color: var(--royal);
+  box-shadow: 0 0 0 4px rgb(36 83 214 / 0.14);
+}
+
+.picker__chevron {
+  justify-self: center;
+  color: var(--ink-2);
+  transition: rotate 0.25s var(--ease-out);
+}
+
+.picker__button[aria-expanded="true"] .picker__chevron {
+  rotate: 180deg;
+}
+
+.picker__list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  /* Solid, not glass: the button and hints underneath must not show through the choices. */
+  background: var(--white);
+  box-shadow: var(--lift), 0 30px 60px -30px rgb(16 38 107 / 0.45);
+  transform-origin: top center;
+  animation: picker-open 0.18s var(--ease-out);
+}
+
+.picker__list:focus {
+  outline: none;
+}
+
+@keyframes picker-open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.picker__option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.picker__option[data-active] {
+  background: var(--royal-50);
+}
+
+.picker__check {
+  display: grid;
+  place-items: center;
+  color: var(--royal);
+}
+
+.account-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.account-row__avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--royal);
+  color: var(--white);
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
+}
+
+.account-row__text {
+  display: grid;
+  min-width: 0;
+}
+
+.account-row__text strong {
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.account-row__title {
+  font-size: 0.75rem;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-row__meta {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+}
+
+.account-row__id {
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--royal-50);
+  color: var(--royal-600);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.account-row__meta .mono {
+  font-size: 0.6875rem;
+  color: var(--ink-3);
 }
 
 /* Phones have no Alt key to speak of, and three tiles fit better as rows. */
@@ -1717,23 +1878,18 @@ button.skill-chip:hover {
   .quick-pick {
     display: none;
   }
-}
 
-/* The password form stays for platform.admin and for a server without one-click sign-in. */
-.password-signin {
-  border-top: 1px solid var(--line);
-  padding-top: var(--s-md);
-}
+  .account-row {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
 
-.password-signin summary {
-  cursor: pointer;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--ink-2);
-}
-
-.password-signin[open] summary {
-  margin-bottom: var(--s-md);
+  .account-row__meta {
+    grid-column: 2;
+    justify-items: start;
+    grid-auto-flow: column;
+    justify-content: start;
+    gap: 8px;
+  }
 }
 
 /* --- Landing --------------------------------------------------------------------------- */
