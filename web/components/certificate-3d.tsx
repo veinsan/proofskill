@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 /** The certificate art as a live 3D object that floats up and down (three.js, loaded only here).
  * The static image shows until the first 3D frame is drawn, and stays if WebGL is unavailable. */
-export function Certificate3D({ className, width, height }: { className: string; width: number; height: number }) {
+export function Certificate3D({ className, width, height, parallax }: { className: string; width: number; height: number; parallax?: number }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [live, setLive] = useState(false);
 
@@ -32,7 +32,13 @@ export function Certificate3D({ className, width, height }: { className: string;
   }, []);
 
   return (
-    <div ref={hostRef} className={`${className} cert3d${live ? " cert3d--live" : ""}`} style={{ aspectRatio: `${width} / ${height}` }} aria-hidden="true">
+    <div
+      ref={hostRef}
+      className={`${className} cert3d${live ? " cert3d--live" : ""}`}
+      style={{ aspectRatio: `${width} / ${height}` }}
+      data-parallax={parallax}
+      aria-hidden="true"
+    >
       <img className="cert3d__image" src="/art/certificate.webp" alt="" width={width} height={height} />
     </div>
   );

@@ -73,8 +73,8 @@ export default function Landing() {
           </div>
 
           <div className="hero__visual" aria-hidden="true">
-            <Certificate3D className="hero__art" width={705} height={720} />
-            <div className="float float--verdict">
+            <Certificate3D className="hero__art" width={705} height={720} parallax={0.1} />
+            <div className="float float--verdict" data-parallax="-0.12">
               <span className="label">Verification result</span>
               <strong>VALID</strong>
               <ul>
@@ -92,11 +92,11 @@ export default function Landing() {
                 </li>
               </ul>
             </div>
-            <div className="float float--time">
+            <div className="float float--time" data-parallax="-0.06">
               <strong>0.44 s</strong>
               <span>median check on Base Sepolia</span>
             </div>
-            <div className="float float--seal">
+            <div className="float float--seal" data-parallax="-0.16">
               <span className="tag tag--seal">REKOMENDASI</span>
               <span className="small">Skill fit, never a score</span>
             </div>
@@ -121,7 +121,7 @@ export default function Landing() {
             {STEPS.map((step) => (
               <li key={step.title} className="step reveal">
                 <div className="step__art">
-                  <img src={`/art/${step.art}.webp`} alt="" width={160} height={168} loading="lazy" />
+                  <img src={`/art/${step.art}.webp`} alt="" width={160} height={168} loading="lazy" data-parallax="0.08" />
                 </div>
                 <span className="step__num" aria-hidden="true" />
                 <h3>{step.title}</h3>
@@ -190,7 +190,7 @@ export default function Landing() {
                   ))}
                 </ul>
               </div>
-              <img src="/art/chain.webp" alt="" width={132} height={95} loading="lazy" />
+              <img src="/art/chain.webp" alt="" width={132} height={95} loading="lazy" data-parallax="0.1" />
             </div>
             <div className="ledger ledger--off reveal">
               <div>
@@ -205,7 +205,7 @@ export default function Landing() {
                   ))}
                 </ul>
               </div>
-              <img src="/art/privacy.webp" alt="" width={132} height={130} loading="lazy" />
+              <img src="/art/privacy.webp" alt="" width={132} height={130} loading="lazy" data-parallax="0.1" />
             </div>
           </div>
           <ul className="rules">

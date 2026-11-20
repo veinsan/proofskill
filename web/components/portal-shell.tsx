@@ -111,7 +111,7 @@ export function PageHead({ title, lede, art, action }: { title: string; lede: Re
   return (
     <div className="page-head">
       <div className="page-head__text">
-        {art ? <img className="page-head__art" src={`/art/${art}.webp`} alt="" width={84} height={84} /> : null}
+        {art ? <img className="page-head__art" src={`/art/${art}.webp`} alt="" width={84} height={84} data-parallax="0.12" /> : null}
         <div>
           <h1>{title}</h1>
           <p className="muted">{lede}</p>

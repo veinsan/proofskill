@@ -66,7 +66,7 @@ function SignIn() {
               </h1>
               <p>Issuers issue and revoke. Holders share. Verifiers check, then read skill fit. Every account here is synthetic.</p>
             </div>
-            <Certificate3D className="signin__art" width={340} height={347} />
+            <Certificate3D className="signin__art" width={340} height={347} parallax={0.06} />
           </section>
 
           <section className="panel signin__form" aria-labelledby="signin-title">
