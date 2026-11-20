@@ -41,7 +41,7 @@ function CheckLink() {
           <span className="label">Share link</span>
           <input
             className="input mono"
-            placeholder="http://localhost:3000/v/sk_…"
+            placeholder="https://…/v/sk_…"
             value={link}
             onChange={(e) => {
               setLink(e.target.value);
