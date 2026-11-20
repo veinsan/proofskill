@@ -49,7 +49,7 @@ function SignIn() {
           <section className="stack">
             <h1 className="signin__lead">Check a training credential at the gate.</h1>
             <p className="prose muted">
-              Issuers anchor each credential on a local blockchain registry. Holders share a scoped link. Verifiers confirm integrity,
+              Issuers anchor each credential on a blockchain registry on the Base Sepolia testnet. Holders share a scoped link. Verifiers confirm integrity,
               issuer, and status without contacting an admin, then read a skill-fit recommendation for the position they are filling.
             </p>
             <div>
@@ -65,7 +65,7 @@ function SignIn() {
                 ))}
               </div>
               <p className="small muted" style={{ marginTop: 10 }}>
-                Every demo account shares the password in <span className="mono">api/app/seed.py</span>.
+                Every demo account shares one password, which the ProofSkill team gives out for demos.
               </p>
             </div>
           </section>
