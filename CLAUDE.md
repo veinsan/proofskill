@@ -33,7 +33,7 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinne
 | Gemini embeddings | `gemini-embedding-001` through the Gemini REST API (`batchEmbedContents`, called with httpx; no SDK). Requirements are embedded as `RETRIEVAL_QUERY` and skills as `RETRIEVAL_DOCUMENT`, threshold 0.72 (B-04). Needs `GEMINI_API_KEY`; replaced the local MiniLM model and its ONNX process on 2026-11-19 |
 | Supabase Auth with JWT Bearer tokens | Since B-02, API-00 proxies Supabase's password sign-in (username `x` signs in as `x@proofskill.example`) and returns its ES256 access token; guards verify it against the project's JWKS with PyJWT plus cryptography 50.0.2 (approved 2026-11-20). Roles `issuer_admin`, `holder`, `verifier`, plus `platform_admin` for API-01 (OD-1), with `issuerId`, `holderRef`, and `username`, come from `app_metadata`, which only the service-role key can write |
 
-**Deployment target (re-planned 2026-11-19, built in steps B-01 to B-07; not in place yet):**
+**Deployment target (re-planned 2026-11-19, built in steps B-01 to B-07; B-01 to B-05 done, the API is live at https://proofskill-api.vercel.app):**
 
 | Tool | Role |
 | --- | --- |

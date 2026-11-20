@@ -3,3 +3,4 @@ skill/
 .pgdata/
 .env
 .env.testnet
+.env.vercel
