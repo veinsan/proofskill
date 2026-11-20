@@ -1,0 +1,10 @@
+[
+  {
+    "credential_id": "CRD-0007",
+    "issuer_id": "ISS-001",
+    "holder_ref": "HLD-2026-0007",
+    "commitment": "0x9be29c20a15cc0ee3b42c215ba67cbaa56fda14a14eeeec82cdfc22512de53d5",
+    "tx_hash": "0xbe0d0a064363282c0c7f5da8bc93b30ef5296f9f5ef59689179536e37a8ad8fb",
+    "status": "active"
+  }
+]

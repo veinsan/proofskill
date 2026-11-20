@@ -1,0 +1,21 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/credentials/CRD-0007/revocations",
+    "role": "admin.iss001",
+    "body": {
+      "reason": "Data kelulusan keliru"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "credentialId": "CRD-0007",
+      "status": "revoked",
+      "reason": "Data kelulusan keliru",
+      "revokedAt": "2026-11-20T10:02:08.619622Z",
+      "txHash": "0x7c02fb290b2fa2718609817bb15e53686db786d132c36635c5975122c0fc5e77"
+    }
+  },
+  "elapsedMs": 1852.2
+}

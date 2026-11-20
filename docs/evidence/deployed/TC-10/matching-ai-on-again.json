@@ -1,0 +1,55 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/matchings",
+    "role": "verifier.a",
+    "body": {
+      "verificationId": "VER-0006",
+      "position": {
+        "title": "Junior Security Analyst",
+        "description": "Menganalisis kerentanan aplikasi web, memahami OWASP Top 10, melakukan pengujian keamanan dasar, dan memantau log dengan SIEM."
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "matchingId": "MAT-0007",
+      "label": "REKOMENDASI",
+      "matchedSkills": [
+        {
+          "skill": "OWASP Top 10",
+          "requirement": "Menganalisis kerentanan aplikasi web",
+          "similarity": 0.85,
+          "reason": "Close in meaning to the alias \"kerentanan aplikasi web\"."
+        },
+        {
+          "skill": "OWASP Top 10",
+          "requirement": "memahami OWASP Top 10",
+          "similarity": 0.78,
+          "reason": "Close in meaning to the skill name."
+        },
+        {
+          "skill": "Web Security Testing",
+          "requirement": "melakukan pengujian keamanan dasar",
+          "similarity": 0.85,
+          "reason": "Very close in meaning to the alias \"pengujian keamanan\"."
+        }
+      ],
+      "missingRequirements": [
+        {
+          "requirement": "memantau log dengan SIEM",
+          "note": "No verified skill is close enough."
+        }
+      ],
+      "limitations": [
+        "Text similarity is not proof of ability.",
+        "Only the skills the issuer recorded and the holder shared are compared.",
+        "A requirement counts as matched at a similarity of 0.72 or higher; the value is indicative only.",
+        "This is a recommendation, not a decision. The hiring decision stays with you."
+      ],
+      "modelVersion": "gemini-embedding-001 (Gemini API, RETRIEVAL_QUERY/RETRIEVAL_DOCUMENT)"
+    }
+  },
+  "elapsedMs": 2195.1
+}

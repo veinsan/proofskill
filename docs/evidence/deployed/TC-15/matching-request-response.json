@@ -1,0 +1,25 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/matchings",
+    "role": "verifier.b",
+    "body": {
+      "verificationId": "VER-0006",
+      "position": {
+        "title": "Junior Security Analyst",
+        "description": "Menganalisis kerentanan aplikasi web, memahami OWASP Top 10, melakukan pengujian keamanan dasar, dan memantau log dengan SIEM."
+      }
+    }
+  },
+  "response": {
+    "status": 403,
+    "body": {
+      "error": {
+        "code": "VERIFICATION_NOT_OWNED",
+        "message": "This verification was run by another verifier.",
+        "requestId": "req_d373de7b2c917cca"
+      }
+    }
+  },
+  "elapsedMs": 135.4
+}

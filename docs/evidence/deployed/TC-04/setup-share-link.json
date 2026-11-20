@@ -1,0 +1,26 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/credentials/CRD-0007/share-links",
+    "role": "holder.a",
+    "body": {
+      "scope": [
+        "program.title",
+        "completedAt",
+        "skills"
+      ],
+      "expiresInHours": 72
+    }
+  },
+  "response": {
+    "linkId": "SHL-0006",
+    "shareToken": "sk_0b77138fdd5f7612f7c6e5ce9921fed2",
+    "url": "https://proofskill-two.vercel.app/v/sk_0b77138fdd5f7612f7c6e5ce9921fed2",
+    "scope": [
+      "program.title",
+      "completedAt",
+      "skills"
+    ],
+    "expiresAt": "2026-11-23T09:57:10.435417Z"
+  }
+}

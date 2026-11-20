@@ -1,0 +1,25 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/matchings",
+    "role": "verifier.a",
+    "body": {
+      "verificationId": "VER-0006",
+      "position": {
+        "title": "Junior Security Analyst",
+        "description": "Menganalisis kerentanan aplikasi web, memahami OWASP Top 10, melakukan pengujian keamanan dasar, dan memantau log dengan SIEM."
+      }
+    }
+  },
+  "response": {
+    "status": 503,
+    "body": {
+      "error": {
+        "code": "AI_UNAVAILABLE",
+        "message": "The AI service is unavailable. Verification still works.",
+        "requestId": "req_f5a37892fdbbc98a"
+      }
+    }
+  },
+  "elapsedMs": 468.9
+}
