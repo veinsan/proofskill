@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "regions": ["sin1"],
-  "installCommand": "npm install --global pnpm@12.18.0 && pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm run build"
+  "installCommand": "npm install --global --allow-scripts=pnpm pnpm@12.18.0 && \"$(npm prefix --global)/bin/pnpm\" --version && \"$(npm prefix --global)/bin/pnpm\" install --frozen-lockfile",
+  "buildCommand": "\"$(npm prefix --global)/bin/pnpm\" run build"
 }
