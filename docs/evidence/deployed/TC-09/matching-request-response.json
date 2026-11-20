@@ -1,0 +1,25 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/matchings",
+    "role": "verifier.a",
+    "body": {
+      "verificationId": "VER-0020",
+      "position": {
+        "title": "Junior Security Analyst",
+        "description": "Menganalisis kerentanan aplikasi web, memahami OWASP Top 10, melakukan pengujian keamanan dasar, dan memantau log dengan SIEM."
+      }
+    }
+  },
+  "response": {
+    "status": 409,
+    "body": {
+      "error": {
+        "code": "VERIFICATION_NOT_VALID",
+        "message": "Skill fit needs a VALID verification, not TAMPERED.",
+        "requestId": "req_e85ba7a0c6a3613f"
+      }
+    }
+  },
+  "elapsedMs": 155.8
+}

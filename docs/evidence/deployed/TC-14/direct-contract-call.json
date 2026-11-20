@@ -1,0 +1,11 @@
+{
+  "function": "revokeCredential(string)",
+  "args": [
+    "CRD-0006"
+  ],
+  "from": "0x02b6b368ddd537fcd79a9327f9453368138d99b5",
+  "fromIssuer": "ISS-002",
+  "revert": "NotOriginalIssuer",
+  "statusBefore": "active",
+  "statusAfter": "active"
+}

@@ -1,0 +1,9 @@
+{
+  "function": "deactivateIssuer(string)",
+  "args": [
+    "ISS-002"
+  ],
+  "from": "0x2107E9f455a9A3a5F8F5d2D9bbCfCB7B2487decA",
+  "role": "platform admin (registry owner)",
+  "txHash": "0x3d700f8a0958b68b2ede188494f9280e9f4382913ce025e5a616021f8265f854"
+}

@@ -9,6 +9,14 @@ set; TC-10 restarts the API without it to switch the AI off. All data is synthet
 is masked; access tokens are recorded by role only.
 
 Run from api/: uv run --env-file ../.env python -m scripts.evidence
+
+B-07 deployed mode: uv run --env-file ../.env --env-file ../.env.testnet python -m scripts.evidence
+--deployed https://proofskill-api.vercel.app runs the same scenarios against the deployed API, with
+SQL and chain reads on the deployed Supabase database and Base Sepolia registry (.env.testnet), and
+writes docs/evidence/deployed/. Nothing is reset. TC-10 pauses twice: create the flag file
+`ai-off` (after GEMINI_API_KEY is removed from the API project and Production redeployed) and then
+`ai-on` (after the key is back and redeployed) in EVIDENCE_FLAG_DIR. The first verification after
+each redeploy is recorded as a cold start (T-01). TC-16 deactivates ISS-002 on the registry for good.
 """
 
 import json
@@ -18,6 +26,7 @@ import shutil
 import statistics
 import subprocess
 import sys
+import tempfile
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -37,6 +46,8 @@ DEPLOYMENT = CONTRACTS / "deployments" / "evidence.json"
 DATABASE_URL = os.environ.get("EVIDENCE_DATABASE_URL", "postgresql://proofskill@127.0.0.1:5433/proofskill_evidence")
 API_PORT = 8100
 API = f"http://127.0.0.1:{API_PORT}/api/v1"
+DEPLOYED = ""  # set by --deployed: the deployed API's origin (B-07)
+FLAG_DIR = Path(os.environ.get("EVIDENCE_FLAG_DIR", tempfile.gettempdir())) / "proofskill-evidence-flags"
 
 ISSUE_REQUEST: dict[str, Any] = {  # report API-02 example payload
     "holderRef": "HLD-2026-0007",
@@ -170,6 +181,42 @@ class Stack:
             return [dict(r) for r in conn.execute(statement, params).fetchall()]  # type: ignore[arg-type]
 
 
+class DeployedStack(Stack):
+    """B-07: the deployed API on Vercel. Nothing is started or reset; the AI is switched off and on
+    by redeploying the API project without and with GEMINI_API_KEY, signalled by flag files."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.probe_token = ""
+        self.cold: list[float] = []
+
+    def prepare(self) -> None:
+        FLAG_DIR.mkdir(parents=True, exist_ok=True)
+        for flag in FLAG_DIR.glob("*"):
+            flag.unlink()
+        for username, *_ in seed.ACCOUNTS:
+            self.tokens[username] = self.call("POST", "/auth/token", body={"username": username, "password": config.SEED_PASSWORD})[1]["accessToken"]
+
+    def stop_api(self) -> None:
+        pass  # the deployed API is switched by redeploying, in start_api
+
+    def start_api(self, gemini_key: str | None = None) -> None:
+        flag = FLAG_DIR / ("ai-off" if gemini_key == "" else "ai-on")
+        print(f"Waiting for {flag} (redeploy the API {'without' if gemini_key == '' else 'with'} GEMINI_API_KEY, then create it).", flush=True)
+        deadline = time.monotonic() + 60 * 60
+        while not flag.exists():
+            if time.monotonic() > deadline:
+                raise RuntimeError(f"{flag} did not appear within an hour")
+            time.sleep(5)
+        status, body, elapsed = self.call("POST", "/verifications", "verifier.a", {"shareToken": self.probe_token})
+        assert status == 200, body
+        self.cold.append(round(elapsed, 3))  # first request after a redeploy: a cold start
+        print(f"First verification after the redeploy: {elapsed:.2f} s", flush=True)
+
+    def close(self) -> None:
+        pass
+
+
 def error_code(payload: Any) -> str | None:
     return payload.get("error", {}).get("code") if isinstance(payload, dict) else None
 
@@ -220,6 +267,8 @@ def run(stack: Stack) -> tuple[list[Record], dict[str, str]]:
 
     # Shared setup: the holder shares CRD-0001 -----------------------------------------------
     link1 = stack.call("POST", f"/credentials/{crd1}/share-links", "holder.a", SCOPE)[1]
+    if isinstance(stack, DeployedStack):
+        stack.probe_token = link1["shareToken"]
 
     # TC-04 ---------------------------------------------------------------------------------
     r = new("TC-04", "An intact credential is verified without an admin", "API-06, FR-06, T-01, T-02", "200, result `VALID`")
@@ -284,14 +333,28 @@ def run(stack: Stack) -> tuple[list[Record], dict[str, str]]:
     status_v, body_v = stack.exchange(r, "verify-ai-off.json", "POST", "/verifications", "verifier.a", {"shareToken": link1["shareToken"]})
     stack.stop_api()
     stack.start_api()
+    switch_off, switch_on = (
+        ("Remove GEMINI_API_KEY from the API's Vercel project and redeploy Production, so Gemini is unreachable (OD-8 as revised in B-04).",
+         "Put GEMINI_API_KEY back and redeploy Production.")
+        if DEPLOYED else
+        (f"Restart the API on port {API_PORT} with GEMINI_API_KEY empty, so Gemini is unreachable (OD-8 as revised in B-04).",
+         "Restart the API with the key for the remaining scenarios.")
+    )
     r.steps = [
-        f"Restart the API on port {API_PORT} with GEMINI_API_KEY empty, so Gemini is unreachable (OD-8 as revised in B-04).",
+        switch_off,
         f"As `verifier.a`, POST /api/v1/matchings with {ver_valid}.",
         "As `verifier.a`, POST /api/v1/verifications with the TC-04 share token.",
-        "Restart the API with the key for the remaining scenarios.",
+        switch_on,
     ]
     r.passed = status_ai == 503 and error_code(body_ai) == "AI_UNAVAILABLE" and status_v == 200 and body_v.get("result") == "VALID"
     r.actual = f"API-07: {status_ai} `{error_code(body_ai)}`. API-06: {status_v}, result `{body_v.get('result')}`."
+    if isinstance(stack, DeployedStack):
+        status_back, body_back = stack.exchange(r, "matching-ai-on-again.json", "POST", "/matchings", "verifier.a", {"verificationId": ver_valid, "position": POSITION})
+        r.steps.append("After the redeploy with the key, POST /api/v1/matchings again.")
+        r.passed = r.passed and status_back == 200 and body_back.get("label") == "REKOMENDASI"
+        r.actual += f" With the key back: API-07 {status_back}, label `{body_back.get('label')}`."
+        goals["T-01 (cold start)"] = (f"First verification after each redeploy of the API function: {', '.join(f'{t:.2f} s' for t in stack.cold)} "
+                                      "(Vercel cold start included; target < 5 s).")
 
     # TC-11 ---------------------------------------------------------------------------------
     r = new("TC-11", "On-chain data is inspected", "NFR-02, T-03", "Only commitment, issuer, and status, with no personal data")
@@ -361,6 +424,8 @@ def run(stack: Stack) -> tuple[list[Record], dict[str, str]]:
     status, revoked = stack.exchange(r, "verify-request-response.json", "POST", "/verifications", "verifier.a", {"shareToken": link1["shareToken"]})
     later = [stack.call("POST", "/verifications", "verifier.a", {"shareToken": link1["shareToken"]})[1].get("result") for _ in range(5)]
     r.save("later-verifications.json", later)
+    if DEPLOYED:  # put the deployed row back in line with the chain, so the portals show it as revoked
+        stack.sql(r, "restore-status.sql", f"UPDATE credentials SET status = 'revoked', revoked_at = '{body_rev.get('revokedAt')}' WHERE credential_id = '{crd1}';")
     r.steps = [f"As `admin.iss001`, revoke {crd1} with reason \"{REASON['reason']}\" (API-09).", "Set its database status back to active with the SQL in `reset-status.sql`.", "As `verifier.a`, verify the TC-04 share token, then 5 more times."]
     r.passed = status_rev == 200 and status == 200 and revoked.get("result") == "REVOKED" and revoked.get("reason") == REASON["reason"]
     r.actual = f"Revocation {status_rev}. Verification {status}, result `{revoked.get('result')}`, status check `{revoked.get('checks', {}).get('status')}`, reason \"{revoked.get('reason')}\"."
@@ -436,14 +501,21 @@ def write(records: list[Record], goals: dict[str, str], environment: str) -> Non
         "| --- | --- |",
         *[f"| {k} | {v} |" for k, v in sorted(goals.items())],
         "",
-        "See also `pytest.txt` (API suite) and `ui/` (screenshots of the portals on the same synthetic data).",
+        ("This run used the deployed stack; the local prototype run is in [../README.md](../README.md)." if DEPLOYED else
+         "See also `pytest.txt` (API suite) and `ui/` (screenshots of the portals on the same synthetic data)."),
         "",
     ]
     (EVIDENCE / "README.md").write_text("\n".join(lines), encoding="utf-8")
 
 
 def main() -> None:
+    global API, DATABASE_URL, DEPLOYED, EVIDENCE
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]  # Windows consoles default to cp1252
+    if "--deployed" in sys.argv:
+        DEPLOYED = sys.argv[sys.argv.index("--deployed") + 1].rstrip("/")
+        API, DATABASE_URL, EVIDENCE = f"{DEPLOYED}/api/v1", config.DATABASE_URL, EVIDENCE / "deployed"
+        if rgs._deployment()["chainId"] != 84532 or "supabase" not in DATABASE_URL:
+            raise SystemExit("--deployed needs the deployed database and registry: add --env-file ../.env.testnet.")
     missing = [name for name in ("GEMINI_API_KEY", "SUPABASE_URL", "SUPABASE_ANON_KEY", "SEED_PASSWORD") if not getattr(config, name)]
     if missing:
         raise SystemExit(f"Set {', '.join(missing)} (in ../.env, run with uv run --env-file ../.env); sign-in uses Supabase Auth (B-02).")
@@ -453,7 +525,10 @@ def main() -> None:
     commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=REPO, capture_output=True, text=True).stdout.strip()
     environment = (f"{datetime.now(UTC):%Y-%m-%d %H:%M} UTC, commit {commit}, local Hardhat node + PostgreSQL 17 "
                    f"(database proofskill_evidence), API on port {API_PORT}, AI matching by Gemini {ams.GEMINI_MODEL}, sign-in through Supabase Auth")
-    stack = Stack()
+    if DEPLOYED:
+        environment = (f"{datetime.now(UTC):%Y-%m-%d %H:%M} UTC, commit {commit}, deployed stack: API {DEPLOYED} (Vercel, sin1), "
+                       f"Supabase Postgres and Auth, Base Sepolia registry {rgs._deployment()['address']}, AI matching by Gemini {ams.GEMINI_MODEL}")
+    stack = DeployedStack() if DEPLOYED else Stack()
     try:
         stack.prepare()
         records, goals = run(stack)

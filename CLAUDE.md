@@ -33,7 +33,7 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinne
 | Gemini embeddings | `gemini-embedding-001` through the Gemini REST API (`batchEmbedContents`, called with httpx; no SDK). Requirements are embedded as `RETRIEVAL_QUERY` and skills as `RETRIEVAL_DOCUMENT`, threshold 0.72 (B-04). Needs `GEMINI_API_KEY`; replaced the local MiniLM model and its ONNX process on 2026-11-19 |
 | Supabase Auth with JWT Bearer tokens | Since B-02, API-00 proxies Supabase's password sign-in (username `x` signs in as `x@proofskill.example`) and returns its ES256 access token; guards verify it against the project's JWKS with PyJWT plus cryptography 50.0.2 (approved 2026-11-20). Roles `issuer_admin`, `holder`, `verifier`, plus `platform_admin` for API-01 (OD-1), with `issuerId`, `holderRef`, and `username`, come from `app_metadata`, which only the service-role key can write |
 
-**Deployment target (re-planned 2026-11-19, built in steps B-01 to B-07; B-01 to B-05 done; the API is live at https://proofskill-api.vercel.app and the web app at https://proofskill-two.vercel.app):**
+**Deployment target (re-planned 2026-11-19, built in steps B-01 to B-07; B-01 to B-07 done; the API is live at https://proofskill-api.vercel.app and the web app at https://proofskill-two.vercel.app):**
 
 | Tool | Role |
 | --- | --- |
@@ -145,7 +145,7 @@ Checks: `pnpm test` in `contracts/`, `uv run --env-file ../.env pytest` in `api/
 - **Contracts.** Hardhat tests cover issue, revoke, read, the other-issuer revert (TC-14), and issuer deactivation (TC-16).
 - **API.** pytest, one test per automatable TC (TC-01 to TC-16). Run them against the local Hardhat node and PostgreSQL.
 - **Web.** Production build of the Next.js app, plus manual checks in a browser of the three flows: issue, share, verify with skill fit.
-- **Evidence.** `cd api; uv run --env-file ../.env python -m scripts.evidence` (needs the database cluster, a running chain, and `GEMINI_API_KEY`; it starts its own API on port 8100 and restarts it without the key for TC-10) runs TC-01 to TC-16 and rewrites `docs/evidence/` in the D3 format: scenario, steps or input, expected result, actual result, status, evidence. `docs/evidence/README.md` summarizes the results and T-01 to T-05. `skill/run-test-scenario/SKILL.md` (local) describes the same format for manual runs.
+- **Evidence.** `cd api; uv run --env-file ../.env python -m scripts.evidence` (needs the database cluster, a running chain, and `GEMINI_API_KEY`; it starts its own API on port 8100 and restarts it without the key for TC-10) runs TC-01 to TC-16 and rewrites `docs/evidence/` in the D3 format: scenario, steps or input, expected result, actual result, status, evidence. `docs/evidence/README.md` summarizes the results and T-01 to T-05. With `--env-file ../.env.testnet --deployed https://proofskill-api.vercel.app` it runs the same scenarios against the deployed stack and writes `docs/evidence/deployed/` instead (B-07): nothing is reset, TC-10 pauses until the flag files `ai-off` and `ai-on` exist after redeploying the API without and with `GEMINI_API_KEY`, and TC-16 deactivates ISS-002 for good, so a repeat run needs another issuer for TC-16. `skill/run-test-scenario/SKILL.md` (local) describes the same format for manual runs.
 
 ## Git Rules
 

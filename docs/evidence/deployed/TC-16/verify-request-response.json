@@ -1,0 +1,52 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/verifications",
+    "role": "verifier.a",
+    "body": {
+      "shareToken": "sk_5b3dbfeecba27fc47b2c757a651c35fa"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "verificationId": "VER-0027",
+      "result": "ISSUER_UNAUTHORIZED",
+      "checks": {
+        "integrity": "PASS",
+        "issuerAuthorized": "FAIL",
+        "status": "ACTIVE"
+      },
+      "credential": {
+        "credentialId": "CRD-0009",
+        "issuer": {
+          "issuerId": "ISS-002",
+          "name": "Himpunan Mahasiswa Contoh"
+        },
+        "program": {
+          "title": "Pelatihan Keamanan Aplikasi Web Dasar",
+          "completedAt": "2026-10-20"
+        },
+        "skills": [
+          {
+            "skillId": "SK-014",
+            "label": "OWASP Top 10"
+          },
+          {
+            "skillId": "SK-021",
+            "label": "Web Security Testing"
+          },
+          {
+            "skillId": "SK-033",
+            "label": "Secure Coding"
+          }
+        ]
+      },
+      "chainRef": {
+        "txHash": "0x64b4f4c4ab96a0591c19ebe255568f35748184053edc231d2bddb67fc4891940"
+      },
+      "verifiedAt": "2026-11-20T10:02:19.016924Z"
+    }
+  },
+  "elapsedMs": 464.6
+}

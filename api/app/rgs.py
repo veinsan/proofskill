@@ -140,13 +140,21 @@ def _key_for(sender: str) -> str | None:
     return next((k for k in keys if k and address_of(k) == sender.lower()), None)
 
 
+_RATE_LIMITED = {401, 429}  # the public Base Sepolia RPC answers these when it throttles (B-07)
+
+
 def _rpc(method: str, params: list[Any]) -> Any:
     try:
-        response = httpx.post(
-            config.CHAIN_RPC_URL,
-            json={"jsonrpc": "2.0", "id": 1, "method": method, "params": params},
-            timeout=10,
-        )
+        for attempt in range(3):
+            response = httpx.post(
+                config.CHAIN_RPC_URL,
+                json={"jsonrpc": "2.0", "id": 1, "method": method, "params": params},
+                timeout=10,
+            )
+            # A throttled request was never processed, so retrying it is safe, even a raw transaction.
+            if response.status_code not in _RATE_LIMITED or attempt == 2:
+                break
+            time.sleep(0.5 * (attempt + 1))
         response.raise_for_status()
     except httpx.HTTPError as exc:
         raise RegistryUnavailable(f"registry unreachable: {exc}") from exc

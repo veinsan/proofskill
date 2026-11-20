@@ -1,0 +1,32 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/credentials",
+    "role": "admin.unregistered",
+    "body": {
+      "holderRef": "HLD-2026-0007",
+      "holderDisplayName": "Peserta Contoh A",
+      "program": {
+        "title": "Pelatihan Keamanan Aplikasi Web Dasar",
+        "completedAt": "2026-10-20",
+        "criteria": "Kehadiran minimal 80 persen dan lulus proyek akhir"
+      },
+      "skills": [
+        "SK-014",
+        "SK-021",
+        "SK-033"
+      ]
+    }
+  },
+  "response": {
+    "status": 403,
+    "body": {
+      "error": {
+        "code": "ISSUER_NOT_AUTHORIZED",
+        "message": "This account is not an admin of a registered issuer.",
+        "requestId": "req_fbbbf60890859ab0"
+      }
+    }
+  },
+  "elapsedMs": 148.3
+}

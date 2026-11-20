@@ -9,6 +9,7 @@ import threading
 import time
 from typing import Any
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -109,3 +110,26 @@ def test_b05_nonce_lock_serializes_one_account_across_connections(registry: Any,
     assert b_start >= a_end + 0.15  # the second waited for the first send and its receipt
     (_, c_start, c_end), = spans[iss002]
     assert c_start < a_end and a_start < c_end  # another account is not held up
+
+
+def test_b07_rpc_retries_a_throttled_call_and_gives_up_after_three(registry: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The public Base Sepolia RPC sometimes answers 401 or 429 under load; one such answer failed TC-14."""
+    statuses: list[int] = []
+
+    def answer(codes: list[int]):  # type: ignore[no-untyped-def]
+        def post(url: str, **kwargs: Any) -> httpx.Response:
+            code = codes.pop(0)
+            statuses.append(code)
+            body = {"jsonrpc": "2.0", "id": 1, "result": "0x2a"} if code == 200 else {}
+            return httpx.Response(code, json=body, request=httpx.Request("POST", url))
+        return post
+
+    monkeypatch.setattr(time, "sleep", lambda seconds: None)
+    monkeypatch.setattr(httpx, "post", answer([401, 429, 200]))
+    assert rgs._rpc("eth_blockNumber", []) == "0x2a" and statuses == [401, 429, 200]
+
+    statuses.clear()
+    monkeypatch.setattr(httpx, "post", answer([429, 429, 429, 200]))
+    with pytest.raises(rgs.RegistryUnavailable):
+        rgs._rpc("eth_blockNumber", [])
+    assert statuses == [429, 429, 429]  # three tries, then 503 REGISTRY_UNAVAILABLE upstream
