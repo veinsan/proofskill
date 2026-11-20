@@ -1,7 +1,8 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { type FormEvent, useRef, useState } from "react";
+import { type FormEvent, useState } from "react";
+import { DemoAccounts } from "@/components/demo-accounts";
 import { Notice } from "@/components/notice";
 import { Pass, type PassCell, SkillChips, VerificationStub } from "@/components/pass";
 import { Canopy, TopBar } from "@/components/portal-shell";
@@ -12,7 +13,7 @@ import { formatDate, middle } from "@/lib/format";
 import { type Session, signIn, signOut, useSession } from "@/lib/session";
 import { useApi } from "@/lib/use-api";
 
-const VERIFIERS = DEMO_GROUPS.find((group) => group.role === "Verifier")?.accounts ?? [];
+const VERIFIERS = DEMO_GROUPS.filter((group) => group.role === "Verifier");
 
 const LINK_ERRORS: Record<string, { title: string; body: string }> = {
   SHARE_LINK_NOT_FOUND: {
@@ -68,7 +69,7 @@ function VerifierSignIn({ shareToken, session }: { shareToken: string; session: 
   const [password, setPassword] = useState("");
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
-  const passwordRef = useRef<HTMLInputElement>(null);
+  const [withPassword, setWithPassword] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -106,47 +107,28 @@ function VerifierSignIn({ shareToken, session }: { shareToken: string; session: 
           {session ? (
             <p className="small muted">You are signed in as {session.username}, which is not a verifier account.</p>
           ) : (
-            <p className="small muted">Pick a demo verifier, then enter the shared demo password.</p>
+            <p className="small muted">Pick a demo verifier. One click signs you in and runs the check.</p>
           )}
         </div>
-        <div className="accounts__chips" role="group" aria-label="Demo verifiers">
-          {VERIFIERS.map((account) => (
-            <button
-              key={account.username}
-              type="button"
-              className="account-chip"
-              aria-pressed={username === account.username}
-              onClick={() => {
-                setUsername(account.username);
-                passwordRef.current?.focus();
-              }}
-            >
-              <span className="mono">{account.username}</span>
-              <span className="small">{account.note}</span>
+        {/* Only verifier accounts are listed, so a one-click sign-in always lands on the check. */}
+        <DemoAccounts groups={VERIFIERS} onSignedIn={() => undefined} onOff={() => setWithPassword(true)} />
+        <details className="password-signin" open={withPassword} onToggle={(e) => setWithPassword(e.currentTarget.open)}>
+          <summary>Sign in with a password</summary>
+          <form className="stack" onSubmit={submit} noValidate>
+            <label className="field">
+              <span className="label">Username</span>
+              <input className="input" autoComplete="username" placeholder="verifier.a" value={username} onChange={(e) => setUsername(e.target.value)} />
+            </label>
+            <label className="field">
+              <span className="label">Password</span>
+              <input className="input" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </label>
+            {error ? <Notice error={error} /> : null}
+            <button className="btn btn--primary btn--block" type="submit" disabled={busy || !username || !password}>
+              {busy ? "Signing in" : "Sign in and verify"}
             </button>
-          ))}
-        </div>
-        <form className="stack" onSubmit={submit} noValidate>
-          <label className="field">
-            <span className="label">Username</span>
-            <input className="input" autoComplete="username" placeholder="verifier.a" value={username} onChange={(e) => setUsername(e.target.value)} />
-          </label>
-          <label className="field">
-            <span className="label">Password</span>
-            <input
-              ref={passwordRef}
-              className="input"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </label>
-          {error ? <Notice error={error} /> : null}
-          <button className="btn btn--primary btn--block" type="submit" disabled={busy || !username || !password}>
-            {busy ? "Signing in" : "Sign in and verify"}
-          </button>
-        </form>
+          </form>
+        </details>
       </section>
     </div>
   );

@@ -142,7 +142,7 @@ effects:
 
 - **Top bar:** a floating glass pill, sticky 12px from the top, max 1280px wide. Brand mark and wordmark, the portal name chip, a segmented nav (white pill on the active item), then Synthetic data and the account button (avatar, name, chevron) on the right. The account button opens a small menu with the username, the role, and a translucent pink-red Sign out pill; Sign out always asks once in a modal dialog (Cancel / Sign out) before it signs out and returns to `/`. Signed-out pages show a pink Sign in instead, except on `/signin` and on a share link's page, which has its own inline sign-in. Below 1024px the nav moves to a second row; below 768px section anchors and the account name hide (the avatar stays, since it is the way to sign out) so the bar stays one row.
 - **Landing (`/`):** hero panel (44px radius, ledger grid, 3D certificate with floating glass readouts) → "How it works" as three numbered steps with 3D art (a real sequence: Issue, Share, Verify) → the dark skill-fit band → "Safe by design" (on the registry vs. never on the registry, then four rules) → demo band with one chip per role → footer.
-- **Sign in (`/signin`):** blue panel with the certificate on the left, a glass form on the right. Demo accounts are grouped by role with their 3D art. Picking one fills the username and focuses the password. `?u=<username>` does the same on arrival, and `?next=` returns to the page that asked for sign-in.
+- **Sign in (`/signin`):** blue panel with the 3D certificate on the left, a glass form on the right. Demo accounts are cards grouped by role under their 3D art: a royal avatar with initials, a synthetic display name, the role and organisation, and the login name in mono. One click signs in (no password; the web server holds the demo password), with a spinner on the card while it works. `?u=<username>` highlights that card on arrival, and `?next=` returns to the page that asked for sign-in. A quiet "Sign in with a password" disclosure keeps the username and password form for `platform.admin`, and opens by itself when the server has no demo password. A share link's page offers its demo verifiers the same way.
 - **Portals:** a solid royal canopy (330px, grid lines, 44px bottom radius) sits behind the top bar and the page head, which turns white on it. The glass content below overlaps the canopy's edge. The page head has the role's 3D art (84px), a title, and one sentence, with the primary action on the right. The verify page shows the canopy once a verifier is signed in. Two work areas at most: a fluid main area and a 480px side panel (420px below 1280px, stacked below 1024px).
 - **Breakpoints:** 1280, 1024, and 768px. Below 768px the stub sits above the pass body so the verdict is read first on a phone.
 
@@ -157,7 +157,7 @@ effects:
 One orchestrated moment per page, then stillness.
 
 - **Show up:** every page's top-level blocks rise 18px from a 10px blur over 700ms on `ease-out`, staggered by 70ms. The second work area follows 160ms later.
-- **Hero:** the two headline lines ("Proof," and "not promises.", never wrapped) rise in turn, the certificate settles in from a slight tilt without blur and then drifts slowly (8s loop), and the glass readouts arrive last.
+- **Hero:** the two headline lines ("Proof," and "not promises.", never wrapped) rise in turn, the certificate settles in from a slight tilt without blur and then floats as a live 3D object (three.js: a slow rise and fall with a gentle sway that leans toward the pointer; still under reduced motion, paused off screen), and the glass readouts arrive last. The WebP holds its place until the first 3D frame and stays when WebGL is unavailable.
 - **Verdict:** the verdict word lands with one stamp (scale 1.18 → 1 with blur), then the three checks rise in order. This is the only flourish in the portals.
 - **Results:** similarity bars grow from the left, and a new share link or skill-fit result scrolls itself into view.
 - **Scroll:** landing sections reveal with a scroll-driven `animation-timeline: view()` where the browser supports it, and simply show otherwise.
@@ -215,4 +215,4 @@ Pill-shaped, at least 46px tall. **Primary:** action pink with ink text and a pi
 - Don't show AI output without REKOMENDASI, its limitations, and the not-a-decision line.
 - Don't put text directly on heavy blur; give it a white or navy-tinted surface.
 - Don't add gradient colour washes; use solid royal, light blue paper, and the 3D art.
-- Don't add motion that plays on its own beyond the page's show-up sequence, the hero drift, and the verdict stamp.
+- Don't add motion that plays on its own beyond the page's show-up sequence, the 3D certificate's float, and the verdict stamp.
