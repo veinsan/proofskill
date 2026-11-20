@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import type { Role } from "@/lib/api";
-import { HOME_BY_ROLE, type Session, signOut, useSession } from "@/lib/session";
+import { HOME_BY_ROLE, type Session, useSession } from "@/lib/session";
+import { AccountMenu } from "./account-menu";
 import { BrandMark } from "./icons";
 
 export type Portal = "issuer" | "holder" | "verifier";
@@ -25,7 +26,6 @@ const PORTALS: Record<Portal, { name: string; role: Role; nav: { href: string; l
 
 export function TopBar({ portal, session, children }: { portal?: Portal; session: Session | null | undefined; children?: ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const config = portal ? PORTALS[portal] : null;
   return (
     <header className="topbar">
@@ -55,22 +55,7 @@ export function TopBar({ portal, session, children }: { portal?: Portal; session
                 My portal
               </Link>
             ) : null}
-            <span className="account" title={session.username}>
-              <span className="avatar" aria-hidden="true">
-                {session.username.slice(0, 1)}
-              </span>
-              <span className="account__name">{session.username}</span>
-            </span>
-            <button
-              type="button"
-              className="topbar__signout"
-              onClick={() => {
-                signOut();
-                router.push("/");
-              }}
-            >
-              Sign out
-            </button>
+            <AccountMenu session={session} />
           </>
         ) : session === null && pathname !== "/signin" && !pathname.startsWith("/v/") ? (
           <Link className="btn btn--primary" href="/signin" style={{ minHeight: 40 }}>

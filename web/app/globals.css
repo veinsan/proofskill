@@ -447,13 +447,35 @@ svg {
   white-space: nowrap;
 }
 
+.account-menu {
+  position: relative;
+}
+
+/* The avatar is the account control: it opens a menu, it never signs out directly. */
 .account {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  padding: 4px 10px 4px 4px;
+  border-radius: var(--r-pill);
   font-size: 0.875rem;
   font-weight: 500;
   white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.account:hover,
+.account[aria-expanded="true"] {
+  background: rgb(14 26 59 / 0.06);
+}
+
+.account__chevron {
+  color: var(--ink-3);
+  transition: rotate 0.25s var(--ease-out);
+}
+
+.account[aria-expanded="true"] .account__chevron {
+  rotate: 180deg;
 }
 
 .avatar {
@@ -469,18 +491,100 @@ svg {
   text-transform: uppercase;
 }
 
-.topbar__signout {
-  padding: 8px 14px;
-  border-radius: var(--r-pill);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--ink-2);
-  transition: background 0.2s;
+.avatar--lg {
+  width: 40px;
+  height: 40px;
+  font-size: 1rem;
 }
 
-.topbar__signout:hover {
-  background: rgb(14 26 59 / 0.06);
+@keyframes drop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+}
+
+.account-menu__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 30;
+  display: grid;
+  gap: var(--s-md);
+  width: 240px;
+  padding: var(--s-md);
+  border-radius: var(--r-lg);
+  /* Near-solid: a backdrop blur cannot work inside the top bar, which is itself a backdrop root. */
+  background: rgb(255 255 255 / 0.97);
+  border: 1px solid var(--line);
+  box-shadow: var(--lift);
+  transform-origin: top right;
+  animation: drop 0.22s var(--ease-out) both;
+}
+
+.account-menu__who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 4px var(--s-md);
+  border-bottom: 1px solid var(--line);
+}
+
+.account-menu__who b {
+  display: block;
+  font-weight: 650;
+}
+
+/* Sign out: the one destructive action in the shell, a translucent pink-red pill. */
+.btn--danger {
+  min-height: 42px;
+  background: rgb(255 61 107 / 0.14);
+  border: 1px solid rgb(255 61 107 / 0.32);
+  color: #b3133a;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: rgb(255 61 107 / 0.22);
+  border-color: rgb(255 61 107 / 0.5);
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+}
+
+.confirm-dialog {
+  margin: auto;
+  width: min(420px, calc(100% - 32px));
+  padding: var(--s-xl);
+  border: 1px solid var(--glass-edge);
+  border-radius: var(--r-xl);
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  box-shadow: var(--lift);
   color: var(--ink);
+}
+
+.confirm-dialog[open] {
+  display: grid;
+  gap: var(--s-md);
+  animation: pop 0.28s var(--ease-out) both;
+}
+
+.confirm-dialog::backdrop {
+  background: rgb(14 26 59 / 0.35);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.confirm-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s-sm);
+  margin-top: var(--s-sm);
 }
 
 /* --- Page frame ------------------------------------------------------------------------ */
@@ -2211,8 +2315,7 @@ button.skill-chip:hover {
   }
 
   /* One row on a phone: anchor links and the avatar give way to the actions. */
-  .nav--sections,
-  .account {
+  .nav--sections {
     display: none;
   }
 
