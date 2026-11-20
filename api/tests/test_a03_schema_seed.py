@@ -6,11 +6,31 @@ from app import db, rgs, seed
 
 
 def test_migrations_apply_once_to_an_empty_database(conn: db.psycopg.Connection[db.DictRow]) -> None:
-    assert db.migrate(conn) == ["001_init.sql"]
+    assert db.migrate(conn) == ["001_init.sql", "002_enable_rls.sql"]
     assert db.migrate(conn) == []
 
     columns = {row["column_name"] for row in conn.execute("SELECT column_name FROM information_schema.columns")}
     assert "nik" not in columns  # NFR-02: no national ID anywhere off-chain either
+
+
+def test_b01_every_table_has_row_level_security(conn: db.psycopg.Connection[db.DictRow]) -> None:
+    """On Supabase, RLS with no policies keeps the public Data API out of every table."""
+    db.migrate(conn)
+    tables = conn.execute(
+        "SELECT relname, relrowsecurity FROM pg_class WHERE relnamespace = 'public'::regnamespace AND relkind = 'r'"
+    ).fetchall()
+    assert len(tables) == 11  # ten from 001_init.sql plus schema_migrations
+    assert [t["relname"] for t in tables if not t["relrowsecurity"]] == []
+
+
+def test_b01_reset_empties_the_schema_but_keeps_it(conn: db.psycopg.Connection[db.DictRow]) -> None:
+    db.migrate(conn)
+    db.reset(conn)
+    left = conn.execute(
+        "SELECT count(*) AS n FROM pg_class WHERE relnamespace = 'public'::regnamespace AND relkind IN ('r', 'S')"
+    ).fetchone()
+    assert left == {"n": 0}
+    assert conn.execute("SELECT to_regnamespace('public') IS NOT NULL AS kept").fetchone() == {"kept": True}
 
 
 def test_seed_loads_synthetic_rows_and_can_run_again(conn: db.psycopg.Connection[db.DictRow]) -> None:
