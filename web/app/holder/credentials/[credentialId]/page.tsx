@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CopyButton } from "@/components/copy-button";
 import { CredentialPass } from "@/components/credential-pass";
+import { ArrowLeftIcon } from "@/components/icons";
 import { Notice } from "@/components/notice";
 import { PortalShell } from "@/components/portal-shell";
 import { ShareQr } from "@/components/share-qr";
@@ -34,6 +35,11 @@ function SharePanel({ view, session, onChange }: { view: CredentialView; session
   const [created, setCreated] = useState<ShareLink | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
+  const createdRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (created) createdRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [created]);
 
   function toggle(field: ScopeField) {
     setScope((current) => (current.includes(field) ? current.filter((f) => f !== field) : [...current, field]));
@@ -99,11 +105,11 @@ function SharePanel({ view, session, onChange }: { view: CredentialView; session
       </label>
       {error ? <Notice error={error} title="Not shared." /> : null}
       <button className="btn btn--primary btn--block" type="button" onClick={create} disabled={busy || scope.length === 0}>
-        {busy ? "Creating link" : "Create share link"}
+        {busy ? "Creating link" : created ? "Create another link" : "Create share link"}
       </button>
 
       {created ? (
-        <div className="share-result" aria-live="polite">
+        <div ref={createdRef} className="share-result" aria-live="polite">
           <ShareQr url={created.url} linkId={created.linkId} />
           <div className="stack" style={{ gap: "var(--s-sm)" }}>
             <div className="label">
@@ -155,9 +161,13 @@ function HolderCredential({ session }: { session: Session }) {
   const { result, reload } = useApi(() => api<CredentialView>(`/credentials/${credentialId}`, { token: session.token }), credentialId);
   return (
     <>
-      <p className="crumb">
-        <Link href="/holder">My credentials</Link> / <b className="mono">{credentialId}</b>
-      </p>
+      <nav className="crumb" aria-label="Breadcrumb">
+        <Link href="/holder">
+          <ArrowLeftIcon />
+          My credentials
+        </Link>
+        <b className="mono">{credentialId}</b>
+      </nav>
       {result.state === "loading" ? <div className="skeleton" style={{ height: 520 }} aria-busy="true" /> : null}
       {result.state === "error" ? <Notice error={result.error} title="This credential could not load." /> : null}
       {result.state === "ok" ? (

@@ -35,6 +35,46 @@ export function ArrowRightIcon({ size = 22, label }: IconProps) {
   );
 }
 
+/** The brand mark: the deck's scalloped seal with a tick. */
+export function BrandMark({ className = "brand__mark" }: { className?: string }) {
+  const points = Array.from({ length: 24 }, (_, i) => {
+    const r = i % 2 ? 13.2 : 15;
+    const a = (i / 24) * Math.PI * 2;
+    return `${(16 + r * Math.cos(a)).toFixed(2)},${(16 + r * Math.sin(a)).toFixed(2)}`;
+  }).join(" ");
+  return (
+    <svg className={className} viewBox="0 0 32 32" aria-hidden="true">
+      <polygon points={points} fill="#2453d6" strokeLinejoin="round" />
+      <circle cx="16" cy="16" r="9.5" fill="none" stroke="#f7a8c4" strokeWidth="1.4" />
+      <path d="M11.5 16.4l3.1 3 6-6.4" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function CheckIcon({ size = 16, label }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...a11y(label)}>
+      <path d="M3 8.5l3.2 3L13 4.5" />
+    </svg>
+  );
+}
+
+export function CrossIcon({ size = 16, label }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" {...a11y(label)}>
+      <path d="M4 4l8 8M12 4l-8 8" />
+    </svg>
+  );
+}
+
+export function ArrowLeftIcon({ size = 16, label }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...a11y(label)}>
+      <path d="M13 8H3M7 4L3 8l4 4" />
+    </svg>
+  );
+}
+
 export function CopyIcon({ size = 16, label }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" {...a11y(label)}>

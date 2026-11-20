@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useState } from "react";
 import { FieldError, Notice } from "@/components/notice";
-import { PortalShell } from "@/components/portal-shell";
+import { PageHead, PortalShell } from "@/components/portal-shell";
 import { api, type ApiError, type CredentialIssued, type Page, type Skill } from "@/lib/api";
+import { DEMO_HOLDERS } from "@/lib/demo";
 import type { Session } from "@/lib/session";
 
 function SkillPicker({ token, selected, onToggle }: { token: string; selected: Skill[]; onToggle: (skill: Skill) => void }) {
@@ -98,12 +99,7 @@ function IssueForm({ session }: { session: Session }) {
 
   return (
     <form onSubmit={submit} noValidate>
-      <div className="page-head">
-        <div>
-          <h1 className="title">Issue a credential</h1>
-          <p className="small muted">For a participant whose graduation you have already validated (T01).</p>
-        </div>
-      </div>
+      <PageHead title="Issue a credential" art="issuer" lede="For a participant whose graduation you have already validated (T01)." />
       <div className="workspace">
         <section className="panel">
           <div className="cells" style={{ gap: "var(--s-lg) var(--s-xl)" }}>
@@ -124,6 +120,21 @@ function IssueForm({ session }: { session: Session }) {
                   The participant&apos;s pseudonymous reference. It is hashed; their name is not.
                 </span>
               )}
+              <span className="hint-chips" aria-label="Demo holders">
+                {DEMO_HOLDERS.map((holder) => (
+                  <button
+                    key={holder.holderRef}
+                    type="button"
+                    className="hint-chip"
+                    onClick={() => {
+                      setHolderRef(holder.holderRef);
+                      if (!displayName) setDisplayName(holder.name);
+                    }}
+                  >
+                    {holder.holderRef}
+                  </button>
+                ))}
+              </span>
             </label>
             <label className="field">
               <span className="label">Holder display name</span>
@@ -155,6 +166,7 @@ function IssueForm({ session }: { session: Session }) {
         </section>
 
         <aside className="panel">
+          <img src="/art/chain.webp" alt="" width={96} height={69} style={{ width: 96 }} />
           <h2 className="title">What the registry records</h2>
           <p className="small">
             The registry receives only a SHA-256 commitment of the credential plus a random nonce, the issuer, the status, and the

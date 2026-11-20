@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { CredentialPass } from "@/components/credential-pass";
-import { DotIcon } from "@/components/icons";
+import { ArrowLeftIcon, DotIcon } from "@/components/icons";
 import { Notice } from "@/components/notice";
 import { PortalShell } from "@/components/portal-shell";
 import { api, type ApiError, type CredentialView, type RevocationResult } from "@/lib/api";
@@ -104,11 +104,15 @@ function CredentialDetail({ session }: { session: Session }) {
   const { result, reload } = useApi(() => api<CredentialView>(`/credentials/${credentialId}`, { token: session.token }), `${credentialId}`);
   return (
     <>
-      <p className="crumb">
-        <Link href="/issuer">Issued credentials</Link> / <b className="mono">{credentialId}</b>
-      </p>
+      <nav className="crumb" aria-label="Breadcrumb">
+        <Link href="/issuer">
+          <ArrowLeftIcon />
+          Issued credentials
+        </Link>
+        <b className="mono">{credentialId}</b>
+      </nav>
       {justIssued && result.state === "ok" && result.data.status === "active" ? (
-        <p className="notice" role="status" style={{ marginBottom: "var(--s-lg)", borderWidth: 1 }}>
+        <p className="notice notice--good" role="status" style={{ marginBottom: "var(--s-lg)" }}>
           <DotIcon />
           <span>Issued and anchored on the registry. The holder was notified by (simulated) email.</span>
         </p>
