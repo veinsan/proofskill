@@ -103,7 +103,12 @@ export function PortalShell({ portal, children }: { portal: Portal; children: (s
 
 /** The solid royal band behind the top bar and page head; the glass below overlaps its edge. */
 export function Canopy() {
-  return <div className="canopy" aria-hidden="true" />;
+  return (
+    <>
+      <div className="canopy" aria-hidden="true" />
+      <div className="canopy-cap" aria-hidden="true" />
+    </>
+  );
 }
 
 /** Page heading with the role's 3D art. */
