@@ -38,7 +38,7 @@ The team locked the stack on 2026-11-19 (report Tabel 10.3). Versions were pinne
 | Tool | Role |
 | --- | --- |
 | Vercel | Hosts `web/` (B-06) and, since B-05, `api/` as a Python function (Hobby plan, no card; region `sin1`; `api/vercel.json` and `[tool.vercel]` in `api/pyproject.toml`). The web app's `API_ORIGIN` points at the API project. Render was dropped on 2026-11-20 because it refused the team's debit cards |
-| Supabase | Postgres for off-chain data since B-01 (project in Singapore, reached through the session pooler; Row Level Security on every table, no policies) and Auth for accounts in B-02; API-00 proxies Supabase sign-in |
+| Supabase | Postgres for off-chain data since B-01 (project in Singapore, reached through the transaction pooler from Vercel and the session pooler from local scripts; Row Level Security on every table, no policies) and Auth for accounts in B-02; API-00 proxies Supabase sign-in |
 | Base Sepolia testnet | Hosts `ProofSkillRegistry` at `0xFB11769EBD22fe1Ac40391227e6526ccf077D136` (B-03, `api/deployments/baseSepolia.json`, inside the API's Vercel project). RGS signs with one key per issuer plus the registry owner's key, kept in the untracked `.env.testnet` and as Vercel environment variables (OD-12). Signed sends are serialized per account by a Postgres advisory lock, because Vercel runs requests concurrently in and across instances |
 | Gemini API (free tier) | Embeddings since B-04 and the matching judge since B-08, both called by AMS; the key is a Vercel environment variable of the API project |
 | Reserved: OpenCV / YOLO / MediaPipe, RunPod, LangChain | Not used by any current feature. Add one only after the PRD scopes a feature that needs it |
@@ -156,6 +156,6 @@ The user handles staging, commits, and pushes. When the code changes are done, s
 1. `git add -- <changed-file-paths>`
 2. `git diff --cached`
 3. `git commit -m "<message describing the change>"`
-4. `git push origin main` (remote `origin` is `https://github.com/veinsan/proofskill`; use the current branch if it is not `main`)
+4. `git push -u origin <branch>` (remote `origin` is `https://github.com/veinsan/proofskill`). Work happens on one branch per step (`feat/...`, `fix/...`, `docs/...`, `test/...`), and the user merges it through a pull request on GitHub
 
 Do not stage, commit, or push through any tool yourself.

@@ -68,7 +68,7 @@ ProofSkill is not a talent-search tool and not just certificate storage. It comp
   - `holderDisplayName` is stored off-chain only.
   - The holder's scope and expiry decide which fields a verifier sees.
 - **Terminology.** Enum values and error codes stay exactly as written in the report. That covers VALID, REVOKED, TAMPERED, ISSUER_UNAUTHORIZED, REKOMENDASI, active, revoked, and the codes in report 9.5. ID prefixes are CRD-, ISS-, SHL-, VER-, MAT-, HLD-, and SK-.
-- **Out of scope.** Candidate search, PDDikti or PISN integration, ATS integration, payment, a public blockchain, storing original documents, and production-grade identity management. Correction versions (API-11, FR-11) are specified only, not built.
+- **Out of scope.** Candidate search, PDDikti or PISN integration, ATS integration, payment, a blockchain mainnet (the deployment uses the Base Sepolia public testnet), storing original documents, and production-grade identity management. Correction versions (API-11, FR-11) are specified only, not built.
 - **Decisions of 2026-11-19 (PRD Open Decisions):**
   - A `platform_admin` role registers issuers through API-01.
   - ISSUER_UNAUTHORIZED appears when the platform admin deactivates an issuer on the registry.
