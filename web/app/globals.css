@@ -134,6 +134,15 @@ body {
   overflow: hidden;
 }
 
+/* Keeps the strip above the sticky top bar royal after the canopy scrolls away. */
+.canopy-cap {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 19;
+  height: 12px;
+  background: var(--royal);
+}
+
 
 .portal .page-head h1,
 .portal .page-head p,
@@ -2527,6 +2536,10 @@ button.skill-chip:hover {
   .canopy {
     height: 300px;
     border-radius: 0 0 32px 32px;
+  }
+
+  .canopy-cap {
+    height: 8px;
   }
 
   .backdrop__c {
